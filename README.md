@@ -16,4 +16,4 @@
 
 ## 8/29(목)
 - 최종 프로젝트 아이디어 기획
-![image.png](./image.png)
+![finalidea.png](./finalidea.png)
