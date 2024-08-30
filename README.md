@@ -16,3 +16,6 @@
 
 ## 8/29(목)
 ![finalidea.png](./finalidea.png)
+
+## 8/30(금)
+![image.png](./image.png)
