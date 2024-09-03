@@ -130,7 +130,8 @@
 
 <details><summary> week2
 </summary>
-<details><summary>day1 (기존 블랙프라이데이에 금리, 대출 추가)
+<details>
+<summary>day1 (기존 블랙프라이데이에 금리, 대출 추가)
 </summary>
 
 ![easyme](/uploads/23f5548b60ea31ce73b9314843052d60/F10F3048-1946-4B59-9038-96BA3B15AC0C.jpg)
@@ -174,6 +175,29 @@
     - 3명 이상이 게임을 하다가 한 명이 갑자기 나갔을 경우도 고려해야 함
         - 나간 사람 턴을 어떻게 할 것인가
         - 코치님 네는 해결을 못해서 봇으로 대체하셨음
+</details>
+
+<details>
+<summary>day2 (순서도)
+</summary>
+
+### 오늘 한 일
+- [🌲 순서도 게임 로직 정리 figma](https://www.figma.com/board/MQPH1pZWkN7CF15FK1Ezcp/%EC%88%9C%EC%84%9C%EB%8F%84---%EA%B2%8C%EC%9E%84-%EB%A1%9C%EC%A7%81?node-id=0-1&t=lR4gNds70XMbcXdl-1)
+
+### 회고
+**Keep** 
+- 서로 생각하고 있는 프로세스가 동일한지 점검하면서 같이 작성하는 것이 좋았다.
+
+**Problem**
+- 과업에 대한 기한이 명확하지 않다. api를 빨리 만들어줘야 해서 마음이 급해졌다.
+
+**Try**
+- bot의 동작 로직을 생각해봐야 할 것 같다. 최적이 좋을지, 랜덤이 좋을지도 고려해봐야 할 것 같다.
+
+### 내일 할 것
+- 백 팀원들과 업무 분담 및 기능 명세 작성
+- bot에 대해 공부
+
 </details>
 
 </details>
