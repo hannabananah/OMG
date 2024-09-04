@@ -200,4 +200,28 @@
 
 </details>
 
+
+<details>
+<summary>day3 (순서도 완료 및 기능명세서 작성)
+</summary>
+
+### 오늘 한 일
+- [🌲 순서도 게임 로직 정리 figma](https://www.figma.com/board/MQPH1pZWkN7CF15FK1Ezcp/%EC%88%9C%EC%84%9C%EB%8F%84---%EA%B2%8C%EC%9E%84-%EB%A1%9C%EC%A7%81?node-id=0-1&t=lR4gNds70XMbcXdl-1)
+- [🎨 기능명세서](https://www.notion.so/d963e898d603491695c5ecb0e6e2c11b)
+
+### 회고
+**Keep**
+- 셋이 모여서 가능한 경우의 수를 같이 토의하다 보니 많은 경우의 수를 고려할 수 있었다.
+
+**Problem**
+- 보드게임을 기준으로 기능 명세를 작성하다 보니 상상으로 기능을 구분해야 해서 조금 어려웠다. 
+
+**Try**
+- 전체 팀원들과 화면 구성을 토의해봐야 할 것 같다.
+
+### 내일 할 것
+- 기능 명세서 작성 및 화면 구성 토의
+
+</details>
+
 </details>
