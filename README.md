@@ -1,7 +1,7 @@
 <details>
-<summary>Week 2</summary>
+<summary>Week 3</summary>
 
-# 📍 09.06(10th)
+# 📍 09.09(11th)
 
 ### 오늘 한 것
 
