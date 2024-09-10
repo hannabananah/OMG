@@ -1,0 +1,11 @@
+Model Information:
+* title:	Fruit Stall (highpoly)
+* source:	https://sketchfab.com/3d-models/fruit-stall-highpoly-13eb04acf51145bd81bc280662ed87f5
+* author:	Tunnie (https://sketchfab.com/lktung611)
+
+Model License:
+* license type:	CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)
+* requirements:	Author must be credited. Commercial use is allowed.
+
+If you use this 3D model in your project be sure to copy paste this credit wherever you share it:
+This work is based on "Fruit Stall (highpoly)" (https://sketchfab.com/3d-models/fruit-stall-highpoly-13eb04acf51145bd81bc280662ed87f5) by Tunnie (https://sketchfab.com/lktung611) licensed under CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)
