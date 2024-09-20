@@ -2,6 +2,8 @@ package com.ssafy.omg.domain.game.service;
 
 import com.ssafy.omg.config.baseresponse.BaseException;
 import com.ssafy.omg.domain.arena.entity.Arena;
+import com.ssafy.omg.domain.game.GameRepository;
+import com.ssafy.omg.domain.game.dto.PlayerMoveRequest;
 import com.ssafy.omg.domain.game.entity.Game;
 import com.ssafy.omg.domain.game.entity.GameStatus;
 import com.ssafy.omg.domain.player.entity.Player;
@@ -24,6 +26,7 @@ public class GameServiceImpl implements GameService {
     // Redis에서 대기방 식별을 위한 접두사 ROOM_PREFIX 설정
     private static final String ROOM_PREFIX = "room";
     private final int[][] LOAN_RANGE = new int[][]{{50, 100}, {150, 300}, {500, 1000}};
+    private final GameRepository gameRepository;
 
     // 초기화
 
@@ -187,6 +190,29 @@ public class GameServiceImpl implements GameService {
     // 주식 매도
 
     // 금괴 매입
+
+
+    // 플레이어 이동
+    @Override
+    public synchronized void movePlayer(PlayerMoveRequest playerMoveRequest) throws BaseException {
+        String roomId = playerMoveRequest.roomId();
+
+        Arena arena = gameRepository.findArenaByRoomId(roomId);
+
+        Player player = findPlayer(arena, playerMoveRequest.nickname());
+
+        player.setDirection(playerMoveRequest.direction());
+        player.setPosition(playerMoveRequest.position());
+
+        gameRepository.saveArena(roomId, arena);
+    }
+
+    private Player findPlayer(Arena arena, String nickname) throws BaseException {
+        return arena.getGame().getPlayers().stream()
+                .filter(p -> p.getNickname().equals(nickname))
+                .findFirst()
+                .orElseThrow(() -> new BaseException(PLAYER_NOT_FOUND));
+    }
 
     /**
      * 요청의 입력유효성 검사
