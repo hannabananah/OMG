@@ -174,11 +174,7 @@ export default function Mickey({ position, onLoadComplete }: Props) {
   return (
     <>
       {/* 캐릭터 렌더링 */}
-      <primitive
-        object={scene}
-        // scale={[0.3, 0.3, 0.3]}
-        position={position}
-      />
+      <primitive object={scene} scale={[10, 10, 10]} position={position} />
     </>
   );
 }
