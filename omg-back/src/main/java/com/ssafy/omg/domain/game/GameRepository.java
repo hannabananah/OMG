@@ -7,6 +7,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Repository;
 
+import java.util.concurrent.TimeUnit;
 
 import static com.ssafy.omg.config.baseresponse.BaseResponseStatus.GAME_NOT_FOUND;
 
@@ -27,6 +28,7 @@ public class GameRepository {
     }
 
     public void saveArena(String roomId, Arena arena) {
-        redisTemplate.opsForValue().set(ROOM_PREFIX + roomId, arena);
+        Long currentTtl = redisTemplate.getExpire(ROOM_PREFIX + roomId);
+        redisTemplate.opsForValue().set(ROOM_PREFIX + roomId, arena, currentTtl, TimeUnit.MINUTES);
     }
 }
