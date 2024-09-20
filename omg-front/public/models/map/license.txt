@@ -1,11 +1,8 @@
 Model Information:
-* title:	Medieval Plaza
-* source:	https://sketchfab.com/3d-models/medieval-plaza-929e5033556c4b1784f4169d0127ecd5
-* author:	pigfinite (https://sketchfab.com/pigfinite)
+* title:	Christmas Cartoon Farm
+* source:	https://sketchfab.com/3d-models/christmas-cartoon-farm-40f2c02a7e2a43cf8ab2a977df9090db
+* author:	souchenki (https://sketchfab.com/souchenki)
 
 Model License:
-* license type:	CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)
-* requirements:	Author must be credited. Commercial use is allowed.
-
-If you use this 3D model in your project be sure to copy paste this credit wherever you share it:
-This work is based on "Medieval Plaza" (https://sketchfab.com/3d-models/medieval-plaza-929e5033556c4b1784f4169d0127ecd5) by pigfinite (https://sketchfab.com/pigfinite) licensed under CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)
+* license type:	SKETCHFAB Standard (https://sketchfab.com/licenses)
+* requirements:	Under basic restrictions, use worldwide, on all types of media, commercially or not, and in all types of derivative works
