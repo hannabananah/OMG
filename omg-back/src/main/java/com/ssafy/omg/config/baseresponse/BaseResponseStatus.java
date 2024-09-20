@@ -53,6 +53,8 @@ public enum BaseResponseStatus {
 
     // game
     ARENA_NOT_FOUND(false, 3031, "아레나가 존재하지 않습니다."),
+    INVALID_ROUND(false, 3032, "경제 이벤트가 발생하기에 유효하지 않은 라운드입니다."),
+    EVENT_NOT_FOUND(false, 3033, "경제 이벤트가 존재하지 않습니다."),
 
     // 3101 ~~ 3199 : 이가은
     GAME_NOT_FOUND(false, 3101, "게임이 존재하지 않습니다."),

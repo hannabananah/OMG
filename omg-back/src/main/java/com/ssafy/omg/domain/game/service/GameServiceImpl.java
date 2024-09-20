@@ -6,20 +6,22 @@ import com.ssafy.omg.domain.game.GameRepository;
 import com.ssafy.omg.domain.game.dto.PlayerMoveRequest;
 import com.ssafy.omg.domain.game.dto.UserActionResponse;
 import com.ssafy.omg.domain.game.entity.Game;
+import com.ssafy.omg.domain.game.entity.GameEvent;
 import com.ssafy.omg.domain.game.entity.GameStatus;
+import com.ssafy.omg.domain.game.repository.GameEventRepository;
 import com.ssafy.omg.domain.player.entity.Player;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
+import java.util.concurrent.TimeUnit;
 
 import static com.ssafy.omg.config.baseresponse.BaseResponseStatus.*;
 import static com.ssafy.omg.domain.game.entity.ActionStatus.ACTION_SUCCESS;
 import static com.ssafy.omg.domain.player.entity.PlayerStatus.NOT_STARTED;
+import static org.hibernate.query.sqm.tree.SqmNode.log;
 
 @Service
 @RequiredArgsConstructor
@@ -30,6 +32,7 @@ public class GameServiceImpl implements GameService {
     // Redis에서 대기방 식별을 위한 접두사 ROOM_PREFIX 설정
     private static final String ROOM_PREFIX = "room";
     private final int[][] LOAN_RANGE = new int[][]{{50, 100}, {150, 300}, {500, 1000}};
+    private final GameEventRepository gameEventRepository;
     private final GameRepository gameRepository;
 
     // 초기화
@@ -59,7 +62,8 @@ public class GameServiceImpl implements GameService {
                         .direction(new double[]{0, 0, 0}) // TODO 임시로 (0,0,0)으로 해뒀습니다 고쳐야함
                         .hasLoan(0)
                         .loan(0)
-//                        .interestRate(0)
+                        .interest(0)
+                        .debt(0)
                         .cash(100)
                         .stock(new int[]{0, 0, 0, 0, 0, 0})
                         .gold(0)
@@ -71,6 +75,8 @@ public class GameServiceImpl implements GameService {
                 players.add(newPlayer);
             }
 
+            int[] randomEvent = generateRandomEvent();
+
             Game newGame = Game.builder()
                     .gameId(roomId)
                     .gameStatus(GameStatus.BEFORE_START)  // 게임 대기 상태로 시작
@@ -81,7 +87,7 @@ public class GameServiceImpl implements GameService {
                     .isStockChanged(new boolean[6])       // 5개 주식에 대한 변동 여부 초기화
                     .isGoldChanged(false)
                     .interestRate(5)                      // 예: 초기 금리 5%로 설정
-                    .economicEvent(0)                     // 초기 경제 이벤트 없음
+                    .economicEvent(randomEvent)           // 초기 경제 이벤트 없음
                     .stockPriceLevel(0)                   // 주가 수준
                     .pocket(new int[]{0, 23, 23, 23, 23, 23})  // 주머니 초기화
                     .market(new Game.StockInfo[]{
@@ -101,11 +107,76 @@ public class GameServiceImpl implements GameService {
             arena.setGame(newGame);
             arena.setMessage("GAME_INITIALIZED");
             arena.setRoom(null);
-            redisTemplate.opsForValue().set(ROOM_PREFIX + roomId, arena);
+            Long currentTtl = redisTemplate.getExpire(ROOM_PREFIX + roomId, TimeUnit.MINUTES);
+            redisTemplate.opsForValue().set(ROOM_PREFIX + roomId, arena, currentTtl, TimeUnit.MINUTES);
         } else {
             throw new BaseException(ARENA_NOT_FOUND);
         }
         return arena;
+    }
+
+    /**
+     * 경제 이벤트 발생(조회) 및 금리 변동 (2~10라운드)
+     *
+     * @param roomId 방 코드
+     * @return 경제 이벤트 정보 반환
+     * @throws BaseException
+     */
+    @Override
+    public GameEvent createGameEventandInterestChange(String roomId) throws BaseException {
+        String roomKey = ROOM_PREFIX + roomId;
+        Arena arena = redisTemplate.opsForValue().get(roomKey);
+        Game game = arena.getGame();
+
+        int currentRound = game.getRound();
+        if (currentRound < 2 || currentRound > 10) {
+            log.info("라운드 수가 적절하지 않습니다. 2~10사이어야합니다.");
+            throw new BaseException(INVALID_ROUND);
+        }
+
+        int[] economicEvent = game.getEconomicEvent();
+        if (economicEvent == null) {
+            throw new BaseException(EVENT_NOT_FOUND);
+        }
+
+        Long eventId = (long) economicEvent[currentRound];
+        GameEvent gameEvent = gameEventRepository.findById(eventId)
+                .orElseThrow(() -> new BaseException(EVENT_NOT_FOUND));
+
+        // 금리 변동 반영
+        int currentInterestRate = game.getInterestRate();
+        currentInterestRate += gameEvent.getValue();
+        if (currentInterestRate < 1) {
+            currentInterestRate = 1;
+        } else if (currentInterestRate > 10) {
+            currentInterestRate = 10;
+        }
+        game.setInterestRate(currentInterestRate);
+
+        arena.setGame(game);
+        Long currentTtl = redisTemplate.getExpire(roomKey, TimeUnit.MINUTES);
+        redisTemplate.opsForValue().set(roomKey, arena, currentTtl, TimeUnit.MINUTES);
+
+        return gameEvent;
+    }
+
+    private int[] generateRandomEvent() throws BaseException {
+        Random random = new Random();
+        Set<Integer> selectedEconomicEvents = new HashSet<>();
+        int[] result = new int[11];
+        for (int i = 2; i < result.length; i++) {
+            int eventIdx;
+            int attempts = 0;
+            do {
+                eventIdx = random.nextInt(22) + 1;
+                if (attempts > 50) {
+                    throw new BaseException(EVENT_NOT_FOUND);
+                }
+            } while (selectedEconomicEvents.contains(eventIdx));
+            result[i] = eventIdx;
+            selectedEconomicEvents.add(eventIdx);
+        }
+        return result;
     }
 
 

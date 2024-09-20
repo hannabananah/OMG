@@ -38,7 +38,7 @@ public class Game {
 
     // [게임] 정보
     private int interestRate;                    // 금리 -> 계산 시 /100으로 %계산 해줘야함
-    private int economicEvent;                    // 경제 이벤트 카드 -> 금리 변동 (0: 초기값, 1~20:이벤트)
+    private int[] economicEvent;                    // 경제 이벤트 카드 -> 금리 변동 (0: 초기값, 1~20:이벤트)
     private int stockPriceLevel;                // 현재 주가 수준
 
     // [게임] 게임판 트랙 정보 & 주머니
@@ -57,6 +57,7 @@ public class Game {
     // 5가지 주식
     @Getter
     @Setter
+    @NoArgsConstructor
     public static class StockInfo {
         private int cnt;     // 주식 시장의 주식토큰 개수
         private int[] state; // 현재 주식의 가격을 stockStandard(주가 기준표) 2차원 배열의 위치값으로 표현
