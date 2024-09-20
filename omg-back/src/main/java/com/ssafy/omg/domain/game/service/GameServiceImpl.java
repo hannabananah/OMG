@@ -97,7 +97,7 @@ public class GameServiceImpl implements GameService {
                     .goldPrice(20)                        // 초기 금 가격 20
                     .goldCnt(0)                           // 초기 금괴 매입 개수 0
                     .build();
-
+            
             arena.setGame(newGame);
             arena.setMessage("GAME_INITIALIZED");
             arena.setRoom(null);
