@@ -2,6 +2,8 @@ package com.ssafy.omg.domain.game.service;
 
 import com.ssafy.omg.config.baseresponse.BaseException;
 import com.ssafy.omg.domain.arena.entity.Arena;
+import com.ssafy.omg.domain.game.GameRepository;
+import com.ssafy.omg.domain.game.dto.PlayerMoveRequest;
 import com.ssafy.omg.domain.game.dto.UserActionResponse;
 import com.ssafy.omg.domain.game.entity.Game;
 import com.ssafy.omg.domain.game.entity.GameStatus;
@@ -28,6 +30,7 @@ public class GameServiceImpl implements GameService {
     // Redis에서 대기방 식별을 위한 접두사 ROOM_PREFIX 설정
     private static final String ROOM_PREFIX = "room";
     private final int[][] LOAN_RANGE = new int[][]{{50, 100}, {150, 300}, {500, 1000}};
+    private final GameRepository gameRepository;
 
     // 초기화
 
@@ -56,7 +59,7 @@ public class GameServiceImpl implements GameService {
                         .direction(new double[]{0, 0, 0}) // TODO 임시로 (0,0,0)으로 해뒀습니다 고쳐야함
                         .hasLoan(0)
                         .loan(0)
-//                        .interestRate(0)                    // TODO interestRate를 interest로 교체해야 합니다, debt 추가해야 함
+//                        .interestRate(0)
                         .cash(100)
                         .stock(new int[]{0, 0, 0, 0, 0, 0})
                         .gold(0)
@@ -104,36 +107,6 @@ public class GameServiceImpl implements GameService {
         }
         return arena;
     }
-    // 초기화
-//	public GameInfo initializeGame(String gameId, List<String> players) {
-//		GameInfo gameInfo = new GameInfo();
-//
-//		gameInfo.setGameId(gameId);
-//		gameInfo.setCurrentPosition(new int[]{0, 0, 0, 0});
-//		gameInfo.setTurn(1);
-//		gameInfo.setRound(1);
-//		gameInfo.setGameStatus("BEFORE_GAME_PLAY");
-//		gameInfo.setStartTime(java.time.LocalDateTime.now().toString());
-//
-//		Map<String, PlayerInfo> playerInfoMap = new HashMap<>();
-//		for (int i = 0; i < players.size(); i++) {
-//			PlayerInfo playerInfo = new PlayerInfo();
-//			playerInfo.setNickname(players.get(i));
-//			playerInfo.setGold(0);
-//			playerInfo.setCash(200);
-//			playerInfo.setToken(new int[]{0, 1, 2, 1, 1});
-//			playerInfoMap.put(String.valueOf(i), playerInfo);
-//		}
-//		gameInfo.setPlayers(playerInfoMap);
-//
-//		redisTemplate.opsForValue().set("game:" + gameId, gameInfo);
-//
-//		return gameInfo;
-//	}
-
-    // TODO
-    // preLoan을 api 따로 빼면 수정
-    // 플레이어 행위 상태(state)는 언제 어디서 업데이트 해줘야 할지
 
 
     // 대출
@@ -237,11 +210,32 @@ public class GameServiceImpl implements GameService {
 
     // 주식 매수
 
-
     // 주식 매도
 
-
     // 금괴 매입
+
+
+    // 플레이어 이동
+    @Override
+    public synchronized void movePlayer(PlayerMoveRequest playerMoveRequest) throws BaseException {
+        String roomId = playerMoveRequest.roomId();
+
+        Arena arena = gameRepository.findArenaByRoomId(roomId);
+
+        Player player = findPlayer(arena, playerMoveRequest.nickname());
+
+        player.setDirection(playerMoveRequest.direction());
+        player.setPosition(playerMoveRequest.position());
+
+        gameRepository.saveArena(roomId, arena);
+    }
+
+    private Player findPlayer(Arena arena, String nickname) throws BaseException {
+        return arena.getGame().getPlayers().stream()
+                .filter(p -> p.getNickname().equals(nickname))
+                .findFirst()
+                .orElseThrow(() -> new BaseException(PLAYER_NOT_FOUND));
+    }
 
     /**
      * 요청의 입력유효성 검사

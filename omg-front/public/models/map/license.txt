@@ -1,0 +1,11 @@
+Model Information:
+* title:	Medieval Plaza
+* source:	https://sketchfab.com/3d-models/medieval-plaza-929e5033556c4b1784f4169d0127ecd5
+* author:	pigfinite (https://sketchfab.com/pigfinite)
+
+Model License:
+* license type:	CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)
+* requirements:	Author must be credited. Commercial use is allowed.
+
+If you use this 3D model in your project be sure to copy paste this credit wherever you share it:
+This work is based on "Medieval Plaza" (https://sketchfab.com/3d-models/medieval-plaza-929e5033556c4b1784f4169d0127ecd5) by pigfinite (https://sketchfab.com/pigfinite) licensed under CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)
