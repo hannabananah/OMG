@@ -12,8 +12,8 @@ import lombok.Setter;
  * - 플레이어 행위(무슨 행동을 하는지), 플레이어 행위 종료 상태, 플레이어 접속 상태, 한 행위 시간
  */
 @Getter
-@Builder
 @Setter
+@Builder(toBuilder = true)
 @AllArgsConstructor
 @NoArgsConstructor
 public class Player {
@@ -23,8 +23,9 @@ public class Player {
     private double[] direction;        // 플레이어 방향
 
     private int hasLoan;               // 대출 유무
-    private int loan;                  // 대출금
-    private int interestRate;          // 이자율
+    private int loan;                  // 대출원금
+    private int interest;              // 이자
+    private int debt;                  // 갚아야 할 금액
     private int cash;                  // 현금
     private int[] stock;               // 보유 주식 개수
     private int gold;                  // 보유 금괴 개수

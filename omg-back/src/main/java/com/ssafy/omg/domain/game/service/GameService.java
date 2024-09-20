@@ -14,5 +14,7 @@ public interface GameService {
 
     void takeLoan(String roomId, String sender, int amount) throws BaseException;
 
+    void repayLoan(String roomId, String sender, int amount) throws BaseException;
+
     void movePlayer(PlayerMoveRequest playerMoveRequest) throws BaseException;
 }
