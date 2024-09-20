@@ -13,9 +13,9 @@ import lombok.Setter;
  */
 @Getter
 @Setter
+@Builder(toBuilder = true)
 @AllArgsConstructor
 @NoArgsConstructor
-@Builder(toBuilder = true)
 public class Player {
     private String nickname;           // 플레이어 닉네임
 
