@@ -1,7 +1,9 @@
 package com.ssafy.omg.domain.player.entity;
 
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 /**
@@ -12,6 +14,8 @@ import lombok.Setter;
 @Getter
 @Builder
 @Setter
+@AllArgsConstructor
+@NoArgsConstructor
 public class Player {
     private String nickname;           // 플레이어 닉네임
 

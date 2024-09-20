@@ -1,22 +1,23 @@
 package com.ssafy.omg.domain.game.controller;
 
+import com.ssafy.omg.config.MessageController;
 import com.ssafy.omg.config.baseresponse.BaseException;
+import com.ssafy.omg.domain.game.dto.PlayerMoveRequest;
 import com.ssafy.omg.domain.game.service.GameService;
 import com.ssafy.omg.domain.room.dto.CommonRoomRequest;
 import com.ssafy.omg.domain.room.dto.CommonRoomResponse;
 import com.ssafy.omg.domain.room.entity.Room;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.messaging.handler.annotation.MessageMapping;
+import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.messaging.simp.SimpMessageSendingOperations;
 import org.springframework.messaging.simp.stomp.StompHeaderAccessor;
-import org.springframework.scheduling.annotation.EnableScheduling;
-import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.CrossOrigin;
 
 @Slf4j
-@Controller
-@EnableScheduling
+@MessageController
 @RequiredArgsConstructor
 @CrossOrigin("*")
 public class GameMessageController {
@@ -57,5 +58,10 @@ public class GameMessageController {
 
         // /sub/{roomId}/game 구독하는 사용자에게 모두 전송
         messagingTemplate.convertAndSend("/sub/" + roomId + "/game", response);
+    }
+
+    @MessageMapping("/player-move")
+    public void playerMove(@Valid @Payload PlayerMoveRequest playerMoveRequest) throws BaseException {
+        gameService.movePlayer(playerMoveRequest);
     }
 }
