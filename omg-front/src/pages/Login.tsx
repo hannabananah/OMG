@@ -4,16 +4,16 @@ export default function Login() {
   const navigate = useNavigate();
 
   const handleClick = () => {
-    navigate('/waiting');
+    navigate('/lobby');
   };
 
   return (
-    <div className='w-full flex justify-center items-center h-screen flex-col bg-yellow-50 p-10'>
-      <div className='w-full gap-10 flex h-full justify-center flex-col'>
+    <div className='flex flex-col items-center justify-center w-full h-screen p-10 bg-yellow-50'>
+      <div className='flex flex-col justify-center w-full h-full gap-10'>
         <h2 className='text-center text-omg-lg font-omg-title'>
           로그인 페이지
         </h2>
-        <button className='bg-white text-omg-sm' onClick={handleClick}>
+        <button className='py-2 bg-white text-omg-sm' onClick={handleClick}>
           소셜로그인 버튼
         </button>
       </div>

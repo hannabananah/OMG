@@ -3,7 +3,7 @@ package com.ssafy.omg.domain.room.service;
 import com.ssafy.omg.config.baseresponse.BaseException;
 import com.ssafy.omg.domain.room.dto.CommonRoomRequest;
 import com.ssafy.omg.domain.room.dto.CommonRoomResponse;
-import com.ssafy.omg.domain.room.dto.RoomInfo;
+import com.ssafy.omg.domain.room.entity.Room;
 
 public interface RoomService {
 
@@ -28,9 +28,15 @@ public interface RoomService {
     // 사용자 렌더 완료
     CommonRoomResponse handleRenderedComplete(CommonRoomRequest request) throws BaseException;
 
+    // 모든 사용자 렌더 완료 여부 (boolean 반환)
+    boolean isAllRenderedCompleted(String roomId) throws BaseException;
+
     // 모든 사용자 렌더 완료 여부
-    CommonRoomResponse checkAllRenderedCompleted(CommonRoomRequest request) throws BaseException;
+    CommonRoomResponse checkAllRenderedCompleted(String roomId) throws BaseException;
 
     // 방 정보 반환
-    RoomInfo getRoomInfo(String roomId) throws BaseException;
+    Room getRoom(String roomId) throws BaseException;
+
+    // 방 정보 업데이트
+    void updateRoom(Room room) throws BaseException;
 }

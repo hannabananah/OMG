@@ -51,7 +51,16 @@ public enum BaseResponseStatus {
     USER_NOT_IN_ROOM(false, 3026, "대기방에서 유저를 찾을 수 없습니다."),
     RENDER_NOT_COMPLETED(false, 3027, "모든 유저의 렌더가 완료되지 않았습니다."),
 
+    // game
+    ARENA_NOT_FOUND(false, 3031, "아레나가 존재하지 않습니다."),
+
     // 3101 ~~ 3199 : 이가은
+    GAME_NOT_FOUND(false, 3101, "게임이 존재하지 않습니다."),
+    PLAYER_NOT_FOUND(false, 3102, "플레이어가 존재하지 않습니다."),
+    INVALID_STOCK_LEVEL(false, 3103, "유효하지 않은 주가 수준입니다."),
+    LOAN_ALREADY_TAKEN(false, 3104, "이미 대출을 받은 플레이어입니다."),
+    AMOUNT_OUT_OF_RANGE(false, 3105, "요청 금액이 대출 한도 범위를 벗어납니다."),
+
 
     // 3201 ~~ 3299 : 전정민
 

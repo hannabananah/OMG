@@ -1,5 +1,6 @@
 package com.ssafy.omg.domain.game.dto;
 
+import com.ssafy.omg.domain.player.dto.PlayerInfo;
 import lombok.Getter;
 import lombok.Setter;
 

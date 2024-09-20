@@ -3,7 +3,11 @@
 @tailwind utilities;
 
 html {
-  @apply h-screen w-full text-gray-800 break-words m-auto;
+  @apply h-screen w-full text-gray-800 break-words m-auto select-none;
+}
+
+.modal-open {
+  overflow: hidden;
 }
 
 @font-face {

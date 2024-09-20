@@ -26,24 +26,26 @@ public class WebSocketEventListener {
 
     @EventListener
     public void handleWebSocketConnectListener(SessionConnectedEvent event) {
-        logger.info("새 웹소켓 연결");
+        StompHeaderAccessor headerAccessor = StompHeaderAccessor.wrap(event.getMessage());
+        String sessionId = headerAccessor.getSessionId();
+        logger.info("웹소켓 연결 성공. 헤더억세서 세션아이디 : {}", sessionId);
     }
 
     @EventListener
     public void handleWebSocketDisconnectListener(SessionDisconnectEvent event) {
         StompHeaderAccessor headerAccessor = StompHeaderAccessor.wrap(event.getMessage());
+        String sessionId = headerAccessor.getSessionId();
         String userNickname = (String) headerAccessor.getSessionAttributes().get("userNickname");
         String roomId = (String) headerAccessor.getSessionAttributes().get("roomId");
 
-        logger.info("연결 해제 : " + userNickname);
+        logger.info("웹소켓 연결 해제. 헤더억세서 세션아이디 : {}, 유저닉네임 : {}, 방코드: {}", sessionId, userNickname, roomId);
 
 
         if (userNickname != null && roomId != null) {
             logger.info("연결 해제 : " + userNickname);
-
             try {
                 CommonRoomResponse response = roomService.leaveRoom(new CommonRoomRequest(roomId, userNickname, "LEAVE_GAME"));
-                messagingTemplate.convertAndSend("/topic/game/" + roomId, response);
+                messagingTemplate.convertAndSend("/sub/" + roomId + "/game", response);
             } catch (BaseException e) {
                 logger.error("Error processing user disconnect: ", e);
             }

@@ -1,9 +1,15 @@
+import Modal from 'react-modal';
 import { Route, Routes } from 'react-router-dom';
 
 import loadable from '@loadable/component';
 
+Modal.setAppElement('#root');
+
 const Login = loadable(() => import('@/pages/Login'), {
   fallback: <div>로그인 로딩중</div>,
+});
+const Lobby = loadable(() => import('@/pages/Lobby'), {
+  fallback: <div>로비입장 로딩중</div>,
 });
 const Waiting = loadable(() => import('@/pages/Waiting'), {
   fallback: <div>대기방 로딩중</div>,
@@ -19,6 +25,7 @@ export default function App() {
   return (
     <Routes>
       <Route path='/' element={<Login />}></Route>
+      <Route path='/lobby' element={<Lobby />}></Route>
       <Route path='/waiting' element={<Waiting />}></Route>
       <Route path='/game' element={<Game />}></Route>
       <Route path='/mainmap' element={<MainMap />}></Route>

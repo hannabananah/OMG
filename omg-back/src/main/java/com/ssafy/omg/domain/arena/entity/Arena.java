@@ -1,19 +1,21 @@
-package com.ssafy.omg.domain.room.dto;
+package com.ssafy.omg.domain.arena.entity;
 
 import com.ssafy.omg.domain.game.entity.Game;
 import com.ssafy.omg.domain.room.entity.Room;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 
+import java.io.Serializable;
+
+/**
+ * 레디스 벨류에 들어갈 값
+ */
 @Getter
 @Setter
+@Builder
 @AllArgsConstructor
 @NoArgsConstructor
-public class CommonRoomResponse {
+public class Arena implements Serializable {
     private String roomId;
-    private String sender;
     private String message;
     private Game game;
     private Room room;

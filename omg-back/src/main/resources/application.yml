@@ -24,3 +24,7 @@ spring:
       port: 6379
 logging.level:
   org.hibernate.SQL: debug
+
+cors:
+  allowed:
+    origins: http://localhost:5173
