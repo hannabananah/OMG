@@ -2,6 +2,7 @@ package com.ssafy.omg.domain.game.service;
 
 import com.ssafy.omg.config.baseresponse.BaseException;
 import com.ssafy.omg.domain.arena.entity.Arena;
+import com.ssafy.omg.domain.game.dto.PlayerMoveRequest;
 
 import java.util.List;
 
@@ -14,4 +15,6 @@ public interface GameService {
     void takeLoan(String roomId, String sender, int amount) throws BaseException;
 
     void repayLoan(String roomId, String sender, int amount) throws BaseException;
+
+    void movePlayer(PlayerMoveRequest playerMoveRequest) throws BaseException;
 }
