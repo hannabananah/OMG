@@ -3,12 +3,12 @@ package com.ssafy.omg.domain.game.service;
 import com.ssafy.omg.config.baseresponse.BaseException;
 import com.ssafy.omg.domain.arena.entity.Arena;
 import com.ssafy.omg.domain.game.GameRepository;
+import com.ssafy.omg.domain.game.dto.GameStatusResponse;
 import com.ssafy.omg.domain.game.dto.PlayerMoveRequest;
 import com.ssafy.omg.domain.game.dto.UserActionRequest;
 import com.ssafy.omg.domain.game.dto.UserActionResponse;
-import com.ssafy.omg.domain.game.entity.Game;
-import com.ssafy.omg.domain.game.entity.GameEvent;
-import com.ssafy.omg.domain.game.entity.GameStatus;
+import com.ssafy.omg.domain.game.entity.*;
+import com.ssafy.omg.domain.game.entity.StockState.Stock;
 import com.ssafy.omg.domain.game.repository.GameEventRepository;
 import com.ssafy.omg.domain.player.entity.Player;
 import lombok.RequiredArgsConstructor;
@@ -17,11 +17,9 @@ import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
-import java.util.concurrent.TimeUnit;
 
 import static com.ssafy.omg.config.baseresponse.BaseResponseStatus.*;
-import static com.ssafy.omg.domain.game.entity.ActionStatus.ACTION_FAILURE;
-import static com.ssafy.omg.domain.game.entity.ActionStatus.ACTION_SUCCESS;
+import static com.ssafy.omg.domain.game.entity.ActionStatus.*;
 import static com.ssafy.omg.domain.player.entity.PlayerStatus.NOT_STARTED;
 import static org.hibernate.query.sqm.tree.SqmNode.log;
 
@@ -36,6 +34,7 @@ public class GameServiceImpl implements GameService {
     private final int[][] LOAN_RANGE = new int[][]{{50, 100}, {150, 300}, {500, 1000}};
     private final GameEventRepository gameEventRepository;
     private final GameRepository gameRepository;
+    private final StockState stockState;
 
     // 초기화
 
@@ -57,7 +56,20 @@ public class GameServiceImpl implements GameService {
         Arena arena = redisTemplate.opsForValue().get(ROOM_PREFIX + roomId);
         if (arena != null) {
             List<Player> players = new ArrayList<>();
+            int[] pocket = new int[]{0, 23, 23, 23, 23, 23};
+            StockInfo[] market = initializeMarket();
+            putRandomStockIntoMarket(pocket, market);
+
             for (int i = 0; i < inRoomPlayers.size(); i++) {
+                int[] randomStock = generateRandomStock();
+                // pocket에서 뽑은 randomStock 만큼 빼주기
+                for (int j = 1; j < randomStock.length; j++) {
+                    pocket[j] -= randomStock[j];
+                    if (pocket[j] < 0) {
+                        throw new BaseException(INSUFFICIENT_STOCK);
+                    }
+                }
+
                 Player newPlayer = Player.builder()
                         .nickname(inRoomPlayers.get(i))
                         .position(new double[]{0, 0, 0}) // TODO 임시로 (0,0,0)으로 해뒀습니다 고쳐야함
@@ -67,7 +79,7 @@ public class GameServiceImpl implements GameService {
                         .interest(0)
                         .debt(0)
                         .cash(100)
-                        .stock(new int[]{0, 0, 0, 0, 0, 0})
+                        .stock(randomStock)
                         .gold(0)
                         .action(null)
                         .state(NOT_STARTED)
@@ -91,14 +103,8 @@ public class GameServiceImpl implements GameService {
                     .interestRate(5)                      // 예: 초기 금리 5%로 설정
                     .economicEvent(randomEvent)           // 초기 경제 이벤트 없음
                     .stockPriceLevel(0)                   // 주가 수준
-                    .pocket(new int[]{0, 23, 23, 23, 23, 23})  // 주머니 초기화
-                    .market(new Game.StockInfo[]{
-                            new Game.StockInfo(0, new int[]{0, 0}),
-                            new Game.StockInfo(8, new int[]{12, 3}),
-                            new Game.StockInfo(8, new int[]{12, 3}),
-                            new Game.StockInfo(8, new int[]{12, 3}),
-                            new Game.StockInfo(8, new int[]{12, 3}),
-                            new Game.StockInfo(8, new int[]{12, 3})}) // 주식 시장 초기화
+                    .pocket(pocket)                       // 주머니 초기화
+                    .market(market)                       // 주식 시장 초기화
                     .stockSell(new int[10])               // 주식 매도 트랙 초기화
                     .stockBuy(new int[6])                 // 주식 매수 트랙 초기화
                     .goldBuy(new int[6])                  // 금 매입 트랙 초기화
@@ -109,12 +115,22 @@ public class GameServiceImpl implements GameService {
             arena.setGame(newGame);
             arena.setMessage("GAME_INITIALIZED");
             arena.setRoom(null);
-            Long currentTtl = redisTemplate.getExpire(ROOM_PREFIX + roomId, TimeUnit.MINUTES);
-            redisTemplate.opsForValue().set(ROOM_PREFIX + roomId, arena, currentTtl, TimeUnit.MINUTES);
+            gameRepository.saveArena(roomId, arena);
         } else {
             throw new BaseException(ARENA_NOT_FOUND);
         }
         return arena;
+    }
+
+    private StockInfo[] initializeMarket() {
+        StockInfo[] market = new StockInfo[6];
+        market[0] = new StockInfo(0, new int[]{0, 0});
+
+        for (int i = 1; i < 6; i++) {
+            market[i] = new StockInfo(8, new int[]{12, 3});
+        }
+
+        return market;
     }
 
     /**
@@ -156,10 +172,74 @@ public class GameServiceImpl implements GameService {
         game.setInterestRate(currentInterestRate);
 
         arena.setGame(game);
-        Long currentTtl = redisTemplate.getExpire(roomKey, TimeUnit.MINUTES);
-        redisTemplate.opsForValue().set(roomKey, arena, currentTtl, TimeUnit.MINUTES);
+        gameRepository.saveArena(roomId, arena);
 
         return gameEvent;
+    }
+
+    private int[] putRandomStockIntoMarket(int[] pocket, StockInfo[] market) throws BaseException {
+        Random random = new Random();
+        int totalCount = 20;
+        int[] count = new int[5];
+
+        // 각각 최소1개씩
+        for (int i = 0; i < 5; i++) {
+            count[i] = 1;
+            totalCount -= 1;
+        }
+
+        // 나머지 랜덤 나누기
+        while (totalCount > 0) {
+            int index = random.nextInt(5);
+            if (count[index] < 7) {  // 한 주식당 최대 7개로 제한 (1 + 최대 6)
+                count[index]++;
+                totalCount--;
+            }
+        }
+
+        // pocket에서 주식을 빼고 market에 넣기
+        for (int i = 0; i < 5; i++) {
+            if (pocket[i + 1] < count[i]) {
+                throw new BaseException(INSUFFICIENT_STOCK);
+            }
+            pocket[i + 1] -= count[i];
+            market[i + 1].setCnt(market[i + 1].getCnt() + count[i]);
+        }
+
+        int maxCnt = Arrays.stream(count).max().getAsInt();
+        int minCnt = Arrays.stream(count).min().getAsInt();
+        for (int i = 0; i < 5; i++) {
+            if (count[i] == maxCnt) {
+                int[] currentState = market[i + 1].getState();
+                market[i + 1].setState(new int[]{currentState[0], currentState[1] - 1});
+            }
+            if (count[i] == minCnt) {
+                int[] currentState = market[i + 1].getState();
+                market[i + 1].setState(new int[]{currentState[0], currentState[1] + 1});
+            }
+        }
+
+        return pocket;
+    }
+
+    private int[] generateRandomStock() throws BaseException {
+        Random random = new Random();
+        int[] result = new int[6];
+        result[0] = 0;
+        int remainingStockCounts = 5;
+
+        for (int i = 1; i < 5; i++) {
+            if (remainingStockCounts > 0) {
+                // 최소값은 0, 최대값은 남은 주식수와 3중 작은값
+                int max = Math.min(remainingStockCounts, 3);
+                result[i] = random.nextInt(max + 1);
+                remainingStockCounts -= result[i];
+            } else {
+                result[i] = 0;
+            }
+        }
+        result[5] = remainingStockCounts;
+        return result;
     }
 
     private int[] generateRandomEvent() throws BaseException {
@@ -242,6 +322,7 @@ public class GameServiceImpl implements GameService {
      * @param userActionRequest
      * @throws BaseException 요청 금액이 대출 한도를 넘어가는 경우
      */
+    @Override
     public void takeLoan(UserActionRequest userActionRequest) throws BaseException {
         String roomId = userActionRequest.getRoomId();
         String sender = userActionRequest.getSender();
@@ -292,6 +373,7 @@ public class GameServiceImpl implements GameService {
      * @param userActionRequest
      * @throws BaseException 상환 금액이 유효하지 않은 값일 때
      */
+    @Override
     public void repayLoan(UserActionRequest userActionRequest) throws BaseException {
         String roomId = userActionRequest.getRoomId();
         String sender = userActionRequest.getSender();
@@ -339,6 +421,43 @@ public class GameServiceImpl implements GameService {
     // 금괴 매입
 
     // 주가 수준 변동
+    // TODO 아래 주가수준변경은 주가변동 && 주가상승 시에만 실행
+
+    /**
+     * 기존과 새로운 좌표의 주가수준 비교 후, 필요시 주가수준변경
+     *
+     * @param orgState
+     * @param newState
+     * @param roomId
+     * @throws BaseException
+     */
+    public void changeStockLevel(int[] orgState, int[] newState, String roomId) throws BaseException {
+
+        Arena arena = getArena(roomId);
+        Game game = arena.getGame();
+        int stockPriceLevel = game.getStockPriceLevel();
+
+        Stock[][] stockStandard = stockState.getStockStandard();
+
+        int orgLevel = stockStandard[orgState[0]][orgState[1]].getLevel();
+        int newLevel = stockStandard[newState[0]][newState[1]].getLevel();
+
+        // 기존과 새로운 좌표의 주가수준이 다른지
+        // 다르다면 새로운 주가수준이 상위영역에 처음 진입했는지
+        if (orgLevel != newLevel && stockPriceLevel < newLevel) {
+            game.setStockPriceLevel(newLevel);
+            arena.setGame(game);
+            gameRepository.saveArena(roomId, arena);
+
+            // GameStatusResponse 보내기
+            GameStatusResponse response = GameStatusResponse.builder()
+                    .roomId(roomId)
+                    .message(MARKET_UPDATE)
+                    .game(game).build();
+            messagingTemplate.convertAndSend("/sub/" + roomId + "/game", response);
+        }
+    }
+
 
     // 플레이어 이동
     @Override

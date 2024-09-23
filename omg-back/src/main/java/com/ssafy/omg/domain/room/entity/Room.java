@@ -23,6 +23,7 @@ public class Room implements Serializable {
         this.roomId = roomId;
         this.hostNickname = hostNickname;
         this.inRoomPlayers = new ArrayList<>();
-        this.inRoomPlayers.add(new InRoomPlayer(hostNickname, false));
+        // 자동으로 호스트 방에 입장
+//        this.inRoomPlayers.add(new InRoomPlayer(hostNickname, false));
     }
 }
