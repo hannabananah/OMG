@@ -100,11 +100,13 @@ export default function Lobby() {
                 className='w-full py-2 pl-10 pr-20 border-4 border-black rounded-40 text-omg-24'
               />
               <button
-                className={`absolute -translate-y-1/2 right-10 top-1/2 text-${isCopyEnabled ? 'black' : 'white3'}`}
+                className='absolute -translate-y-1/2 right-10 top-1/2'
                 onClick={handleCopyToClipboard}
                 disabled={!isCopyEnabled}
               >
-                <FaCopy className='text-omg-24' />
+                <FaCopy
+                  className={`text-omg-24 ${isCopyEnabled ? 'text-black' : 'text-white3'}`}
+                />
               </button>
             </div>
 
