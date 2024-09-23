@@ -5,19 +5,48 @@ export default {
   important: true,
   theme: {
     fontSize: {
-      'omg-xl': '1.4rem', // 이벤트 발생 알림
-      'omg-lg': '1.2rem', // 행위 선택 버튼
-      'omg-md': '1rem', // normal
-      'omg-sm': '0.7rem', // 토큰 등 정보 제공
-      'omg-xs': '0.5rem', // 채팅
+      'omg-14': '1rem', // 14px로 적용
+      'omg-18': '1.29rem', // 18px
+      'omg-20': '1.43rem', // 20px
+      'omg-24': '1.71rem', // 24px
+      'omg-28': '2rem', // 28px
+      'omg-30': '2.14rem', // 30px
+      'omg-30b': '2.14rem',
+      'omg-40b': '2.86rem', // 40px
+      'omg-50b': '3.57rem', // 50px
+      'omg-100b': '7.14rem', // 100px
     },
-    // colors: {},
-    // borderRadius: {},
+    borderWidth: {
+      1: '1px',
+      4: '4px',
+      5: '5px',
+    },
+    borderRadius: {
+      10: '10px',
+      20: '20px',
+      30: '30px',
+      40: '40px',
+      100: '100px',
+    },
     // dropShadow: {},
     extend: {
       fontFamily: {
         'omg-title': 'OKDDUNG',
         'omg-body': 'Katuri',
+      },
+      colors: {
+        white1: '#FFFFFF',
+        white2: '#F6F6F6',
+        white3: '#E0E0E0',
+        'white-trans50': '#FFFFFF',
+        'white-trans80': '#FFFFFF',
+        'white-trans90': '#FFFAFA',
+        black: '#000000',
+        'black-trans70': '#000000',
+        red: '#D83232',
+        green: '#1EAE15',
+        skyblue: '#71FFFF',
+        purple: '#AB18F4',
       },
     },
   },
