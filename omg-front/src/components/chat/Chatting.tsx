@@ -1,4 +1,4 @@
-import { useContext, useState } from 'react';
+import { useContext, useEffect, useRef, useState } from 'react';
 
 import ChatInputForm from '@/components/chat/ChatInputForm';
 import ChatMessage from '@/components/chat/ChatMessage';
@@ -8,6 +8,8 @@ export default function Chatting() {
   const { sendMessage, chatMessages } = useContext(SocketContext);
 
   const [msg, setMsg] = useState<string>('');
+  const chatRef = useRef<HTMLDivElement | null>(null);
+
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setMsg(e.target.value);
   };
@@ -19,10 +21,22 @@ export default function Chatting() {
       setMsg('');
     }
   };
+
+  // 스크롤 하단 고정
+  useEffect(() => {
+    if (chatRef.current) {
+      const newHeight = chatRef.current.scrollHeight;
+      chatRef.current.scrollTop = newHeight;
+    }
+  }, [chatMessages]);
+
   return (
     <div className='mt-4'>
       <h3 className='text-lime-700'>채팅:</h3>
-      <div className='p-2 overflow-y-auto border max-h-40 border-lime-500'>
+      <div
+        ref={chatRef}
+        className='p-2 overflow-y-auto border max-h-40 border-lime-500'
+      >
         {chatMessages.map((message, index) => (
           <ChatMessage
             key={index}
