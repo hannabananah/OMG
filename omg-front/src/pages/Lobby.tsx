@@ -4,23 +4,30 @@ import { useNavigate } from 'react-router-dom';
 
 import { handleApiError } from '@/apis/errorHandler';
 import { createWaitingRooms } from '@/apis/room/roomAPI';
-import ExitButton from '@/components/ExitButton';
+import ExitButton from '@/components/common/ExitButton';
 import { useRoomStore } from '@/stores/room';
+import { useUserStore } from '@/stores/user';
 import { AxiosError } from 'axios';
 
 export default function Lobby() {
   const { setSender } = useRoomStore();
+  const { name, setName } = useUserStore();
   const [roomCode, setRoomCode] = useState<string>('');
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isCopyEnabled, setIsCopyEnabled] = useState(false);
 
+  // TODO: 임시 이름 설정
+  useEffect(() => {
+    setName('testUser4');
+  }, [setName]);
+
   const handleClickCreateRoom = async () => {
     setLoading(true);
     setError(null);
     try {
-      const response = await createWaitingRooms('testHost');
+      const response = await createWaitingRooms(name);
       setRoomCode(response);
     } catch (err) {
       const handledError = handleApiError(err as AxiosError);
@@ -51,7 +58,7 @@ export default function Lobby() {
   const handleClickEnterRoom = async () => {
     try {
       // TODO: 유저 네임 바꿔야함
-      setSender('testUser13');
+      setSender(name);
       navigate(`/waiting/${roomCode}`);
     } catch (err) {
       const handledError = handleApiError(err as AxiosError);
