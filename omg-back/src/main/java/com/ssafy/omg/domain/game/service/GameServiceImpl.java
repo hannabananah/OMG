@@ -3,12 +3,12 @@ package com.ssafy.omg.domain.game.service;
 import com.ssafy.omg.config.baseresponse.BaseException;
 import com.ssafy.omg.domain.arena.entity.Arena;
 import com.ssafy.omg.domain.game.GameRepository;
+import com.ssafy.omg.domain.game.dto.GameStatusResponse;
 import com.ssafy.omg.domain.game.dto.PlayerMoveRequest;
 import com.ssafy.omg.domain.game.dto.UserActionRequest;
 import com.ssafy.omg.domain.game.dto.UserActionResponse;
-import com.ssafy.omg.domain.game.entity.Game;
-import com.ssafy.omg.domain.game.entity.GameEvent;
-import com.ssafy.omg.domain.game.entity.GameStatus;
+import com.ssafy.omg.domain.game.entity.*;
+import com.ssafy.omg.domain.game.entity.StockState.Stock;
 import com.ssafy.omg.domain.game.repository.GameEventRepository;
 import com.ssafy.omg.domain.player.entity.Player;
 import lombok.RequiredArgsConstructor;
@@ -17,11 +17,9 @@ import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
-import java.util.concurrent.TimeUnit;
 
 import static com.ssafy.omg.config.baseresponse.BaseResponseStatus.*;
-import static com.ssafy.omg.domain.game.entity.ActionStatus.ACTION_FAILURE;
-import static com.ssafy.omg.domain.game.entity.ActionStatus.ACTION_SUCCESS;
+import static com.ssafy.omg.domain.game.entity.ActionStatus.*;
 import static com.ssafy.omg.domain.player.entity.PlayerStatus.NOT_STARTED;
 import static org.hibernate.query.sqm.tree.SqmNode.log;
 
@@ -36,6 +34,7 @@ public class GameServiceImpl implements GameService {
     private final int[][] LOAN_RANGE = new int[][]{{50, 100}, {150, 300}, {500, 1000}};
     private final GameEventRepository gameEventRepository;
     private final GameRepository gameRepository;
+    private final StockState stockState;
 
     // 초기화
 
@@ -58,7 +57,7 @@ public class GameServiceImpl implements GameService {
         if (arena != null) {
             List<Player> players = new ArrayList<>();
             int[] pocket = new int[]{0, 23, 23, 23, 23, 23};
-            Game.StockInfo[] market = initializeMarket();
+            StockInfo[] market = initializeMarket();
             putRandomStockIntoMarket(pocket, market);
 
             for (int i = 0; i < inRoomPlayers.size(); i++) {
@@ -123,12 +122,12 @@ public class GameServiceImpl implements GameService {
         return arena;
     }
 
-    private Game.StockInfo[] initializeMarket() {
-        Game.StockInfo[] market = new Game.StockInfo[6];
-        market[0] = new Game.StockInfo(0, new int[]{0, 0});
+    private StockInfo[] initializeMarket() {
+        StockInfo[] market = new StockInfo[6];
+        market[0] = new StockInfo(0, new int[]{0, 0});
 
         for (int i = 1; i < 6; i++) {
-            market[i] = new Game.StockInfo(8, new int[]{12, 3});
+            market[i] = new StockInfo(8, new int[]{12, 3});
         }
 
         return market;
@@ -178,7 +177,7 @@ public class GameServiceImpl implements GameService {
         return gameEvent;
     }
 
-    private int[] putRandomStockIntoMarket(int[] pocket, Game.StockInfo[] market) throws BaseException {
+    private int[] putRandomStockIntoMarket(int[] pocket, StockInfo[] market) throws BaseException {
         Random random = new Random();
         int totalCount = 20;
         int[] count = new int[5];
@@ -323,6 +322,7 @@ public class GameServiceImpl implements GameService {
      * @param userActionRequest
      * @throws BaseException 요청 금액이 대출 한도를 넘어가는 경우
      */
+    @Override
     public void takeLoan(UserActionRequest userActionRequest) throws BaseException {
         String roomId = userActionRequest.getRoomId();
         String sender = userActionRequest.getSender();
@@ -373,6 +373,7 @@ public class GameServiceImpl implements GameService {
      * @param userActionRequest
      * @throws BaseException 상환 금액이 유효하지 않은 값일 때
      */
+    @Override
     public void repayLoan(UserActionRequest userActionRequest) throws BaseException {
         String roomId = userActionRequest.getRoomId();
         String sender = userActionRequest.getSender();
@@ -420,6 +421,43 @@ public class GameServiceImpl implements GameService {
     // 금괴 매입
 
     // 주가 수준 변동
+    // TODO 아래 주가수준변경은 주가변동 && 주가상승 시에만 실행
+
+    /**
+     * 기존과 새로운 좌표의 주가수준 비교 후, 필요시 주가수준변경
+     *
+     * @param orgState
+     * @param newState
+     * @param roomId
+     * @throws BaseException
+     */
+    public void changeStockLevel(int[] orgState, int[] newState, String roomId) throws BaseException {
+
+        Arena arena = getArena(roomId);
+        Game game = arena.getGame();
+        int stockPriceLevel = game.getStockPriceLevel();
+
+        Stock[][] stockStandard = stockState.getStockStandard();
+
+        int orgLevel = stockStandard[orgState[0]][orgState[1]].getLevel();
+        int newLevel = stockStandard[newState[0]][newState[1]].getLevel();
+
+        // 기존과 새로운 좌표의 주가수준이 다른지
+        // 다르다면 새로운 주가수준이 상위영역에 처음 진입했는지
+        if (orgLevel != newLevel && stockPriceLevel < newLevel) {
+            game.setStockPriceLevel(newLevel);
+            arena.setGame(game);
+            gameRepository.saveArena(roomId, arena);
+
+            // GameStatusResponse 보내기
+            GameStatusResponse response = GameStatusResponse.builder()
+                    .roomId(roomId)
+                    .message(MARKET_UPDATE)
+                    .game(game).build();
+            messagingTemplate.convertAndSend("/sub/" + roomId + "/game", response);
+        }
+    }
+
 
     // 플레이어 이동
     @Override
