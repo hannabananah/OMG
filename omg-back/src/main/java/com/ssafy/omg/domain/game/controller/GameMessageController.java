@@ -7,11 +7,7 @@ import com.ssafy.omg.domain.game.dto.UserActionRequest;
 import com.ssafy.omg.domain.game.dto.GameEventDto;
 import com.ssafy.omg.domain.game.entity.GameEvent;
 import com.ssafy.omg.domain.game.service.GameService;
-import com.ssafy.omg.domain.room.dto.CommonRoomRequest;
-import com.ssafy.omg.domain.room.dto.CommonRoomResponse;
-import com.ssafy.omg.domain.room.entity.Room;
 import jakarta.validation.Valid;
-import com.ssafy.omg.domain.socket.dto.StompPayload;
 import com.ssafy.omg.domain.socket.dto.StompPayload;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -85,21 +81,36 @@ public class GameMessageController {
         gameService.movePlayer(playerMoveRequest);
     }
 
-    // TODO 주식 관련 메서드는 synchronized
-
     @MessageMapping("/game.takeLoan")
     public void takeLoan(@Payload StompPayload<UserActionRequest> message) throws BaseException {
         validateUserAction(message);
-        UserActionRequest data = message.getData();
 
-        gameService.takeLoan(data.getRoomId(), data.getSender(), data.getDetails().getAmount());
+        gameService.takeLoan(message.getData());
     }
 
+    @MessageMapping("/game.repayLoan")
+    public void repayLoan(@Payload StompPayload<UserActionRequest> message) throws BaseException {
+        validateUserAction(message);
+
+        gameService.repayLoan(message.getData());
+    }
+
+    // 주식 매도
+    // TODO 주식 관련 메서드는 synchronized
+
+    // 주식 매수
+    // TODO 주식 관련 메서드는 synchronized
+
+    // 금괴 매입
+
+    // 주가수준변동
+
+
     /**
-     * UserAction 요청의 입력유효성 검사
+     * UserActionRequest의 입력유효성 검사
      *
      * @param message
-     * @throws BaseException data나 action이나 details가 null인 경우 체크
+     * @throws BaseException data나 details가 null인 경우 체크
      */
     private void validateUserAction(StompPayload<UserActionRequest> message) throws BaseException {
         Optional.ofNullable(message.getData())
