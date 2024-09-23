@@ -1,6 +1,7 @@
 import { useContext, useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 
+import Chatting from '@/components/chat/Chatting';
 import { SocketContext } from '@/utils/SocketContext';
 
 export default function Waiting() {
@@ -14,7 +15,6 @@ export default function Waiting() {
     disconnect,
     leaveRoom,
     chatSubscription,
-    sendMessage,
   } = useContext(SocketContext);
 
   if (!roomId) {
@@ -23,8 +23,6 @@ export default function Waiting() {
   }
 
   const [isRoomFull, setIsRoomFull] = useState(false);
-  const [msg, setMsg] = useState<string>('');
-  const [chatMessages, setChatMessages] = useState<string[]>([]);
 
   useEffect(() => {
     if (online && socket) {
@@ -45,24 +43,11 @@ export default function Waiting() {
   };
 
   const handleExit = () => {
-    // TODO: 유저 네임 바꿔야함
-    leaveRoom('testUser13');
+    // TODO: 임시 채팅 구독
+
+    leaveRoom('testUser12');
     disconnect();
     navigate(-1);
-  };
-
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setMsg(e.target.value);
-  };
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (msg.trim()) {
-      // 서버로 메시지 전송
-      sendMessage(msg);
-      setChatMessages(prev => [...prev, msg]);
-      setMsg('');
-    }
   };
 
   return (
@@ -81,31 +66,9 @@ export default function Waiting() {
       <button onClick={handleClick} disabled={!isRoomFull}>
         START
       </button>
-      <div className='mt-4'>
-        <h3 className='text-lime-700'>채팅:</h3>
-        <div className='p-2 overflow-y-auto border max-h-40 border-lime-500'>
-          {chatMessages.map((message, index) => (
-            <p key={index} className='text-lime-600'>
-              {message}
-            </p>
-          ))}
-        </div>
-        <form onSubmit={handleSubmit} className='flex mt-2'>
-          <input
-            type='text'
-            className='p-2 border rounded-l border-lime-500'
-            onChange={handleInputChange}
-            value={msg}
-            placeholder='메시지를 입력하세요...'
-          />
-          <button
-            type='submit'
-            className='p-2 text-white rounded-r bg-lime-500'
-          >
-            전송
-          </button>
-        </form>
-      </div>
+
+      {/* TODO: 임시 테스트 채팅방 */}
+      <Chatting />
     </div>
   );
 }

@@ -4,10 +4,16 @@ import { useParams } from 'react-router-dom';
 import { useRoomStore } from '@/stores/room';
 import { Client } from '@stomp/stompjs';
 
+interface ChatMessage {
+  sender: string;
+  content: string;
+}
+
 interface SocketContextType {
   socket: Client | null;
   online: boolean;
   players: string[];
+  chatMessages: ChatMessage[];
   connect: () => void;
   disconnect: () => void;
   waitingSubscription: () => void;
@@ -20,6 +26,7 @@ const defaultContextValue: SocketContextType = {
   socket: null,
   online: false,
   players: [],
+  chatMessages: [],
   connect: () => {},
   disconnect: () => {},
   waitingSubscription: () => {},
@@ -42,6 +49,8 @@ export default function SocketProvider({ children }: SocketProviderProps) {
   const [socket, setSocket] = useState<Client | null>(null);
   const [online, setOnline] = useState(false);
   const [players, setPlayers] = useState<string[]>([]);
+  const [chatMessages, setChatMessages] = useState<ChatMessage[]>([]);
+
   const topic = `/sub/${roomId}/room`;
   const subscriptionId = `sub-${roomId}0`;
 
@@ -166,10 +175,14 @@ export default function SocketProvider({ children }: SocketProviderProps) {
       message => {
         console.log('채팅 메시지', JSON.parse(message.body));
         const parsedMessage = JSON.parse(message.body);
-        if (parsedMessage.chatMessage) {
-          const sender = parsedMessage.chatMessage.sender;
-          const content = parsedMessage.chatMessage.content;
-          return { sender, content };
+        if (parsedMessage.data) {
+          const sender = parsedMessage.data.sender;
+          const content = parsedMessage.data.content;
+          setChatMessages(prevMessages => [
+            ...prevMessages,
+            { sender, content },
+          ]);
+          console.log('chatMessages 상태:', chatMessages);
         }
       },
       { id: `chat-${roomId}` },
@@ -183,13 +196,17 @@ export default function SocketProvider({ children }: SocketProviderProps) {
       return;
     }
     const messagePayload = {
+      type: 'CHAT',
       roomId,
-      chatMessage: {
+      sender,
+      data: {
         sender,
         content: message,
       },
     };
-    console.log(roomId, sender, message, '잘 가곴냐');
+
+    console.log('전송할 메시지:', messagePayload);
+
     // 방에 들어간 메시지 전송
     socket.publish({
       destination: `/pub/${roomId}/chat`,
@@ -202,6 +219,7 @@ export default function SocketProvider({ children }: SocketProviderProps) {
       socket,
       online,
       players,
+      chatMessages,
       connect,
       disconnect,
       waitingSubscription,
@@ -209,7 +227,7 @@ export default function SocketProvider({ children }: SocketProviderProps) {
       chatSubscription,
       sendMessage,
     }),
-    [socket, online, players],
+    [socket, online, players, chatMessages],
   );
 
   return (
