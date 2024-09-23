@@ -1,0 +1,77 @@
+package com.ssafy.omg.domain.game.entity;
+
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+import org.springframework.stereotype.Component;
+
+@Component
+public class StockState {
+
+    // 주가 기준표의 한 칸
+    @Getter
+    @Setter
+    public static class Stock {
+        private int price;  // 해당 칸의 주가
+        private int level;    // 해당 칸의 주가 수준
+
+        public Stock(int price, int level) {
+            this.price = price;
+            this.level = level;
+        }
+    }
+
+    // 5가지 주식
+    @Getter
+    @Setter
+    @NoArgsConstructor
+    public static class StockInfo {
+        private int cnt;     // 주식 시장의 주식토큰 개수
+        private int[] state; // 현재 주식의 가격을 stockStandard(주가 기준표) 2차원 배열의 위치값으로 표현
+
+        public StockInfo(int cnt, int[] state) {
+            this.cnt = cnt;
+            this.state = state;
+        }
+    }
+
+    // 주가 기준표
+    @Getter
+    private final Stock[][] stockStandard = {
+            {new Stock(150, 8), new Stock(175, 8), new Stock(190, 8), new Stock(200, 9), new Stock(210, 9), new Stock(225, 9), new Stock(240, 9)},
+            {new Stock(135, 7), new Stock(150, 7), new Stock(160, 8), new Stock(170, 8), new Stock(180, 8), new Stock(200, 8), new Stock(210, 9)},
+            {new Stock(115, 6), new Stock(125, 7), new Stock(135, 7), new Stock(145, 7), new Stock(160, 7), new Stock(170, 8), new Stock(180, 8)},
+            {new Stock(95, 6), new Stock(105, 6), new Stock(115, 6), new Stock(125, 6), new Stock(135, 7), new Stock(145, 7), new Stock(155, 7)},
+            {new Stock(75, 5), new Stock(85, 5), new Stock(95, 5), new Stock(100, 6), new Stock(110, 6), new Stock(120, 6), new Stock(130, 6)},
+            {new Stock(60, 4), new Stock(70, 4), new Stock(75, 5), new Stock(85, 5), new Stock(90, 5), new Stock(100, 5), new Stock(110, 6)},
+            {new Stock(45, 3), new Stock(50, 4), new Stock(60, 4), new Stock(65, 4), new Stock(75, 4), new Stock(85, 5), new Stock(90, 5)},
+            {new Stock(35, 3), new Stock(40, 3), new Stock(45, 3), new Stock(50, 3), new Stock(60, 4), new Stock(65, 4), new Stock(75, 4)},
+            {new Stock(25, 2), new Stock(30, 2), new Stock(35, 2), new Stock(40, 3), new Stock(45, 3), new Stock(50, 3), new Stock(60, 3)},
+            {new Stock(15, 1), new Stock(20, 1), new Stock(25, 2), new Stock(30, 2), new Stock(35, 2), new Stock(40, 2), new Stock(45, 3)},
+            {new Stock(10, 0), new Stock(12, 1), new Stock(15, 1), new Stock(20, 1), new Stock(25, 1), new Stock(30, 2), new Stock(35, 2)},
+            {new Stock(6, 0), new Stock(8, 0), new Stock(10, 0), new Stock(12, 0), new Stock(15, 1), new Stock(20, 1), new Stock(25, 1)},
+            {new Stock(4, 0), new Stock(5, 0), new Stock(6, 0), new Stock(8, 0), new Stock(10, 0), new Stock(12, 0), new Stock(15, 0)}
+    };
+
+    /**
+     * 주가 변동 참조표
+     * <p>
+     * - 만약 주가변동참조표에서 양수(3)의 위치로 이동해야 할 경우.
+     * StockInfo stockA;
+     * stockA.state[0] += dr[3]; stockA.state[1] += dc[3];
+     * - 만약 주가변동참조표에서 음수(-2)의 위치로 이동해야 할 경우.
+     * stockA.state[0] += dr[13-2]; stockA.state[1] += dc[13-2];
+     * - 만약 주가변동참조표에서 0의 위치로 이동해야 할 경우.
+     * stockA.state[0] += dr[0]; stockA.state[1] += dc[0];
+     */
+    // 0, 1, 2, 3, 4, 5, 6, -6, -5, -4, -3, -2, -1
+    @Getter
+    private final int[] stockDr = {0, -1, -1, 2, 2, 3, 3, -3, -3, -2, -2, -1, -1};
+    @Getter
+    private final int[] stockDc = {-1, 0, 1, 0, 1, 0, 1, 0, -1, 0, -1, 0, -1};
+
+    @Getter
+    private final int[][] stockLevelCards = {
+            {1, 5}, {1, 6}, {2, 6}, {2, 7}, {3, 7}, {3, 8}, {4, 9}, {4, 10}, {5, 11}, {5, 12}
+    };
+}
