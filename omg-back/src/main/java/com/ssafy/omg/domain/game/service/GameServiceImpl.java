@@ -114,8 +114,6 @@ public class GameServiceImpl implements GameService {
             arena.setGame(newGame);
             arena.setMessage("GAME_INITIALIZED");
             arena.setRoom(null);
-//            Long currentTtl = redisTemplate.getExpire(ROOM_PREFIX + roomId, TimeUnit.SECONDS);
-//            redisTemplate.opsForValue().set(ROOM_PREFIX + roomId, arena, currentTtl + 1L, TimeUnit.SECONDS);
             gameRepository.saveArena(roomId, arena);
         } else {
             throw new BaseException(ARENA_NOT_FOUND);
@@ -173,8 +171,7 @@ public class GameServiceImpl implements GameService {
         game.setInterestRate(currentInterestRate);
 
         arena.setGame(game);
-        Long currentTtl = redisTemplate.getExpire(roomKey, TimeUnit.MINUTES);
-        redisTemplate.opsForValue().set(roomKey, arena, currentTtl, TimeUnit.MINUTES);
+        gameRepository.saveArena(roomId, arena);
 
         return gameEvent;
     }
@@ -186,16 +183,6 @@ public class GameServiceImpl implements GameService {
         int remainingStockCounts = 5;
 
         for (int i = 1; i < 5; i++) {
-//            int pickCount = random.nextInt(remainingStockCounts) + 1;
-//            int attempts = 0;
-//            if (remainingStockCounts > 0) {
-//                // 한 주식을 4, 5를 할당받는 극단적인 케이스를 어느정도 줄이고자 함.
-//                int max = Math.min(3, Math.max(0, remainingStockCounts - (5 - i)));
-//                result[i] = (max > 0) ? random.nextInt(max) + 1 : 0;
-//                remainingStockCounts -= result[i];
-//            } else {
-//                result[i] = 0;
-//            }
             if (remainingStockCounts > 0) {
                 // 최소값은 0, 최대값은 남은 주식수와 3중 작은값
                 int max = Math.min(remainingStockCounts, 3);
@@ -416,7 +403,7 @@ public class GameServiceImpl implements GameService {
         arena.getGame().getPlayers().replaceAll(player ->
                 player.getNickname().equals(currPlayer.getNickname()) ? currPlayer : player
         );
-
-        redisTemplate.opsForValue().set(roomKey, arena);
+        Long currentTtl = redisTemplate.getExpire(roomKey, TimeUnit.SECONDS);
+        redisTemplate.opsForValue().set(roomKey, arena, currentTtl + 1L, TimeUnit.SECONDS);
     }
 }
