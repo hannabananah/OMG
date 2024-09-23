@@ -28,12 +28,12 @@ export default function MainMap() {
 
   return (
     <div className='relative w-full h-screen p-1'>
-      <Canvas camera={{ position: [0, 4, 10], fov: 45 }}>
-        <ambientLight intensity={0.5} />
+      <Canvas camera={{ position: [60, 50, 45], fov: 50 }}>
+        <ambientLight intensity={1.5} />
         <directionalLight position={[10, 10, 5]} intensity={1} />
         <Suspense fallback={null}>
           <Map />
-          <Mickey position={[0, -1.5, 0]} onLoadComplete={handleLoadComplete} />
+          <Mickey position={[0, 0, 0]} onLoadComplete={handleLoadComplete} />
         </Suspense>
       </Canvas>
     </div>
