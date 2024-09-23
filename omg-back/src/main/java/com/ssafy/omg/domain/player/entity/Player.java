@@ -1,10 +1,6 @@
 package com.ssafy.omg.domain.player.entity;
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 
 /**
  * 플레이어 정보
@@ -32,7 +28,6 @@ public class Player {
 
     private PlayerAction action;       // 플레이어 행위 (주식 매수, 주식 매도, 금괴 매입, 대출, 상환)
     private PlayerStatus state;        // 플레이어 행위 상태 (시작전, 진행중, 완료)
-    private int time;                  // 플레이어의 한 행위 남은 시간
     private int isConnected;           // 플레이어 접속 상태 (0: 끊김, 1: 연결됨)
 
 }

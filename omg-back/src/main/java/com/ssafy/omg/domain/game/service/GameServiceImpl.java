@@ -17,7 +17,6 @@ import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
-import java.util.concurrent.TimeUnit;
 
 import static com.ssafy.omg.config.baseresponse.BaseResponseStatus.*;
 import static com.ssafy.omg.domain.game.entity.ActionStatus.ACTION_FAILURE;
@@ -84,7 +83,6 @@ public class GameServiceImpl implements GameService {
                         .gold(0)
                         .action(null)
                         .state(NOT_STARTED)
-                        .time(20)
                         .isConnected(1)
                         .build();
                 players.add(newPlayer);
@@ -99,6 +97,7 @@ public class GameServiceImpl implements GameService {
                     .players(players)
                     .time(120)                            // 한 라운드 2분(120초)으로 설정
                     .round(1)                             // 시작 라운드 1
+                    .roundStatus(null)
                     .isStockChanged(new boolean[6])       // 5개 주식에 대한 변동 여부 초기화
                     .isGoldChanged(false)
                     .interestRate(5)                      // 예: 초기 금리 5%로 설정
