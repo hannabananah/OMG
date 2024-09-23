@@ -426,12 +426,11 @@ public class GameServiceImpl implements GameService {
      * @param currPlayer
      */
     private void savePlayer(String roomId, Arena arena, Player currPlayer) {
-        String roomKey = ROOM_PREFIX + roomId;
 
         arena.getGame().getPlayers().replaceAll(player ->
                 player.getNickname().equals(currPlayer.getNickname()) ? currPlayer : player
         );
 
-        redisTemplate.opsForValue().set(roomKey, arena);
+        gameRepository.saveArena(roomId, arena);
     }
 }
