@@ -1,7 +1,6 @@
 package com.ssafy.omg.domain.game.entity;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.ssafy.omg.domain.game.entity.StockState.StockInfo;
 import com.ssafy.omg.domain.player.entity.Player;
 import lombok.*;
 
