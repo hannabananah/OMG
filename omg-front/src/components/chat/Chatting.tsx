@@ -32,10 +32,10 @@ export default function Chatting() {
 
   return (
     <div className='mt-4'>
-      <h3 className='text-lime-700'>채팅:</h3>
+      <h3 className='text-lime-700'>채팅 영역</h3>
       <div
         ref={chatRef}
-        className='p-2 overflow-y-auto border max-h-40 border-lime-500'
+        className='h-40 p-2 overflow-y-auto border border-lime-500'
       >
         {chatMessages.map((message, index) => (
           <ChatMessage
