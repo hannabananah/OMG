@@ -20,6 +20,7 @@ interface SocketContextType {
   leaveRoom: (sender: string) => void;
   chatSubscription: () => void;
   sendMessage: (msg: string) => void;
+  hostPlayer: string | null;
 }
 
 const defaultContextValue: SocketContextType = {
@@ -33,6 +34,7 @@ const defaultContextValue: SocketContextType = {
   leaveRoom: () => {},
   chatSubscription: () => {},
   sendMessage: () => {},
+  hostPlayer: '',
 };
 
 export const SocketContext =
@@ -50,6 +52,7 @@ export default function SocketProvider({ children }: SocketProviderProps) {
   const [online, setOnline] = useState(false);
   const [players, setPlayers] = useState<string[]>([]);
   const [chatMessages, setChatMessages] = useState<ChatMessage[]>([]);
+  const [hostPlayer, setHostPlayer] = useState<string | null>(null);
 
   const topic = `/sub/${roomId}/room`;
   const subscriptionId = `sub-${roomId}0`;
@@ -116,11 +119,12 @@ export default function SocketProvider({ children }: SocketProviderProps) {
         switch (parsedMessage.message) {
           case 'ENTER_SUCCESS':
             const playerList = parsedMessage.room.inRoomPlayers;
+            const hostPlayer = parsedMessage.room.hostNickname;
             const playerNicknames = playerList.map(
               (player: { nickname: string }) => player.nickname,
             );
-
             setPlayers(playerNicknames);
+            setHostPlayer(hostPlayer);
             break;
           case 'ENTER_FAILURE ':
             break;
@@ -141,7 +145,6 @@ export default function SocketProvider({ children }: SocketProviderProps) {
       },
       { id: subscriptionId },
     );
-
     const messagePayload = {
       roomId,
       sender,
@@ -242,6 +245,7 @@ export default function SocketProvider({ children }: SocketProviderProps) {
       leaveRoom,
       chatSubscription,
       sendMessage,
+      hostPlayer,
     }),
     [socket, online, players, chatMessages],
   );
