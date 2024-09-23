@@ -18,6 +18,7 @@ export default function Waiting() {
     leaveRoom,
     chatSubscription,
     hostPlayer,
+    startGame,
   } = useContext(SocketContext);
   const { name } = useUserStore();
 
@@ -41,7 +42,7 @@ export default function Waiting() {
 
   const handleClick = () => {
     if (isRoomFull) {
-      navigate('/game');
+      startGame();
     }
   };
 
