@@ -23,6 +23,6 @@ COPY --from=build /app/build/libs/*.jar /app/omg-backend.jar
 # Expose the necessary port for the backend (8080)
 EXPOSE 8080
 
- Run the Spring Boot application using the built JAR with the 'prod' profile active
+# Run the Spring Boot application using the built JAR with the 'prod' profile active
 ENTRYPOINT [ "java" ]
 CMD [ "-jar", "omg-backend.jar", "--spring.profiles.active=prod"]
