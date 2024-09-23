@@ -1,5 +1,5 @@
 import { ReactNode, createContext, useEffect, useMemo, useState } from 'react';
-import { useParams } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 
 import { useRoomStore } from '@/stores/room';
 import { Client } from '@stomp/stompjs';
@@ -20,6 +20,8 @@ interface SocketContextType {
   leaveRoom: (sender: string) => void;
   chatSubscription: () => void;
   sendMessage: (msg: string) => void;
+  hostPlayer: string | null;
+  startGame: () => void;
 }
 
 const defaultContextValue: SocketContextType = {
@@ -33,6 +35,8 @@ const defaultContextValue: SocketContextType = {
   leaveRoom: () => {},
   chatSubscription: () => {},
   sendMessage: () => {},
+  hostPlayer: '',
+  startGame: () => {},
 };
 
 export const SocketContext =
@@ -50,6 +54,8 @@ export default function SocketProvider({ children }: SocketProviderProps) {
   const [online, setOnline] = useState(false);
   const [players, setPlayers] = useState<string[]>([]);
   const [chatMessages, setChatMessages] = useState<ChatMessage[]>([]);
+  const [hostPlayer, setHostPlayer] = useState<string | null>(null);
+  const navigate = useNavigate();
 
   const topic = `/sub/${roomId}/room`;
   const subscriptionId = `sub-${roomId}0`;
@@ -60,7 +66,6 @@ export default function SocketProvider({ children }: SocketProviderProps) {
       console.log('소켓 연결이 되어 있지 않음');
       return;
     }
-
     // 구독 해제
     socket.unsubscribe(subscriptionId);
 
@@ -117,29 +122,35 @@ export default function SocketProvider({ children }: SocketProviderProps) {
         switch (parsedMessage.message) {
           case 'ENTER_SUCCESS':
             const playerList = parsedMessage.room.inRoomPlayers;
+            const hostPlayer = parsedMessage.room.hostNickname;
             const playerNicknames = playerList.map(
               (player: { nickname: string }) => player.nickname,
             );
-
             setPlayers(playerNicknames);
+            setHostPlayer(hostPlayer);
             break;
-          case 'ENTER_FAILURE ':
+          case 'ENTER_FAILURE':
             break;
-          case 'PREPARE_GAME_START  ':
+          case 'PREPARE_GAME_START':
             break;
-          case 'PLAYER_LEAVED ':
+          case 'LEAVE_ROOM':
+            setPlayers(prevPlayers =>
+              prevPlayers.filter(player => player !== parsedMessage.sender),
+            );
             break;
-          case 'START_BUTTON_CLICKED ':
+          case 'START_BUTTON_CLICKED':
+            console.log('게임 시작 이벤트 수신');
+            // TODO: 게임 시작 알림->음향? 텍스트? 유저들에게 보여주기
+            navigate(`/game/${roomId}`);
             break;
-          case 'RENDER_COMPLETE_ACCEPTED ':
+          case 'RENDERED_COMPLETE':
             break;
-          case 'ALL_RENDERED_COMPLETED ':
+          case 'ALL_RENDERED_COMPLETED':
             break;
         }
       },
       { id: subscriptionId },
     );
-
     const messagePayload = {
       roomId,
       sender,
@@ -214,6 +225,41 @@ export default function SocketProvider({ children }: SocketProviderProps) {
     });
   };
 
+  // 게임시작 메시지 전송
+  const startGame = () => {
+    if (!socket || !socket.connected) {
+      console.log('소켓이 아직 연결되지 않았습니다.');
+      return;
+    }
+
+    const startMessagePayload = {
+      roomId,
+      sender,
+      message: 'START_BUTTON_CLICKED',
+    };
+
+    console.log('전송할 게임 시작 메시지:', startMessagePayload);
+
+    socket.publish({
+      destination: '/pub/room',
+      body: JSON.stringify(startMessagePayload),
+    });
+  };
+
+  useEffect(() => {
+    if (socket && online && location.pathname === '/game') {
+      // game방으로 갈 시 채팅방 구독 유지
+      chatSubscription();
+    }
+
+    return () => {
+      if (socket && online && location.pathname !== '/game') {
+        // game방으로 아닐 때 채팅 구독 해제
+        socket.unsubscribe(`chat-${roomId}`);
+      }
+    };
+  }, [socket, online, location.pathname, roomId]);
+
   const contextValue = useMemo(
     () => ({
       socket,
@@ -226,6 +272,8 @@ export default function SocketProvider({ children }: SocketProviderProps) {
       leaveRoom,
       chatSubscription,
       sendMessage,
+      hostPlayer,
+      startGame,
     }),
     [socket, online, players, chatMessages],
   );

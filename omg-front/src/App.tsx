@@ -21,9 +21,9 @@ const Waiting = loadable(() => import('@/pages/Waiting'), {
 const Game = loadable(() => import('@/pages/Game'), {
   fallback: <div>게임화면 로딩중</div>,
 });
-const MainMap = loadable(() => import('@/pages/MainMap'), {
-  fallback: <div>메인 맵 로딩중</div>,
-});
+// const MainMap = loadable(() => import('@/pages/MainMap'), {
+//   fallback: <div>메인 맵 로딩중</div>,
+// });
 
 export default function App() {
   return (
@@ -42,7 +42,7 @@ export default function App() {
         />
 
         <Route
-          path='/game'
+          path='/game/:roomId'
           element={
             <SocketProvider>
               <Game />
