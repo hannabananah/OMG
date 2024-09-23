@@ -141,7 +141,7 @@ export default function SocketProvider({ children }: SocketProviderProps) {
           case 'START_BUTTON_CLICKED':
             console.log('게임 시작 이벤트 수신');
             // TODO: 게임 시작 알림->음향? 텍스트? 유저들에게 보여주기
-            navigate('/game');
+            navigate(`/game/${roomId}`);
             break;
           case 'RENDERED_COMPLETE':
             break;
