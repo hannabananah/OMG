@@ -53,6 +53,8 @@ public enum BaseResponseStatus {
 
     // game
     ARENA_NOT_FOUND(false, 3031, "아레나가 존재하지 않습니다."),
+    INVALID_ROUND(false, 3032, "경제 이벤트가 발생하기에 유효하지 않은 라운드입니다."),
+    EVENT_NOT_FOUND(false, 3033, "경제 이벤트가 존재하지 않습니다."),
 
     // 3101 ~~ 3199 : 이가은
     GAME_NOT_FOUND(false, 3101, "게임이 존재하지 않습니다."),
@@ -60,6 +62,7 @@ public enum BaseResponseStatus {
     INVALID_STOCK_LEVEL(false, 3103, "유효하지 않은 주가 수준입니다."),
     LOAN_ALREADY_TAKEN(false, 3104, "이미 대출을 받은 플레이어입니다."),
     AMOUNT_OUT_OF_RANGE(false, 3105, "요청 금액이 대출 한도 범위를 벗어납니다."),
+    INVALID_REPAY_AMOUNT(false, 3106, "유효하지 않은 상환 금액입니다."),
 
 
     // 3201 ~~ 3299 : 전정민
