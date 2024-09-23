@@ -32,10 +32,8 @@ export const enterWaitingRoom = async (roomId: string, sender: string) => {
       sender,
       message: 'ENTER_SUCCESS',
     });
-
     const { message, roomId: returnedRoomId } = response.data.result;
     if (message === 'ENTER_SUCCESS') {
-      console.log(`${returnedRoomId} 방입장 성공`);
       return { success: true, roomId: returnedRoomId };
     } else {
       console.warn(`방입장 실패: ${message}`);

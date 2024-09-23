@@ -3,23 +3,24 @@ import { FaCopy } from 'react-icons/fa';
 import { useNavigate } from 'react-router-dom';
 
 import { handleApiError } from '@/apis/errorHandler';
-import { createWaitingRooms, enterWaitingRoom } from '@/apis/room/roomAPI';
+import { createWaitingRooms } from '@/apis/room/roomAPI';
 import ExitButton from '@/components/ExitButton';
+import { useRoomStore } from '@/stores/room';
 import { AxiosError } from 'axios';
 
 export default function Lobby() {
+  const { setSender } = useRoomStore();
+  const [roomCode, setRoomCode] = useState<string>('');
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [roomCode, setRoomCode] = useState<string>('');
   const [isCopyEnabled, setIsCopyEnabled] = useState(false);
 
   const handleClickCreateRoom = async () => {
     setLoading(true);
     setError(null);
     try {
-      // TODO: test로 넣어놓은 것 로그인 연동하면 바꿔야 함
-      const response = await createWaitingRooms('test17');
+      const response = await createWaitingRooms('testHost');
       setRoomCode(response);
     } catch (err) {
       const handledError = handleApiError(err as AxiosError);
@@ -40,8 +41,7 @@ export default function Lobby() {
   }, [roomCode]);
 
   const handleRoomCodeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const newRoomCode = e.target.value;
-    setRoomCode(newRoomCode);
+    setRoomCode(e.target.value);
   };
 
   useEffect(() => {
@@ -49,21 +49,17 @@ export default function Lobby() {
   }, [roomCode]);
 
   const handleClickEnterRoom = async () => {
-    // TODO: 에러처리 필요
     try {
-      const response = await enterWaitingRoom(roomCode, 'test17');
-      if (response.success) {
-        console.log(`입력된 방코드: ${response.roomId}`);
-        navigate('/waiting');
-      } else {
-        console.warn('대기방 입장에 실패했습니다.');
-      }
+      // TODO: 유저 네임 바꿔야함
+      setSender('testUser13');
+      navigate(`/waiting/${roomCode}`);
     } catch (err) {
       const handledError = handleApiError(err as AxiosError);
-      setError(handledError.message);
+      setError(handledError.message || '대기방 입장에 실패했습니다.');
       console.error(err);
     }
   };
+
   return (
     <div className='relative flex flex-col items-center justify-center w-full h-screen p-10 bg-lime-100'>
       <div className='absolute right-1 bottom-1'>

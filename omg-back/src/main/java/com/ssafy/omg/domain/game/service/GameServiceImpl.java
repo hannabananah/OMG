@@ -4,6 +4,7 @@ import com.ssafy.omg.config.baseresponse.BaseException;
 import com.ssafy.omg.domain.arena.entity.Arena;
 import com.ssafy.omg.domain.game.GameRepository;
 import com.ssafy.omg.domain.game.dto.PlayerMoveRequest;
+import com.ssafy.omg.domain.game.dto.UserActionRequest;
 import com.ssafy.omg.domain.game.dto.UserActionResponse;
 import com.ssafy.omg.domain.game.entity.Game;
 import com.ssafy.omg.domain.game.entity.GameEvent;
@@ -19,6 +20,7 @@ import java.util.*;
 import java.util.concurrent.TimeUnit;
 
 import static com.ssafy.omg.config.baseresponse.BaseResponseStatus.*;
+import static com.ssafy.omg.domain.game.entity.ActionStatus.ACTION_FAILURE;
 import static com.ssafy.omg.domain.game.entity.ActionStatus.ACTION_SUCCESS;
 import static com.ssafy.omg.domain.player.entity.PlayerStatus.NOT_STARTED;
 import static org.hibernate.query.sqm.tree.SqmNode.log;
@@ -266,26 +268,45 @@ public class GameServiceImpl implements GameService {
     /**
      * [preLoan] 대출 가능 여부 판단 후, 대출 금액 범위 리턴
      *
-     * @param
-     * @throws BaseException
+     * @param roomId
+     * @param sender
+     * @return 대출 금액 범위
+     * @throws BaseException 1. 이미 대출을 받은 적이 있는 경우 2. 유효하지 않은 주가수준인 경우
      */
     public int preLoan(String roomId, String sender) throws BaseException {
-        String roomKey = ROOM_PREFIX + roomId;
 
         // 입력값 오류
         validateRequest(roomId, sender);
 
-        Arena arena = getArena(roomKey);
+        Arena arena = getArena(roomId);
         Player player = getPlayer(arena, sender);
 
-        // 이미 대출을 받은 적 있으면 0 리턴
+        // 이미 대출을 받은 적이 있는 경우
         if (player.getHasLoan() == 1) {
+
+            // UserActionResponse 보내기
+            UserActionResponse response = UserActionResponse.builder()
+                    .roomId(roomId)
+                    .message(ACTION_FAILURE)
+                    .reason(LOAN_ALREADY_TAKEN.getMessage()).build();
+            messagingTemplate.convertAndSend("/sub/" + roomId + "/game", response);
+
             throw new BaseException(LOAN_ALREADY_TAKEN);
         }
 
-        // 대출 가능 금액 계산
         int stockPriceLevel = arena.getGame().getStockPriceLevel();
+
+        // 주가 수준에 따른 가능 대출 범위 리턴
+        // 유효하지 않은 주가수준일 경우
         if (stockPriceLevel < 0 || stockPriceLevel > 9) {
+
+            // UserActionResponse 보내기
+            UserActionResponse response = UserActionResponse.builder()
+                    .roomId(roomId)
+                    .message(ACTION_FAILURE)
+                    .reason(INVALID_STOCK_LEVEL.getMessage()).build();
+            messagingTemplate.convertAndSend("/sub/" + roomId + "/game", response);
+
             throw new BaseException(INVALID_STOCK_LEVEL);
         } else if (stockPriceLevel <= 2) {
             return 0;
@@ -297,26 +318,34 @@ public class GameServiceImpl implements GameService {
     }
 
     /**
-     * [takeLoan] 요청금액 대출 후, 플레이어 자산 업데이트
+     * [takeLoan] 대출 후 자산반영, 메세지 전송
      *
-     * @param roomId
-     * @param sender
-     * @param amount
-     * @throws BaseException
+     * @param userActionRequest
+     * @throws BaseException 요청 금액이 대출 한도를 넘어가는 경우
      */
-    public void takeLoan(String roomId, String sender, int amount) throws BaseException {
-        String roomKey = ROOM_PREFIX + roomId;
+    public void takeLoan(UserActionRequest userActionRequest) throws BaseException {
+        String roomId = userActionRequest.getRoomId();
+        String sender = userActionRequest.getSender();
+        int amount = userActionRequest.getDetails().getAmount();
 
         validateRequest(roomId, sender);
         int range = preLoan(roomId, sender);
 
         // 요청 금액이 대출 한도를 이내인지 검사
         if (amount <= LOAN_RANGE[range][0] || LOAN_RANGE[range][1] <= amount) {
+
+            // UserActionResponse 보내기
+            UserActionResponse response = UserActionResponse.builder()
+                    .roomId(roomId)
+                    .message(ACTION_FAILURE)
+                    .reason(AMOUNT_OUT_OF_RANGE.getMessage()).build();
+            messagingTemplate.convertAndSend("/sub/" + roomId + "/game", response);
+
             throw new BaseException(AMOUNT_OUT_OF_RANGE);
         }
 
         // 대출금을 자산에 반영
-        Arena arena = getArena(roomKey);
+        Arena arena = getArena(roomId);
         Player player = getPlayer(arena, sender);
         int interest = amount * (arena.getGame().getInterestRate() / 100);
         player = player.toBuilder()
@@ -326,7 +355,7 @@ public class GameServiceImpl implements GameService {
                 .debt(amount + interest)
                 .cash(player.getCash() + amount).build();
 
-        savePlayer(roomKey, arena, player);
+        savePlayer(roomId, arena, player);
 
         // UserActionResponse 보내기
         UserActionResponse response = UserActionResponse.builder()
@@ -337,16 +366,33 @@ public class GameServiceImpl implements GameService {
     }
 
     // 상환
-    public void repayLoan(String roomId, String sender, int amount) throws BaseException {
-        String roomKey = ROOM_PREFIX + roomId;
+
+    /**
+     * [repayLoan] 상환 후 자산 반영, 메세지 전송
+     *
+     * @param userActionRequest
+     * @throws BaseException 상환 금액이 유효하지 않은 값일 때
+     */
+    public void repayLoan(UserActionRequest userActionRequest) throws BaseException {
+        String roomId = userActionRequest.getRoomId();
+        String sender = userActionRequest.getSender();
+        int amount = userActionRequest.getDetails().getAmount();
 
         validateRequest(roomId, sender);
 
-        Arena arena = getArena(roomKey);
+        Arena arena = getArena(roomId);
         Player player = getPlayer(arena, sender);
 
         // 상환 금액이 유효한 값인지 판단(음수, 갚아야 할 금액보다 큰 금액인 경우, 자신이 보유한 현금보다 큰 값인 경우)
         if (amount < 0 || player.getDebt() < amount || player.getCash() < amount) {
+
+            // UserActionResponse 보내기
+            UserActionResponse response = UserActionResponse.builder()
+                    .roomId(roomId)
+                    .message(ACTION_FAILURE)
+                    .reason(INVALID_REPAY_AMOUNT.getMessage()).build();
+            messagingTemplate.convertAndSend("/sub/" + roomId + "/game", response);
+
             throw new BaseException(INVALID_REPAY_AMOUNT);
         }
 
@@ -356,7 +402,14 @@ public class GameServiceImpl implements GameService {
                 .cash(player.getCash() - amount)
                 .build();
 
-        savePlayer(roomKey, arena, player);
+        savePlayer(roomId, arena, player);
+
+        // UserActionResponse 보내기
+        UserActionResponse response = UserActionResponse.builder()
+                .roomId(roomId)
+                .message(ACTION_SUCCESS)
+                .player(player).build();
+        messagingTemplate.convertAndSend("/sub/" + roomId + "/game", response);
     }
 
 
@@ -366,6 +419,7 @@ public class GameServiceImpl implements GameService {
 
     // 금괴 매입
 
+    // 주가 수준 변동
 
     // 플레이어 이동
     @Override
@@ -397,6 +451,12 @@ public class GameServiceImpl implements GameService {
      */
     private void validateRequest(String roomId, String sender) throws BaseException {
         if (roomId == null || roomId.isEmpty() || sender == null || sender.isEmpty()) {
+            // UserActionResponse 보내기
+            UserActionResponse response = UserActionResponse.builder()
+                    .roomId(roomId)
+                    .message(ACTION_FAILURE)
+                    .reason(REQUEST_ERROR.getMessage()).build();
+            messagingTemplate.convertAndSend("/sub/" + roomId + "/game", response);
             throw new BaseException(REQUEST_ERROR);
         }
     }
@@ -404,12 +464,15 @@ public class GameServiceImpl implements GameService {
     /**
      * Redis에서 arena를 가져오기
      *
-     * @param roomKey Redis에서 사용하는 방의 키
+     * @param roomId Redis에서 사용하는 방의 키
      * @return 방의 arena
      * @throws BaseException 방을 찾을 수 없을 경우 발생
      */
-    private Arena getArena(String roomKey) throws BaseException {
+    private Arena getArena(String roomId) throws BaseException {
+        String roomKey = ROOM_PREFIX + roomId;
+
         Arena arena = redisTemplate.opsForValue().get(roomKey);
+
         if (arena == null || arena.getGame() == null) {
             throw new BaseException(GAME_NOT_FOUND);
         }
@@ -443,11 +506,12 @@ public class GameServiceImpl implements GameService {
      * @param arena
      * @param currPlayer
      */
-    private void savePlayer(String roomKey, Arena arena, Player currPlayer) {
+    private void savePlayer(String roomId, Arena arena, Player currPlayer) {
+
         arena.getGame().getPlayers().replaceAll(player ->
                 player.getNickname().equals(currPlayer.getNickname()) ? currPlayer : player
         );
-        Long currentTtl = redisTemplate.getExpire(roomKey, TimeUnit.SECONDS);
-        redisTemplate.opsForValue().set(roomKey, arena, currentTtl + 1L, TimeUnit.SECONDS);
+
+        gameRepository.saveArena(roomId, arena);
     }
 }
