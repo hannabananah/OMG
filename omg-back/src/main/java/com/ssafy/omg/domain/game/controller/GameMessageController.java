@@ -2,13 +2,13 @@ package com.ssafy.omg.domain.game.controller;
 
 import com.ssafy.omg.config.MessageController;
 import com.ssafy.omg.config.baseresponse.BaseException;
+import com.ssafy.omg.domain.game.dto.GameEventDto;
 import com.ssafy.omg.domain.game.dto.PlayerMoveRequest;
 import com.ssafy.omg.domain.game.dto.UserActionRequest;
-import com.ssafy.omg.domain.game.dto.GameEventDto;
 import com.ssafy.omg.domain.game.entity.GameEvent;
 import com.ssafy.omg.domain.game.service.GameService;
-import jakarta.validation.Valid;
 import com.ssafy.omg.domain.socket.dto.StompPayload;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.messaging.handler.annotation.MessageMapping;
@@ -18,8 +18,6 @@ import org.springframework.messaging.simp.stomp.StompHeaderAccessor;
 import org.springframework.web.bind.annotation.CrossOrigin;
 
 import java.util.Optional;
-
-import static com.ssafy.omg.config.baseresponse.BaseResponseStatus.REQUEST_ERROR;
 
 import static com.ssafy.omg.config.baseresponse.BaseResponseStatus.REQUEST_ERROR;
 
@@ -102,9 +100,6 @@ public class GameMessageController {
     // TODO 주식 관련 메서드는 synchronized
 
     // 금괴 매입
-
-    // 주가수준변동
-
 
     /**
      * UserActionRequest의 입력유효성 검사

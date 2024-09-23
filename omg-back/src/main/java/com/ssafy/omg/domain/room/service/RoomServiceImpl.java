@@ -65,7 +65,6 @@ public class RoomServiceImpl implements RoomService {
             System.out.println("방 아이디 : " + roomId);
 
             Room room = new Room(roomId, userNickname);
-            System.out.println("Room : " + room);
 
             Arena arena = Arena.builder()
                     .roomId(roomId)
@@ -102,12 +101,16 @@ public class RoomServiceImpl implements RoomService {
         validateRequest(roomId, sender);
 
         // 대기방 존재하지 않을 경우 예외처리
-        Arena arena = getArena(roomKey);
+        Arena arena = redisTemplate.opsForValue().get(roomKey);
+        if (arena == null || arena.getRoom() == null) {
+            return new CommonRoomResponse(roomId, "GAME_MANAGER", "게임 대기방이 존재하지 않습니다.", null, null);
+        }
 
         // 대기방 인원이 4명이면 꽉 찼으므로 예외처리
         Room room = arena.getRoom();
         if (isRoomFull(room)) {
-            throw new BaseException(ROOM_FULLED_ERROR);
+//            throw new BaseException(ROOM_FULLED_ERROR);
+            return new CommonRoomResponse(roomId, "GAME_MANAGER", "게임 대기방이 꽉 차 참여할 수 없습니다.", null, null);
         }
 
         boolean isNewPlayer = !isPlayerInRoom(room, sender);
