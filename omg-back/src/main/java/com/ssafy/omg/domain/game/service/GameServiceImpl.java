@@ -55,7 +55,20 @@ public class GameServiceImpl implements GameService {
         Arena arena = redisTemplate.opsForValue().get(ROOM_PREFIX + roomId);
         if (arena != null) {
             List<Player> players = new ArrayList<>();
+            int[] pocket = new int[]{0, 23, 23, 23, 23, 23};
+            Game.StockInfo[] market = initializeMarket();
+
+            System.out.println("랜덤 주식");
             for (int i = 0; i < inRoomPlayers.size(); i++) {
+                int[] randomStock = generateRandomStock();
+                // pocket에서 뽑은 randomStock 만큼 빼주기
+                for (int j = 1; j < randomStock.length; j++) {
+                    pocket[j] -= randomStock[j];
+                    if (pocket[j] < 0) {
+                        throw new BaseException(INSUFFICIENT_STOCK);
+                    }
+                }
+
                 Player newPlayer = Player.builder()
                         .nickname(inRoomPlayers.get(i))
                         .position(new double[]{0, 0, 0}) // TODO 임시로 (0,0,0)으로 해뒀습니다 고쳐야함
@@ -65,7 +78,7 @@ public class GameServiceImpl implements GameService {
                         .interest(0)
                         .debt(0)
                         .cash(100)
-                        .stock(new int[]{0, 0, 0, 0, 0, 0})
+                        .stock(randomStock)
                         .gold(0)
                         .action(null)
                         .state(NOT_STARTED)
@@ -89,14 +102,8 @@ public class GameServiceImpl implements GameService {
                     .interestRate(5)                      // 예: 초기 금리 5%로 설정
                     .economicEvent(randomEvent)           // 초기 경제 이벤트 없음
                     .stockPriceLevel(0)                   // 주가 수준
-                    .pocket(new int[]{0, 23, 23, 23, 23, 23})  // 주머니 초기화
-                    .market(new Game.StockInfo[]{
-                            new Game.StockInfo(0, new int[]{0, 0}),
-                            new Game.StockInfo(8, new int[]{12, 3}),
-                            new Game.StockInfo(8, new int[]{12, 3}),
-                            new Game.StockInfo(8, new int[]{12, 3}),
-                            new Game.StockInfo(8, new int[]{12, 3}),
-                            new Game.StockInfo(8, new int[]{12, 3})}) // 주식 시장 초기화
+                    .pocket(pocket)                       // 주머니 초기화
+                    .market(market)                       // 주식 시장 초기화
                     .stockSell(new int[10])               // 주식 매도 트랙 초기화
                     .stockBuy(new int[6])                 // 주식 매수 트랙 초기화
                     .goldBuy(new int[6])                  // 금 매입 트랙 초기화
@@ -107,12 +114,24 @@ public class GameServiceImpl implements GameService {
             arena.setGame(newGame);
             arena.setMessage("GAME_INITIALIZED");
             arena.setRoom(null);
-            Long currentTtl = redisTemplate.getExpire(ROOM_PREFIX + roomId, TimeUnit.MINUTES);
-            redisTemplate.opsForValue().set(ROOM_PREFIX + roomId, arena, currentTtl, TimeUnit.MINUTES);
+//            Long currentTtl = redisTemplate.getExpire(ROOM_PREFIX + roomId, TimeUnit.SECONDS);
+//            redisTemplate.opsForValue().set(ROOM_PREFIX + roomId, arena, currentTtl + 1L, TimeUnit.SECONDS);
+            gameRepository.saveArena(roomId, arena);
         } else {
             throw new BaseException(ARENA_NOT_FOUND);
         }
         return arena;
+    }
+
+    private Game.StockInfo[] initializeMarket() {
+        Game.StockInfo[] market = new Game.StockInfo[6];
+        market[0] = new Game.StockInfo(0, new int[]{0, 0});
+
+        for (int i = 1; i < 6; i++) {
+            market[i] = new Game.StockInfo(8, new int[]{12, 3});
+        }
+
+        return market;
     }
 
     /**
@@ -158,6 +177,37 @@ public class GameServiceImpl implements GameService {
         redisTemplate.opsForValue().set(roomKey, arena, currentTtl, TimeUnit.MINUTES);
 
         return gameEvent;
+    }
+
+    private int[] generateRandomStock() throws BaseException {
+        Random random = new Random();
+        int[] result = new int[6];
+        result[0] = 0;
+        int remainingStockCounts = 5;
+
+        for (int i = 1; i < 5; i++) {
+//            int pickCount = random.nextInt(remainingStockCounts) + 1;
+//            int attempts = 0;
+//            if (remainingStockCounts > 0) {
+//                // 한 주식을 4, 5를 할당받는 극단적인 케이스를 어느정도 줄이고자 함.
+//                int max = Math.min(3, Math.max(0, remainingStockCounts - (5 - i)));
+//                result[i] = (max > 0) ? random.nextInt(max) + 1 : 0;
+//                remainingStockCounts -= result[i];
+//            } else {
+//                result[i] = 0;
+//            }
+            if (remainingStockCounts > 0) {
+                // 최소값은 0, 최대값은 남은 주식수와 3중 작은값
+                int max = Math.min(remainingStockCounts, 3);
+                result[i] = random.nextInt(max + 1);
+                remainingStockCounts -= result[i];
+            } else {
+                result[i] = 0;
+            }
+        }
+        result[5] = remainingStockCounts;
+        System.out.println(Arrays.toString(result));
+        return result;
     }
 
     private int[] generateRandomEvent() throws BaseException {
