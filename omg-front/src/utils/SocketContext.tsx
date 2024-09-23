@@ -60,7 +60,6 @@ export default function SocketProvider({ children }: SocketProviderProps) {
       console.log('소켓 연결이 되어 있지 않음');
       return;
     }
-
     // 구독 해제
     socket.unsubscribe(subscriptionId);
 
@@ -127,7 +126,10 @@ export default function SocketProvider({ children }: SocketProviderProps) {
             break;
           case 'PREPARE_GAME_START  ':
             break;
-          case 'PLAYER_LEAVED ':
+          case 'LEAVE_ROOM':
+            setPlayers(prevPlayers =>
+              prevPlayers.filter(player => player !== parsedMessage.sender),
+            );
             break;
           case 'START_BUTTON_CLICKED ':
             break;
@@ -213,6 +215,20 @@ export default function SocketProvider({ children }: SocketProviderProps) {
       body: JSON.stringify(messagePayload),
     });
   };
+
+  useEffect(() => {
+    if (socket && online && location.pathname === '/game') {
+      // game방으로 갈 시 채팅방 구독 유지
+      chatSubscription();
+    }
+
+    return () => {
+      if (socket && online && location.pathname !== '/game') {
+        // game방으로 아닐 때 채팅 구독 해제
+        socket.unsubscribe(`chat-${roomId}`);
+      }
+    };
+  }, [socket, online, location.pathname, roomId]);
 
   const contextValue = useMemo(
     () => ({
