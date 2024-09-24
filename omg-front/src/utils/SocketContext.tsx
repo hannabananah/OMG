@@ -61,7 +61,7 @@ export default function SocketProvider({ children }: SocketProviderProps) {
 
   const roomTopic = `/sub/${roomId}/room`;
   const chatTopic = `/sub/${roomId}/chat`;
-  const gameTopic = `/sub/${roomId}/game`;
+  // const gameTopic = `/sub/${roomId}/game`;
   const subRoomId = `room-${roomId}`;
   const subChatId = `chat-${roomId}`;
 
