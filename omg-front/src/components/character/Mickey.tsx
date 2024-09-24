@@ -9,7 +9,7 @@ interface Props {
   onLoadComplete?: () => void;
 }
 
-export default function Mickey({ position, onLoadComplete }: Props) {
+export default function Mickey({ onLoadComplete }: Props) {
   const loadCompleteCalled = useRef(false);
   const { scene, animations } = useGLTF('/models/mickey/mickey.gltf');
   const mixer = useRef<THREE.AnimationMixer | null>(null);
@@ -18,10 +18,16 @@ export default function Mickey({ position, onLoadComplete }: Props) {
     'idle' | 'walking' | 'running'
   >('idle');
   const [rotation, setRotation] = useState(0); // 캐릭터의 회전을 관리
+  const [characterPosition, setCharacterPosition] = useState(
+    new THREE.Vector3(0, 0, 0),
+  ); // 캐릭터의 위치를 관리
 
   const runningCheckIntervalRef = useRef<NodeJS.Timeout | null>(null);
   const walkingTimeRef = useRef<NodeJS.Timeout | null>(null);
   const keyPressStartTime = useRef<number | null>(null);
+
+  // // 포지션 전송을 위한 주기적 타이머
+  // const positionSendIntervalRef = useRef<NodeJS.Timeout | null>(null);
 
   // 애니메이션 로드 시 onLoadComplete 호출
   useEffect(() => {
@@ -81,40 +87,13 @@ export default function Mickey({ position, onLoadComplete }: Props) {
         }
         startRunningCheck();
       } else if (event.key === 'ArrowLeft') {
-        // 왼쪽 돌기 애니메이션
-        const turnLeftAction = mixer.current!.clipAction(animations[4]);
-        action?.stop();
-        turnLeftAction.reset().play();
-        setAction(turnLeftAction);
-
         // 회전 적용 후 대기 상태로 전환
-        setTimeout(() => {
-          setRotation(prev => prev + Math.PI / 2); // 90도 왼쪽 회전
+        setRotation(prev => prev + Math.PI / 2); // 90도 왼쪽 회전
 
-          // 회전 후 대기 상태로 전환
-          const idleAction = mixer.current!.clipAction(animations[0]); // 대기
-          turnLeftAction.stop();
-          idleAction.reset().play();
-          setAction(idleAction);
-        }, 500); // 애니메이션이 끝날 때쯤 회전 적용 및 대기 상태로 전환
+        // 애니메이션이 끝날 때쯤 회전 적용 및 대기 상태로 전환
       } else if (event.key === 'ArrowRight') {
-        // 오른쪽 돌기 애니메이션
-        const turnRightAction = mixer.current!.clipAction(animations[5]);
-        action?.stop();
-        turnRightAction.reset().play();
-        setAction(turnRightAction);
-
-        // 회전 적용 후 대기 상태로 전환
-        setTimeout(() => {
-          setRotation(prev => prev - Math.PI / 2); // 90도 오른쪽 회전
-
-          // 회전 후 대기 상태로 전환
-          const idleAction = mixer.current!.clipAction(animations[0]); // 대기
-          turnRightAction.stop();
-          idleAction.reset().play();
-          setAction(idleAction);
-        }, 500); // 애니메이션이 끝날 때쯤 회전 적용 및 대기 상태로 전환
-      } else if (event.key === 'ArrowDown') {
+        setRotation(prev => prev - Math.PI / 2); // 90도 오른쪽 회전
+      } else if (event.key === ' ') {
         // 줍기 애니메이션
         const pickUpAction = mixer.current!.clipAction(animations[1]);
         action?.stop();
@@ -163,18 +142,66 @@ export default function Mickey({ position, onLoadComplete }: Props) {
     };
   }, [animations, action, movementState, setAnimationState, startRunningCheck]);
 
+  // 위치를 서버로 전송하는 함수
+  const sendPositionToServer = (position: THREE.Vector3, rotation: number) => {
+    const directionVector = new THREE.Vector3(
+      Math.sin(rotation),
+      0,
+      Math.cos(rotation),
+    );
+
+    const startMessagePayload = {
+      roomId: 'example-room-id',
+      nickname: 'example-nickname',
+      position: [position.x, position.y, position.z],
+      direction: [directionVector.x, directionVector.y, directionVector.z], // 올바른 방향 값
+    };
+    console.log('서버로 전송할 좌표:', startMessagePayload);
+    // 여기에 WebSocket이나 다른 통신 방법을 사용해 좌표를 전송하는 로직을 추가하세요
+  };
+
   // 매 프레임마다 애니메이션 업데이트 및 회전 적용
   useFrame((_, delta) => {
     mixer.current?.update(delta);
     if (scene) {
       scene.rotation.y = rotation; // 회전 적용
+      if (movementState === 'walking' || movementState === 'running') {
+        // 전진 이동
+        const moveSpeed = movementState === 'walking' ? 0.05 : 0.1;
+        const forwardDirection = new THREE.Vector3(
+          Math.sin(rotation),
+          0,
+          Math.cos(rotation),
+        );
+        const newPosition = characterPosition
+          .clone()
+          .add(forwardDirection.multiplyScalar(moveSpeed));
+        setCharacterPosition(newPosition);
+        scene.position.copy(newPosition); // 실제 씬의 위치 업데이트
+      }
     }
   });
+
+  // 5초마다 포지션을 서버로 전송
+  useEffect(() => {
+    const interval = setInterval(() => {
+      if (scene) {
+        const position = scene.position;
+        sendPositionToServer(position, rotation); // 회전 값을 함께 전송
+      }
+    }, 2000); // 5000ms (5초)
+
+    return () => clearInterval(interval); // 컴포넌트 언마운트 시 클리어
+  }, [scene, rotation]);
 
   return (
     <>
       {/* 캐릭터 렌더링 */}
-      <primitive object={scene} scale={[10, 10, 10]} position={position} />
+      <primitive
+        object={scene}
+        scale={[10, 10, 10]}
+        position={characterPosition}
+      />
     </>
   );
 }
