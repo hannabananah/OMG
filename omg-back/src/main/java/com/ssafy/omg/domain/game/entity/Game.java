@@ -24,6 +24,8 @@ public class Game {
     private int time;                             // 라운드 남은 시간
     private int round;                            // 현재 라운드
     private RoundStatus roundStatus;              // 현재 라운드 상태
+    public boolean isPaused;                      // 라운드 정지 여부
+    public int pauseTime;                         // 라운드 정지 시간
     private boolean[] isStockChanged;             // (길이 5 배열) 주가 변동 여부 -> 동시 거래 막기
     private boolean isGoldChanged;                // 금괴 가격 변동 여부 -> 동시 매입 막기
 

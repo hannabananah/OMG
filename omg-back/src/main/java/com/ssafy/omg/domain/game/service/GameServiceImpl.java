@@ -17,6 +17,7 @@ import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 import static com.ssafy.omg.config.baseresponse.BaseResponseStatus.*;
 import static com.ssafy.omg.domain.game.entity.ActionStatus.ACTION_FAILURE;
@@ -33,10 +34,37 @@ public class GameServiceImpl implements GameService {
     // Redis에서 대기방 식별을 위한 접두사 ROOM_PREFIX 설정
     private static final String ROOM_PREFIX = "room";
     private final int[][] LOAN_RANGE = new int[][]{{50, 100}, {150, 300}, {500, 1000}};
+    private static List<Integer> characterTypes = new ArrayList<>(Arrays.asList(0, 1, 2, 3));
     private final GameEventRepository gameEventRepository;
     private final GameRepository gameRepository;
 
-    // 초기화
+    /**
+     * 진행중인 게임의 리스트를 반환 ( 모든 진행중인 게임들을 관리 )
+     *
+     * @return
+     * @throws BaseException
+     */
+    @Override
+    public List<Game> getAllActiveGames() throws BaseException {
+        List<Arena> allArenas = gameRepository.findAllArenas();
+        return allArenas.stream()
+                .map(Arena::getGame)
+                .filter(game -> game != null && game.getGameStatus() == GameStatus.IN_GAME)
+                .collect(Collectors.toList());
+    }
+
+    /**
+     * Game의 값이 변경됨에 따라 바뀐 값을 Arena에 반영하여 redis에 업데이트
+     *
+     * @param game
+     * @throws BaseException
+     */
+    @Override
+    public void saveGame(Game game) throws BaseException {
+        Arena arena = gameRepository.findArenaByRoomId(game.getGameId());
+        arena.setGame(game);
+        gameRepository.saveArena(game.getGameId(), arena);
+    }
 
     /**
      * 게임 초기값 설정
@@ -60,6 +88,10 @@ public class GameServiceImpl implements GameService {
             Game.StockInfo[] market = initializeMarket();
             putRandomStockIntoMarket(pocket, market);
 
+            // 캐릭터 종류
+            characterTypes = new ArrayList<>(Arrays.asList(0, 1, 2, 3));
+            Collections.shuffle(characterTypes);
+
             for (int i = 0; i < inRoomPlayers.size(); i++) {
                 int[] randomStock = generateRandomStock();
                 // pocket에서 뽑은 randomStock 만큼 빼주기
@@ -70,8 +102,11 @@ public class GameServiceImpl implements GameService {
                     }
                 }
 
+                int characterType = characterTypes.remove(0);
+
                 Player newPlayer = Player.builder()
                         .nickname(inRoomPlayers.get(i))
+                        .characterType(characterType)
                         .position(new double[]{0, 0, 0}) // TODO 임시로 (0,0,0)으로 해뒀습니다 고쳐야함
                         .direction(new double[]{0, 0, 0}) // TODO 임시로 (0,0,0)으로 해뒀습니다 고쳐야함
                         .hasLoan(0)

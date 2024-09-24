@@ -15,6 +15,7 @@ import lombok.*;
 public class Player {
     private String nickname;           // 플레이어 닉네임
 
+    private int characterType;
     private double[] position;         // 플레이어 좌표(x, y, z)
     private double[] direction;        // 플레이어 방향
 

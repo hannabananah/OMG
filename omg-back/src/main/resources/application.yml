@@ -24,6 +24,7 @@ spring:
       port: 6379
 logging.level:
   org.hibernate.SQL: debug
+  com.ssafy.omg: debug
 
 cors:
   allowed:
