@@ -22,15 +22,18 @@ public class Game {
     // 게임 정보
     private String gameId;                        // 게임 세션 아이디
     private GameStatus gameStatus;                // 현재 게임 진행 상태 (시작 전, 진행 중, 게임 종료)
-    private String message;                        // 게임 통신 규약
+    private String message;                       // 게임 통신 규약
     @JsonProperty("players")
     private List<Player> players;
 
     // 라운드 정보
-    private int time;                            // 라운드 남은 시간
+    private int time;                             // 라운드 남은 시간
     private int round;                            // 현재 라운드
-    private boolean[] isStockChanged;           // (길이 5 배열) 주가 변동 여부 -> 동시 거래 막기
-    private boolean isGoldChanged;              // 금괴 가격 변동 여부 -> 동시 매입 막기
+    private RoundStatus roundStatus;              // 현재 라운드 상태
+    public boolean isPaused;                      // 라운드 정지 여부
+    public int pauseTime;                         // 라운드 정지 시간
+    private boolean[] isStockChanged;             // (길이 5 배열) 주가 변동 여부 -> 동시 거래 막기
+    private boolean isGoldChanged;                // 금괴 가격 변동 여부 -> 동시 매입 막기
 
     // [게임] 정보
     private int currentInterestRate;                    // 금리 -> 계산 시 /100으로 %계산 해줘야함
