@@ -4,23 +4,30 @@ import { useNavigate } from 'react-router-dom';
 
 import { handleApiError } from '@/apis/errorHandler';
 import { createWaitingRooms } from '@/apis/room/roomAPI';
-import ExitButton from '@/components/ExitButton';
+import ExitButton from '@/components/common/ExitButton';
 import { useRoomStore } from '@/stores/room';
+import { useUserStore } from '@/stores/user';
 import { AxiosError } from 'axios';
 
 export default function Lobby() {
   const { setSender } = useRoomStore();
+  const { name, setName } = useUserStore();
   const [roomCode, setRoomCode] = useState<string>('');
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isCopyEnabled, setIsCopyEnabled] = useState(false);
 
+  // TODO: 임시 이름 설정
+  useEffect(() => {
+    setName('testUser4');
+  }, [setName]);
+
   const handleClickCreateRoom = async () => {
     setLoading(true);
     setError(null);
     try {
-      const response = await createWaitingRooms('testHost');
+      const response = await createWaitingRooms(name);
       setRoomCode(response);
     } catch (err) {
       const handledError = handleApiError(err as AxiosError);
@@ -51,7 +58,7 @@ export default function Lobby() {
   const handleClickEnterRoom = async () => {
     try {
       // TODO: 유저 네임 바꿔야함
-      setSender('testUser13');
+      setSender(name);
       navigate(`/waiting/${roomCode}`);
     } catch (err) {
       const handledError = handleApiError(err as AxiosError);
@@ -61,41 +68,54 @@ export default function Lobby() {
   };
 
   return (
-    <div className='relative flex flex-col items-center justify-center w-full h-screen p-10 bg-lime-100'>
-      <div className='absolute right-1 bottom-1'>
+    <div className='relative flex flex-col justify-center w-full h-screen p-10'>
+      <div className='absolute right-8 bottom-9 text-omg-30'>
         <ExitButton showText={true} />
       </div>
 
-      <div className='flex flex-col justify-center w-full h-full gap-10'>
-        <h2 className='text-center text-omg-lg font-omg-body'>대기방</h2>
-        <div className='flex flex-col justify-center gap-5'>
-          <div className='h-20'>
+      <div className='flex flex-col items-center justify-center w-full h-full '>
+        <div className='flex flex-col gap-5'>
+          <div>
             <button
               onClick={handleClickCreateRoom}
-              className='w-full p-2 rounded bg-emerald-200'
+              className='w-full p-2 text-omg-40b'
               disabled={loading}
             >
               {loading ? '생성 중...' : '방 생성하기'}
             </button>
-            {error && <p className='text-red-500'>{error}</p>}
+            {error ? (
+              <p className='text-center text-red text-omg-14'>{error}</p>
+            ) : (
+              <p className='min-h-[1.5rem]'></p>
+            )}
           </div>
-          <div className='relative flex w-1/2 gap-3 mx-auto'>
-            <input
-              type='text'
-              minLength={10}
-              placeholder='코드 입력하기'
-              value={roomCode}
-              onChange={handleRoomCodeChange}
-              className='flex-1 px-2 py-1'
-            />
+          <div className='flex items-center justify-center w-full gap-5'>
+            <div className='relative'>
+              <input
+                type='text'
+                minLength={10}
+                placeholder='코드 입력하기'
+                value={roomCode}
+                onChange={handleRoomCodeChange}
+                className='w-full py-2 pl-10 pr-20 border-4 border-black rounded-40 text-omg-24'
+              />
+              <button
+                className='absolute -translate-y-1/2 right-10 top-1/2'
+                onClick={handleCopyToClipboard}
+                disabled={!isCopyEnabled}
+              >
+                <FaCopy
+                  className={`text-omg-24 ${isCopyEnabled ? 'text-black' : 'text-white3'}`}
+                />
+              </button>
+            </div>
+
             <button
-              className='absolute -translate-y-1/2 right-14 top-1/2'
-              onClick={handleCopyToClipboard}
-              disabled={!isCopyEnabled}
+              className='w-1/4 text-omg-40b'
+              onClick={handleClickEnterRoom}
             >
-              <FaCopy fill={isCopyEnabled ? '#444' : '#aaa'} />
+              입장
             </button>
-            <button onClick={handleClickEnterRoom}>이동</button>
           </div>
         </div>
       </div>

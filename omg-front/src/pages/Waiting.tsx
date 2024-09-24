@@ -1,7 +1,9 @@
 import { useContext, useEffect, useState } from 'react';
+import { FaCrown } from 'react-icons/fa';
 import { useNavigate, useParams } from 'react-router-dom';
 
 import Chatting from '@/components/chat/Chatting';
+import { useUserStore } from '@/stores/user';
 import { SocketContext } from '@/utils/SocketContext';
 
 export default function Waiting() {
@@ -15,13 +17,15 @@ export default function Waiting() {
     disconnect,
     leaveRoom,
     chatSubscription,
+    hostPlayer,
+    startGame,
   } = useContext(SocketContext);
+  const { name } = useUserStore();
 
   if (!roomId) {
     console.error('Room ID is undefined');
     return null;
   }
-
   const [isRoomFull, setIsRoomFull] = useState(false);
 
   useEffect(() => {
@@ -30,7 +34,7 @@ export default function Waiting() {
       // TODO: 임시 채팅 구독
       chatSubscription();
     }
-  }, [online, socket, waitingSubscription]);
+  }, [online, socket]);
 
   useEffect(() => {
     setIsRoomFull(players.length >= 4);
@@ -38,14 +42,12 @@ export default function Waiting() {
 
   const handleClick = () => {
     if (isRoomFull) {
-      navigate('/game');
+      startGame();
     }
   };
 
   const handleExit = () => {
-    // TODO: 임시 채팅 구독
-
-    leaveRoom('testUser12');
+    leaveRoom(name);
     disconnect();
     navigate(-1);
   };
@@ -58,15 +60,24 @@ export default function Waiting() {
       <h2 className='text-lime-700'>대기 중인 플레이어 수: {players.length}</h2>
       <ul>
         {players.map((player, index) => (
-          <li key={index} className='text-lime-500'>
+          <li key={index} className='flex items-center text-lime-500'>
             {player}
+            {player === hostPlayer && (
+              <FaCrown className='ml-2 text-yellow-500' />
+            )}
           </li>
         ))}
       </ul>
-      <button onClick={handleClick} disabled={!isRoomFull}>
-        START
-      </button>
 
+      {hostPlayer === name && (
+        <button onClick={handleClick} disabled={!isRoomFull}>
+          {isRoomFull ? (
+            <span>START</span>
+          ) : (
+            <span className='opacity-50'>WAIT</span>
+          )}
+        </button>
+      )}
       {/* TODO: 임시 테스트 채팅방 */}
       <Chatting />
     </div>

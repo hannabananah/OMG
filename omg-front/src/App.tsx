@@ -42,10 +42,19 @@ export default function App() {
         />
 
         <Route
-          path='/game'
+          path='/game/:roomId'
           element={
             <SocketProvider>
               <Game />
+            </SocketProvider>
+          }
+        />
+
+        <Route
+          path='/mainmap'
+          element={
+            <SocketProvider>
+              <MainMap />
             </SocketProvider>
           }
         />

@@ -8,14 +8,12 @@ export default function Login() {
   };
 
   return (
-    <div className='flex flex-col items-center justify-center w-full h-screen p-10 bg-yellow-50'>
-      <div className='flex flex-col justify-center w-full h-full gap-10'>
-        <h2 className='text-center text-omg-lg font-omg-title'>
-          로그인 페이지
-        </h2>
-        <button className='py-2 bg-white text-omg-sm' onClick={handleClick}>
-          소셜로그인 버튼
+    <div className='flex flex-col justify-center w-full h-screen p-10'>
+      <div className='flex flex-col items-center justify-center w-full h-full gap-10'>
+        <button className='py-2 text-omg-40b' onClick={handleClick}>
+          카카오 로그인
         </button>
+        <button className='py-2 text-omg-40b'>카카오로 시작하기</button>
       </div>
     </div>
   );

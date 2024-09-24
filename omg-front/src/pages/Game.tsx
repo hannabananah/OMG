@@ -1,12 +1,18 @@
-import ExitButton from '@/components/ExitButton';
+import { useContext, useEffect } from 'react';
+
+import MainMap from '@/pages/MainMap';
+import { SocketContext } from '@/utils/SocketContext';
 
 export default function Game() {
+  const { rendered_complete } = useContext(SocketContext);
+
+  useEffect(() => {
+    rendered_complete();
+  }, []);
+
   return (
-    <div className='w-full h-screen relative p-1'>
-      <div className='absolute right-1 top-1'>
-        <ExitButton />
-      </div>
-      <h2 className='font-omg-body'>Game</h2>
+    <div>
+      <MainMap />
     </div>
   );
 }

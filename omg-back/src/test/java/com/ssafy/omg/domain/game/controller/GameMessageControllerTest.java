@@ -9,6 +9,7 @@ import com.ssafy.omg.domain.room.entity.Room;
 import jakarta.persistence.EntityManagerFactory;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -42,8 +43,6 @@ class GameMessageControllerTest {
     @Autowired
     private GameRepository gameRepository;
 
-    @MockBean
-    private EntityManagerFactory entityManagerFactory;
 
     private static String roomKey = "roomroomId";
 
@@ -63,6 +62,7 @@ class GameMessageControllerTest {
     }
 
     @Test
+    @DisplayName("웹 소켓 연결 테스트")
     public void testWebSocketConnection() throws Exception {
         // WebSocket 연결 URL 설정
         String url = "ws://localhost:8080/omg";
@@ -76,6 +76,7 @@ class GameMessageControllerTest {
     }
 
     @Test
+    @DisplayName("아레나 생성 테스트")
     public void testCreateArena() {
         // 1. Arena를 생성하여 Redis에 저장
         String roomId = "roomId";
@@ -103,6 +104,7 @@ class GameMessageControllerTest {
     }
 
     @Test
+    @DisplayName("플레이어 좌표 이동 업데이트 테스트")
     public void testPlayerMove() throws Exception {
         // 1. Arena를 생성하여 Redis에 저장
         String roomId = createArena("player1", "roomId");
