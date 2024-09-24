@@ -1,6 +1,7 @@
 import { Suspense } from 'react';
 
 import Mickey from '@/components/character/Mickey';
+// import GingerBread from '@/components/character/GingerBread';
 import Map from '@/components/main-map/Map';
 import { KeyboardControls, OrbitControls } from '@react-three/drei';
 import { Canvas } from '@react-three/fiber';
