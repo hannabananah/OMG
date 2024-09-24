@@ -22,6 +22,7 @@ interface SocketContextType {
   sendMessage: (msg: string) => void;
   hostPlayer: string | null;
   startGame: () => void;
+  rendered_complete: () => void;
 }
 
 const defaultContextValue: SocketContextType = {
@@ -37,6 +38,7 @@ const defaultContextValue: SocketContextType = {
   sendMessage: () => {},
   hostPlayer: '',
   startGame: () => {},
+  rendered_complete: () => {},
 };
 
 export const SocketContext =
@@ -57,8 +59,11 @@ export default function SocketProvider({ children }: SocketProviderProps) {
   const [hostPlayer, setHostPlayer] = useState<string | null>(null);
   const navigate = useNavigate();
 
-  const topic = `/sub/${roomId}/room`;
-  const subscriptionId = `sub-${roomId}0`;
+  const roomTopic = `/sub/${roomId}/room`;
+  const chatTopic = `/sub/${roomId}/chat`;
+  const gameTopic = `/sub/${roomId}/game`;
+  const subRoomId = `room-${roomId}`;
+  const subChatId = `chat-${roomId}`;
 
   // 방 나가기
   const leaveRoom = (sender: string) => {
@@ -67,7 +72,7 @@ export default function SocketProvider({ children }: SocketProviderProps) {
       return;
     }
     // 구독 해제
-    socket.unsubscribe(subscriptionId);
+    socket.unsubscribe(subRoomId);
 
     const leaveMessagePayload = {
       roomId,
@@ -114,7 +119,7 @@ export default function SocketProvider({ children }: SocketProviderProps) {
       return;
     }
     socket.subscribe(
-      topic,
+      roomTopic,
       message => {
         console.log('대기방 구독', JSON.parse(message.body));
         const parsedMessage = JSON.parse(message.body);
@@ -139,17 +144,23 @@ export default function SocketProvider({ children }: SocketProviderProps) {
             );
             break;
           case 'START_BUTTON_CLICKED':
-            console.log('게임 시작 이벤트 수신');
             // TODO: 게임 시작 알림->음향? 텍스트? 유저들에게 보여주기
+            console.log('호스트가 게임을 시작했습니다');
             navigate(`/game/${roomId}`);
             break;
           case 'RENDERED_COMPLETE':
+            if (parsedMessage.roomId === roomId && parsedMessage.sender) {
+              console.log(
+                `${parsedMessage.sender} 님의 렌더링이 완료되었습니다.`,
+              );
+            }
             break;
           case 'ALL_RENDERED_COMPLETED':
+            console.log('모든 렌더링이 완료되었습니다.');
             break;
         }
       },
-      { id: subscriptionId },
+      { id: subRoomId },
     );
     const messagePayload = {
       roomId,
@@ -182,9 +193,8 @@ export default function SocketProvider({ children }: SocketProviderProps) {
       return;
     }
     socket.subscribe(
-      `/sub/${roomId}/chat`,
+      chatTopic,
       message => {
-        console.log('채팅 메시지', JSON.parse(message.body));
         const parsedMessage = JSON.parse(message.body);
         if (parsedMessage.data) {
           const sender = parsedMessage.data.sender;
@@ -193,10 +203,9 @@ export default function SocketProvider({ children }: SocketProviderProps) {
             ...prevMessages,
             { sender, content },
           ]);
-          console.log('chatMessages 상태:', chatMessages);
         }
       },
-      { id: `chat-${roomId}` },
+      { id: subChatId },
     );
   };
 
@@ -216,14 +225,33 @@ export default function SocketProvider({ children }: SocketProviderProps) {
       },
     };
 
-    console.log('전송할 메시지:', messagePayload);
-
     // 방에 들어간 메시지 전송
     socket.publish({
       destination: `/pub/${roomId}/chat`,
       body: JSON.stringify(messagePayload),
     });
   };
+
+  // 개별 유저 렌더링 완료 전송
+  const rendered_complete = () => {
+    if (!socket || !socket.connected) {
+      console.log('소켓이 아직 연결되지 않았습니다.');
+      return;
+    }
+    const messagePayload = {
+      roomId,
+      sender,
+      message: 'RENDERED_COMPLETE',
+    };
+
+    // 방에 들어간 메시지 전송
+    socket.publish({
+      destination: `/pub/room`,
+      body: JSON.stringify(messagePayload),
+    });
+  };
+
+  // 게임방 구독
 
   // 게임시작 메시지 전송
   const startGame = () => {
@@ -238,8 +266,6 @@ export default function SocketProvider({ children }: SocketProviderProps) {
       message: 'START_BUTTON_CLICKED',
     };
 
-    console.log('전송할 게임 시작 메시지:', startMessagePayload);
-
     socket.publish({
       destination: '/pub/room',
       body: JSON.stringify(startMessagePayload),
@@ -247,18 +273,18 @@ export default function SocketProvider({ children }: SocketProviderProps) {
   };
 
   useEffect(() => {
-    if (socket && online && location.pathname === '/game') {
+    if (socket && online && location.pathname === `/game/${roomId}`) {
       // game방으로 갈 시 채팅방 구독 유지
       chatSubscription();
     }
 
     return () => {
-      if (socket && online && location.pathname !== '/game') {
+      if (socket && online && location.pathname !== `/game/${roomId}`) {
         // game방으로 아닐 때 채팅 구독 해제
-        socket.unsubscribe(`chat-${roomId}`);
+        socket.unsubscribe(subChatId);
       }
     };
-  }, [socket, online, location.pathname, roomId]);
+  }, [socket, online, roomId]);
 
   const contextValue = useMemo(
     () => ({
@@ -274,6 +300,7 @@ export default function SocketProvider({ children }: SocketProviderProps) {
       sendMessage,
       hostPlayer,
       startGame,
+      rendered_complete,
     }),
     [socket, online, players, chatMessages],
   );
