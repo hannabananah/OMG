@@ -34,7 +34,7 @@ export default function Waiting() {
       // TODO: 임시 채팅 구독
       chatSubscription();
     }
-  }, [online, socket, waitingSubscription]);
+  }, [online, socket]);
 
   useEffect(() => {
     setIsRoomFull(players.length >= 4);
@@ -51,9 +51,6 @@ export default function Waiting() {
     disconnect();
     navigate(-1);
   };
-
-  console.log('hostPlayer', hostPlayer);
-  console.log('name', name);
 
   return (
     <div className='relative flex flex-col items-center justify-center w-full h-screen p-10 bg-lime-100'>
