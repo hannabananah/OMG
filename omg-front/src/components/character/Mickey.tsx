@@ -19,7 +19,7 @@ export default function Mickey({ onLoadComplete }: Props) {
   >('idle');
   const [rotation, setRotation] = useState(0); // 캐릭터의 회전을 관리
   const [characterPosition, setCharacterPosition] = useState(
-    new THREE.Vector3(0, 0, 0),
+    new THREE.Vector3(0, -0.3, 0),
   ); // 캐릭터의 위치를 관리
 
   const runningCheckIntervalRef = useRef<NodeJS.Timeout | null>(null);
