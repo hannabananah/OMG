@@ -2,10 +2,13 @@ package com.ssafy.omg.domain.game.controller;
 
 import com.ssafy.omg.config.MessageController;
 import com.ssafy.omg.config.baseresponse.BaseException;
+import com.ssafy.omg.domain.arena.entity.Arena;
+import com.ssafy.omg.domain.game.GameRepository;
 import com.ssafy.omg.domain.game.dto.GameEventDto;
 import com.ssafy.omg.domain.game.dto.PlayerMoveRequest;
 import com.ssafy.omg.domain.game.dto.UserActionRequest;
 import com.ssafy.omg.domain.game.entity.GameEvent;
+import com.ssafy.omg.domain.game.service.GameBroadcastService;
 import com.ssafy.omg.domain.game.service.GameService;
 import com.ssafy.omg.domain.socket.dto.StompPayload;
 import jakarta.validation.Valid;
@@ -17,6 +20,7 @@ import org.springframework.messaging.simp.SimpMessageSendingOperations;
 import org.springframework.messaging.simp.stomp.StompHeaderAccessor;
 import org.springframework.web.bind.annotation.CrossOrigin;
 
+import java.util.List;
 import java.util.Optional;
 
 import static com.ssafy.omg.config.baseresponse.BaseResponseStatus.REQUEST_ERROR;
@@ -28,6 +32,26 @@ import static com.ssafy.omg.config.baseresponse.BaseResponseStatus.REQUEST_ERROR
 public class GameMessageController {
     private final SimpMessageSendingOperations messagingTemplate;
     private final GameService gameService;
+    private final GameBroadcastService gameBroadcastService;
+    private final GameRepository gameRepository;
+
+    /**
+     * 게임 초기화 후 모든 유저에게 Arena 브로드캐스트
+     *
+     * @param gameInitializationPayload
+     * @throws BaseException
+     */
+    @MessageMapping("/game-initialize")
+    public void initializeGame(@Payload StompPayload<Arena> gameInitializationPayload) throws BaseException {
+        String roomId = gameInitializationPayload.getRoomId();
+        List<String> players = gameRepository.findPlayerList(roomId);
+        Arena arena = gameService.initializeGame(roomId, players);
+//        gameBroadcastService.startBroadcast(roomId);
+
+        StompPayload<Arena> response = new StompPayload<>("GAME_INITIALIZED", roomId, "GAME_MANAGER", arena);
+        messagingTemplate.convertAndSend("/sub/" + roomId + "/game", response);
+
+    }
 
     @MessageMapping("/game-event")
     public void createGameEvent(@Payload StompPayload<String> gameEventPayload, StompHeaderAccessor accessor) throws BaseException {
