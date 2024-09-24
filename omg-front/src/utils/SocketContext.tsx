@@ -16,13 +16,14 @@ interface SocketContextType {
   chatMessages: ChatMessage[];
   connect: () => void;
   disconnect: () => void;
-  waitingSubscription: () => void;
+  roomSubscription: () => void;
   leaveRoom: (sender: string) => void;
   chatSubscription: () => void;
   sendMessage: (msg: string) => void;
   hostPlayer: string | null;
   startGame: () => void;
   rendered_complete: () => void;
+  gameSubscription: () => void;
 }
 
 const defaultContextValue: SocketContextType = {
@@ -32,13 +33,14 @@ const defaultContextValue: SocketContextType = {
   chatMessages: [],
   connect: () => {},
   disconnect: () => {},
-  waitingSubscription: () => {},
+  roomSubscription: () => {},
   leaveRoom: () => {},
   chatSubscription: () => {},
   sendMessage: () => {},
   hostPlayer: '',
   startGame: () => {},
   rendered_complete: () => {},
+  gameSubscription: () => {},
 };
 
 export const SocketContext =
@@ -61,9 +63,10 @@ export default function SocketProvider({ children }: SocketProviderProps) {
 
   const roomTopic = `/sub/${roomId}/room`;
   const chatTopic = `/sub/${roomId}/chat`;
-  // const gameTopic = `/sub/${roomId}/game`;
+  const gameTopic = `/sub/${roomId}/game`;
   const subRoomId = `room-${roomId}`;
   const subChatId = `chat-${roomId}`;
+  const subGameId = `game-${roomId}`;
 
   // 방 나가기
   const leaveRoom = (sender: string) => {
@@ -113,7 +116,7 @@ export default function SocketProvider({ children }: SocketProviderProps) {
   };
 
   // 대기방 구독
-  const waitingSubscription = () => {
+  const roomSubscription = () => {
     if (!socket || !socket.connected) {
       console.log('소켓이 아직 연결되지 않았습니다.');
       return;
@@ -252,6 +255,22 @@ export default function SocketProvider({ children }: SocketProviderProps) {
   };
 
   // 게임방 구독
+  const gameSubscription = () => {
+    if (!socket || !socket.connected) {
+      console.log('소켓이 아직 연결되지 않았습니다.');
+      return;
+    }
+
+    socket.subscribe(
+      gameTopic,
+      message => {
+        console.log('게임방 구독', JSON.parse(message.body));
+        const parsedMessage = JSON.parse(message.body);
+        console.log('parsedMessage: ', parsedMessage);
+      },
+      { id: subGameId },
+    );
+  };
 
   // 게임시작 메시지 전송
   const startGame = () => {
@@ -294,13 +313,14 @@ export default function SocketProvider({ children }: SocketProviderProps) {
       chatMessages,
       connect,
       disconnect,
-      waitingSubscription,
+      roomSubscription,
       leaveRoom,
       chatSubscription,
       sendMessage,
       hostPlayer,
       startGame,
       rendered_complete,
+      gameSubscription,
     }),
     [socket, online, players, chatMessages],
   );

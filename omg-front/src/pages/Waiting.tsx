@@ -13,7 +13,7 @@ export default function Waiting() {
     socket,
     online,
     players,
-    waitingSubscription,
+    roomSubscription,
     disconnect,
     leaveRoom,
     chatSubscription,
@@ -30,14 +30,14 @@ export default function Waiting() {
 
   useEffect(() => {
     if (online && socket) {
-      waitingSubscription();
+      roomSubscription();
       // TODO: 임시 채팅 구독
       chatSubscription();
     }
   }, [online, socket]);
 
   useEffect(() => {
-    setIsRoomFull(players.length >= 4);
+    setIsRoomFull(players.length >= 2);
   }, [socket, players]);
 
   const handleClick = () => {
