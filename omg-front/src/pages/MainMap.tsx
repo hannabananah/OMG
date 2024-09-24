@@ -1,6 +1,7 @@
 import { Suspense, useEffect, useState } from 'react';
 
-import Mickey from '@/components/character/Mickey';
+// import Mickey from '@/components/character/Mickey';
+import GingerBread from '@/components/character/GingerBread';
 import Map from '@/components/main-map/Map';
 import { Canvas } from '@react-three/fiber';
 
@@ -28,12 +29,15 @@ export default function MainMap() {
 
   return (
     <div className='relative w-full h-screen p-1'>
-      <Canvas camera={{ position: [60, 50, 45], fov: 50 }}>
+      <Canvas camera={{ position: [60, 40, 45], fov: 60 }}>
         <ambientLight intensity={1.5} />
-        <directionalLight position={[10, 10, 5]} intensity={1} />
+        <directionalLight position={[10, 10, 5]} intensity={5} />
         <Suspense fallback={null}>
           <Map />
-          <Mickey position={[0, 0, 0]} onLoadComplete={handleLoadComplete} />
+          <GingerBread
+            position={[0, 0, 0]}
+            onLoadComplete={handleLoadComplete}
+          />
         </Suspense>
       </Canvas>
     </div>
