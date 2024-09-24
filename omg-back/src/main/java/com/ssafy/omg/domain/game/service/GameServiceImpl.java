@@ -109,7 +109,7 @@ public class GameServiceImpl implements GameService {
                     .stockBuyTrack(new int[6])            // 주식 매수 트랙 초기화
                     .goldBuyTrack(new int[6])             // 금 매입 트랙 초기화
                     .goldPrice(20)                        // 초기 금 가격 20
-                    .pendingGoldPriceIncrease(0)          // 초기 금괴 매입 개수 0
+                    .GoldPriceIncreaseCnt(0)          // 초기 금괴 매입 개수 0
                     .build();
 
             arena.setGame(newGame);

@@ -46,5 +46,5 @@ public class Game {
 
     // [게임] 금괴 정보
     private int goldPrice;                        // 금괴 가격
-    private int GoldPriceIncreaseCnt;         // 금괴 가격 상승 체크용
+    private int goldPriceIncreaseCnt;         // 금괴 가격 상승 체크용
 }
