@@ -1,10 +1,6 @@
 package com.ssafy.omg.domain.player.entity;
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 
 /**
  * 플레이어 정보
@@ -35,4 +31,7 @@ public class Player {
     private int time;                  // 플레이어의 한 행위 남은 시간
     private int isConnected;           // 플레이어 접속 상태 (0: 끊김, 1: 연결됨)
 
+    public void addCash(int amount) {
+        this.cash += amount;
+    }
 }

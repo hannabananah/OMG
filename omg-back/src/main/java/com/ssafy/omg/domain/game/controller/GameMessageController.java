@@ -4,7 +4,7 @@ import com.ssafy.omg.config.MessageController;
 import com.ssafy.omg.config.baseresponse.BaseException;
 import com.ssafy.omg.domain.game.dto.GameEventDto;
 import com.ssafy.omg.domain.game.dto.PlayerMoveRequest;
-import com.ssafy.omg.domain.game.dto.UserActionRequest;
+import com.ssafy.omg.domain.game.dto.UserActionDTO;
 import com.ssafy.omg.domain.game.entity.GameEvent;
 import com.ssafy.omg.domain.game.service.GameService;
 import com.ssafy.omg.domain.socket.dto.StompPayload;
@@ -79,22 +79,28 @@ public class GameMessageController {
         gameService.movePlayer(playerMoveRequest);
     }
 
-    @MessageMapping("/game.takeLoan")
-    public void takeLoan(@Payload StompPayload<UserActionRequest> message) throws BaseException {
-        validateUserAction(message);
+    @MessageMapping("/game/takeLoan")
+    public void takeLoan(@Payload StompPayload<UserActionDTO> userActionPayload) throws BaseException {
+        validateUserAction(userActionPayload);
 
-        gameService.takeLoan(message.getData());
+        gameService.takeLoan(userActionPayload);
     }
 
-    @MessageMapping("/game.repayLoan")
-    public void repayLoan(@Payload StompPayload<UserActionRequest> message) throws BaseException {
-        validateUserAction(message);
+    @MessageMapping("/game/repayLoan")
+    public void repayLoan(@Payload StompPayload<UserActionDTO> userActionPayload) throws BaseException {
+        validateUserAction(userActionPayload);
 
-        gameService.repayLoan(message.getData());
+        gameService.repayLoan(userActionPayload);
     }
 
     // 주식 매도
     // TODO 주식 관련 메서드는 synchronized
+    @MessageMapping("game/sellStock")
+    public void sellStock(@Payload StompPayload<UserActionDTO> userActionPayload) throws BaseException {
+        validateUserAction(userActionPayload);
+
+        gameService.sellStock(userActionPayload);
+    }
 
     // 주식 매수
     // TODO 주식 관련 메서드는 synchronized
@@ -105,11 +111,10 @@ public class GameMessageController {
      * UserActionRequest의 입력유효성 검사
      *
      * @param message
-     * @throws BaseException data나 details가 null인 경우 체크
+     * @throws BaseException data가 null인 경우 체크
      */
-    private void validateUserAction(StompPayload<UserActionRequest> message) throws BaseException {
+    private void validateUserAction(StompPayload<UserActionDTO> message) throws BaseException {
         Optional.ofNullable(message.getData())
-                .map(UserActionRequest::getDetails)
                 .orElseThrow(() -> new BaseException(REQUEST_ERROR));
     }
 }

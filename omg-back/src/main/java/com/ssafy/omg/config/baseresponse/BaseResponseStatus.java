@@ -64,7 +64,8 @@ public enum BaseResponseStatus {
     LOAN_ALREADY_TAKEN(false, 3104, "이미 대출을 받은 플레이어입니다."),
     AMOUNT_OUT_OF_RANGE(false, 3105, "요청 금액이 대출 한도 범위를 벗어납니다."),
     INVALID_REPAY_AMOUNT(false, 3106, "유효하지 않은 상환 금액입니다."),
-
+    INVALID_STOCK_CNT(false, 3107, "유효하지 않은 주식 개수입니다."),
+    INVALID_STOCK_STATE(false, 3108, "유효하지 않은 주가 기준표의 좌표입니다."), // TODO message로 보낼 필요 없는 예외 상황입니다.
 
     // 3201 ~~ 3299 : 전정민
 
