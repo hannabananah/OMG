@@ -56,6 +56,8 @@ public enum BaseResponseStatus {
     INVALID_ROUND(false, 3032, "경제 이벤트가 발생하기에 유효하지 않은 라운드입니다."),
     EVENT_NOT_FOUND(false, 3033, "경제 이벤트가 존재하지 않습니다."),
     INSUFFICIENT_STOCK(false, 3034, "주머니에 주식 개수가 충분하지 않습니다."),
+    ROUND_STATUS_ERROR(false, 3035, "라운드 진행 상태 업데이트 중 오류가 발생하였습니다."),
+    INVALID_ROUND_STATUS(false, 3036, "유효하지 않은 라운드 상태값입니다."),
 
     // 3101 ~~ 3199 : 이가은
     GAME_NOT_FOUND(false, 3101, "게임이 존재하지 않습니다."),
@@ -63,9 +65,10 @@ public enum BaseResponseStatus {
     INVALID_STOCK_LEVEL(false, 3103, "유효하지 않은 주가 수준입니다."),
     LOAN_ALREADY_TAKEN(false, 3104, "이미 대출을 받은 플레이어입니다."),
     AMOUNT_OUT_OF_RANGE(false, 3105, "요청 금액이 대출 한도 범위를 벗어납니다."),
-    INVALID_REPAY_AMOUNT(false, 3106, "유효하지 않은 상환 금액입니다."),
-    INVALID_STOCK_CNT(false, 3107, "유효하지 않은 주식 개수입니다."),
-    INVALID_STOCK_STATE(false, 3108, "유효하지 않은 주가 기준표의 좌표입니다."), // TODO message로 보낼 필요 없는 예외 상황입니다.
+    INVALID_STOCK_CNT(false, 3106, "유효하지 않은 주식 개수입니다."),
+    INVALID_STOCK_STATE(false, 3107, "유효하지 않은 주가 기준표의 좌표입니다."), // TODO message로 보낼 필요 없는 예외 상황입니다.
+    AMOUNT_EXCEED_DEBT(false, 3108, "상환 금액이 총 부채보다 많습니다."),
+    AMOUNT_EXCEED_CASH(false, 3109, "상환 금액이 보유 자산보다 많습니다."),
 
     // 3201 ~~ 3299 : 전정민
 

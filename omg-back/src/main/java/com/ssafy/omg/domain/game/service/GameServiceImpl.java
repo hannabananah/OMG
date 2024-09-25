@@ -16,6 +16,7 @@ import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 import static com.ssafy.omg.config.baseresponse.BaseResponseStatus.*;
 import static com.ssafy.omg.domain.player.entity.PlayerStatus.NOT_STARTED;
@@ -30,12 +31,39 @@ public class GameServiceImpl implements GameService {
     // Redis에서 대기방 식별을 위한 접두사 ROOM_PREFIX 설정
     private static final String ROOM_PREFIX = "room";
     private final int[][] LOAN_RANGE = new int[][]{{50, 100}, {150, 300}, {500, 1000}};
+    private static List<Integer> characterTypes = new ArrayList<>(Arrays.asList(0, 1, 2, 3));
     private final GameEventRepository gameEventRepository;
     private final GameRepository gameRepository;
     private final StockState stockState;
     private final Stock[][] stockStandard = stockState.getStockStandard();
 
-    // 초기화
+    /**
+     * 진행중인 게임의 리스트를 반환 ( 모든 진행중인 게임들을 관리 )
+     *
+     * @return
+     * @throws BaseException
+     */
+    @Override
+    public List<Game> getAllActiveGames() throws BaseException {
+        List<Arena> allArenas = gameRepository.findAllArenas();
+        return allArenas.stream()
+                .map(Arena::getGame)
+                .filter(game -> game != null && game.getGameStatus() == GameStatus.IN_GAME)
+                .collect(Collectors.toList());
+    }
+
+    /**
+     * Game의 값이 변경됨에 따라 바뀐 값을 Arena에 반영하여 redis에 업데이트
+     *
+     * @param game
+     * @throws BaseException
+     */
+    @Override
+    public void saveGame(Game game) throws BaseException {
+        Arena arena = gameRepository.findArenaByRoomId(game.getGameId());
+        arena.setGame(game);
+        gameRepository.saveArena(game.getGameId(), arena);
+    }
 
     /**
      * 게임 초기값 설정
@@ -59,6 +87,10 @@ public class GameServiceImpl implements GameService {
             StockInfo[] market = initializeMarket();
             putRandomStockIntoMarket(pocket, market);
 
+            // 캐릭터 종류
+            characterTypes = new ArrayList<>(Arrays.asList(0, 1, 2, 3));
+            Collections.shuffle(characterTypes);
+
             for (int i = 0; i < inRoomPlayers.size(); i++) {
                 int[] randomStock = generateRandomStock();
                 // pocket에서 뽑은 randomStock 만큼 빼주기
@@ -69,20 +101,22 @@ public class GameServiceImpl implements GameService {
                     }
                 }
 
+                int characterType = characterTypes.remove(0);
+
                 Player newPlayer = Player.builder()
                         .nickname(inRoomPlayers.get(i))
+                        .characterType(characterType)
                         .position(new double[]{0, 0, 0}) // TODO 임시로 (0,0,0)으로 해뒀습니다 고쳐야함
                         .direction(new double[]{0, 0, 0}) // TODO 임시로 (0,0,0)으로 해뒀습니다 고쳐야함
                         .hasLoan(0)
-                        .loan(0)
-                        .interest(0)
-                        .debt(0)
+                        .loanPrincipal(0)
+                        .loanInterest(0)
+                        .totalDebt(0)
                         .cash(100)
                         .stock(randomStock)
-                        .gold(0)
+                        .goldOwned(0)
                         .action(null)
                         .state(NOT_STARTED)
-                        .time(20)
                         .isConnected(1)
                         .build();
                 players.add(newPlayer);
@@ -95,29 +129,27 @@ public class GameServiceImpl implements GameService {
                     .gameStatus(GameStatus.BEFORE_START)  // 게임 대기 상태로 시작
                     .message("GAME_INITIALIZED")
                     .players(players)
-                    .time(120)                            // 한 라운드 2분(120초)으로 설정
+                    .time(5)                            // 한 라운드 2분(120초)으로 설정
                     .round(1)                             // 시작 라운드 1
+                    .roundStatus(null)
                     .isStockChanged(new boolean[6])       // 5개 주식에 대한 변동 여부 초기화
                     .isGoldChanged(false)
-                    .interestRate(5)                      // 예: 초기 금리 5%로 설정
+                    .currentInterestRate(5)               // 예: 초기 금리 5%로 설정
                     .economicEvent(randomEvent)           // 초기 경제 이벤트 없음
-                    .stockPriceLevel(0)                   // 주가 수준
-                    .pocket(pocket)                       // 주머니 초기화
-                    .market(market)                       // 주식 시장 초기화
-                    .stockSell(new int[10])               // 주식 매도 트랙 초기화
-                    .stockBuy(new int[6])                 // 주식 매수 트랙 초기화
-                    .goldBuy(new int[6])                  // 금 매입 트랙 초기화
+                    .currentStockPriceLevel(0)            // 주가 수준
+                    .stockTokensPocket(pocket)            // 주머니 초기화
+                    .marketStocks(market)                 // 주식 시장 초기화
+                    .stockSellTrack(new int[10])          // 주식 매도 트랙 초기화
+                    .stockBuyTrack(new int[6])            // 주식 매수 트랙 초기화
+                    .goldBuyTrack(new int[6])             // 금 매입 트랙 초기화
                     .goldPrice(20)                        // 초기 금 가격 20
-                    .goldCnt(0)                           // 초기 금괴 매입 개수 0
+                    .goldPriceIncreaseCnt(0)          // 초기 금괴 매입 개수 0
                     .build();
 
             arena.setGame(newGame);
             arena.setMessage("GAME_INITIALIZED");
             arena.setRoom(null);
             gameRepository.saveArena(roomId, arena);
-
-            messagingTemplate.convertAndSend("/sub/" + roomId + "/game", arena);
-
         } else {
             throw new BaseException(ARENA_NOT_FOUND);
         }
@@ -150,7 +182,7 @@ public class GameServiceImpl implements GameService {
 
         int currentRound = game.getRound();
         if (currentRound < 2 || currentRound > 10) {
-            log.info("라운드 수가 적절하지 않습니다. 2~10사이어야합니다.");
+            log.info("경제 이벤트는 2라운드 부터 발생합니다.");
             throw new BaseException(INVALID_ROUND);
         }
 
@@ -164,14 +196,14 @@ public class GameServiceImpl implements GameService {
                 .orElseThrow(() -> new BaseException(EVENT_NOT_FOUND));
 
         // 금리 변동 반영
-        int currentInterestRate = game.getInterestRate();
+        int currentInterestRate = game.getCurrentInterestRate();
         currentInterestRate += gameEvent.getValue();
         if (currentInterestRate < 1) {
             currentInterestRate = 1;
         } else if (currentInterestRate > 10) {
             currentInterestRate = 10;
         }
-        game.setInterestRate(currentInterestRate);
+        game.setCurrentInterestRate(currentInterestRate);
 
         arena.setGame(game);
         gameRepository.saveArena(roomId, arena);
@@ -287,7 +319,7 @@ public class GameServiceImpl implements GameService {
             throw new BaseException(LOAN_ALREADY_TAKEN);
         }
 
-        int stockPriceLevel = arena.getGame().getStockPriceLevel();
+        int stockPriceLevel = arena.getGame().getCurrentStockPriceLevel();
 
         // 주가 수준에 따른 가능 대출 범위 리턴
         // 유효하지 않은 주가수준일 경우
@@ -325,12 +357,12 @@ public class GameServiceImpl implements GameService {
         // 대출금을 자산에 반영
         Arena arena = gameRepository.findArenaByRoomId(roomId);
         Player player = findPlayer(arena, sender);
-        int interest = amount * (arena.getGame().getInterestRate() / 100);
+        int interest = amount * (arena.getGame().getCurrentInterestRate() / 100);
 
         player.setHasLoan(1);
-        player.setLoan(amount);
-        player.setInterest(interest);
-        player.setDebt(amount + interest);
+        player.setLoanPrincipal(amount);
+        player.setLoanInterest(interest);
+        player.setTotalDebt(amount + interest);
         player.setCash(player.getCash() + amount);
 
         gameRepository.saveArena(roomId, arena);
@@ -355,14 +387,8 @@ public class GameServiceImpl implements GameService {
         Arena arena = gameRepository.findArenaByRoomId(roomId);
         Player player = findPlayer(arena, sender);
 
-        // 상환 금액이 유효한 값인지 판단(음수, 갚아야 할 금액보다 큰 금액인 경우, 자신이 보유한 현금보다 큰 값인 경우)
-        if (amount < 0 || player.getDebt() < amount || player.getCash() < amount) {
-            throw new BaseException(INVALID_REPAY_AMOUNT);
-        }
-
         // 상환 후 자산에 반영(갚아야 할 금액 차감, 현금 차감)
-        player.setDebt(player.getDebt() - amount);
-        player.setCash(player.getCash() - amount);
+        player.repayLoan(amount);
 
         gameRepository.saveArena(roomId, arena);
     }
@@ -379,11 +405,11 @@ public class GameServiceImpl implements GameService {
 
         Arena arena = gameRepository.findArenaByRoomId(roomId);
         Game game = arena.getGame();
-        StockInfo[] market = game.getMarket();
+        StockInfo[] market = game.getMarketStocks();
 
         // 주식 매도 (개수는 프론트에서 제한)
         // 0. stocks 유효성 검사 (각 숫자가 0 이상/합산한 개수가 0 초과 주가 수준 거래 가능 토큰 개수 이하)
-        validateStocks(roomId, stocks, game.getStockPriceLevel());
+        validateStocks(roomId, stocks, game.getCurrentStockPriceLevel());
 
         // 1. 주식 매도 가격 계산
         int salePrice = 0;  // 주식 매도 대금
@@ -398,7 +424,7 @@ public class GameServiceImpl implements GameService {
         player.addCash(salePrice);
 
         // 3. 매도 트랙 적용
-        int[] possibleStocks = getStocksForSellTrack(stocks, game.getStockSell());
+        int[] possibleStocks = getStocksForSellTrack(stocks, game.getStockSellTrack());
 
         int tokenIdx = selectRandomTokenIndex(possibleStocks);
         market[tokenIdx].addCnt();
@@ -479,7 +505,7 @@ public class GameServiceImpl implements GameService {
 
         Arena arena = gameRepository.findArenaByRoomId(roomId);
         Game game = arena.getGame();
-        int stockPriceLevel = game.getStockPriceLevel();
+        int stockPriceLevel = game.getCurrentStockPriceLevel();
 
         int orgLevel = stockStandard[orgState[0]][orgState[1]].getLevel();
         int newLevel = stockStandard[newState[0]][newState[1]].getLevel();
@@ -487,7 +513,7 @@ public class GameServiceImpl implements GameService {
         // 기존과 새로운 좌표의 주가수준이 다른지
         // 다르다면 새로운 주가수준이 상위영역에 처음 진입했는지
         if (orgLevel != newLevel && stockPriceLevel < newLevel) {
-            game.setStockPriceLevel(newLevel);
+            game.setCurrentStockPriceLevel(newLevel);
             arena.setGame(game);
             gameRepository.saveArena(roomId, arena);
         }
