@@ -1,7 +1,7 @@
 import { ReactNode, createContext, useEffect, useMemo, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 
-import { useRoomStore } from '@/stores/room';
+import useUser from '@/stores/useUser';
 import { Client } from '@stomp/stompjs';
 
 interface ChatMessage {
@@ -52,7 +52,7 @@ interface SocketProviderProps {
 
 export default function SocketProvider({ children }: SocketProviderProps) {
   const { roomId } = useParams<{ roomId: string }>();
-  const { sender } = useRoomStore();
+  const { nickname } = useUser();
   const base_url = import.meta.env.VITE_APP_SOCKET_URL;
   const [socket, setSocket] = useState<Client | null>(null);
   const [online, setOnline] = useState(false);
@@ -79,7 +79,7 @@ export default function SocketProvider({ children }: SocketProviderProps) {
 
     const leaveMessagePayload = {
       roomId,
-      sender,
+      sender: nickname,
       message: 'LEAVE_ROOM',
     };
 
@@ -170,7 +170,7 @@ export default function SocketProvider({ children }: SocketProviderProps) {
     );
     const messagePayload = {
       roomId,
-      sender,
+      sender: nickname,
       message: 'ENTER_ROOM',
     };
     console.log(messagePayload);
@@ -205,7 +205,7 @@ export default function SocketProvider({ children }: SocketProviderProps) {
     } = {
       type: 'test',
       roomId,
-      sender,
+      sender: nickname,
       data: null,
     };
 
@@ -258,9 +258,9 @@ export default function SocketProvider({ children }: SocketProviderProps) {
     const messagePayload = {
       type: 'CHAT',
       roomId,
-      sender,
+      sender: nickname,
       data: {
-        sender,
+        sender: nickname,
         content: message,
       },
     };
@@ -280,7 +280,7 @@ export default function SocketProvider({ children }: SocketProviderProps) {
     }
     const messagePayload = {
       roomId,
-      sender,
+      sender: nickname,
       message: 'RENDERED_COMPLETE',
     };
 
@@ -302,7 +302,7 @@ export default function SocketProvider({ children }: SocketProviderProps) {
 
     const startMessagePayload = {
       roomId,
-      sender,
+      sender: nickname,
       message: 'START_BUTTON_CLICKED',
     };
 

@@ -1,8 +1,12 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 
-import { useGLTF } from '@react-three/drei';
+import { PerspectiveCamera, useGLTF } from '@react-three/drei';
 import { useFrame } from '@react-three/fiber';
+// import { RigidBody } from '@react-three/rapier';
 import * as THREE from 'three';
+
+export const Vector3 = THREE.Vector3;
+export const Group = THREE.Group;
 
 interface Props {
   position?: number[];
@@ -23,6 +27,8 @@ export default function GingerBread({ position, onLoadComplete }: Props) {
   const [characterPosition, setCharacterPosition] = useState(
     new THREE.Vector3(0, 0.3, 0),
   ); // 캐릭터의 위치를 관리
+
+  const cameraRef = useRef<THREE.PerspectiveCamera | null>(null); // 카메라 참조
 
   const runningCheckIntervalRef = useRef<NodeJS.Timeout | null>(null);
   const keyPressStartTime = useRef<number | null>(null);
@@ -208,13 +214,13 @@ export default function GingerBread({ position, onLoadComplete }: Props) {
     // 여기에 WebSocket이나 다른 통신 방법을 사용해 좌표를 전송하는 로직을 추가하세요
   };
 
-  // 매 프레임마다 애니메이션 업데이트 및 회전 적용
-  useFrame((_, delta) => {
+  // 매 프레임마다 카메라가 캐릭터 뒤를 따라가도록 업데이트
+  useFrame((state, delta) => {
     mixer.current?.update(delta);
+
     if (scene) {
-      scene.rotation.y = rotation; // 회전 적용
+      scene.rotation.y = rotation;
       if (movementState === 'walking' || movementState === 'running') {
-        // 전진 이동
         const moveSpeed = movementState === 'walking' ? 0.05 : 0.1;
         const forwardDirection = new THREE.Vector3(
           Math.sin(rotation),
@@ -226,6 +232,18 @@ export default function GingerBread({ position, onLoadComplete }: Props) {
           .add(forwardDirection.multiplyScalar(moveSpeed));
         setCharacterPosition(newPosition);
         scene.position.copy(newPosition); // 실제 씬의 위치 업데이트
+      }
+
+      // 카메라가 캐릭터의 뒤에서 따라가도록 설정
+      if (cameraRef.current) {
+        const offset = 24; // 캐릭터와 카메라 사이의 거리
+        const cameraPosition = new THREE.Vector3(
+          characterPosition.x - Math.sin(rotation) * offset,
+          characterPosition.y + 8, // 캐릭터보다 약간 위에 위치
+          characterPosition.z - Math.cos(rotation) * offset,
+        );
+        cameraRef.current.position.copy(cameraPosition); // 카메라를 캐릭터 뒤에 위치
+        cameraRef.current.lookAt(characterPosition); // 카메라가 캐릭터를 바라보도록
       }
     }
   });
@@ -244,12 +262,23 @@ export default function GingerBread({ position, onLoadComplete }: Props) {
 
   return (
     <>
+      {/* <RigidBody> */}
       {/* 캐릭터 렌더링 */}
       <primitive
         object={scene}
-        scale={[5, 5, 6]}
+        scale={[1, 1, 1]}
         position={characterPosition}
       />
+
+      <PerspectiveCamera
+        ref={cameraRef}
+        makeDefault // 이 카메라가 기본 카메라로 설정됨
+        // fov={100}
+        position={[0, 0.1, 13]} // 초기 카메라 위치
+        near={0.1}
+        far={1000}
+      />
+      {/* </RigidBody> */}
     </>
   );
 }

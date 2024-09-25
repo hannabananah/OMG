@@ -16,7 +16,6 @@ import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 import static com.ssafy.omg.config.baseresponse.BaseResponseStatus.ARENA_NOT_FOUND;
-import static com.ssafy.omg.config.baseresponse.BaseResponseStatus.GAME_NOT_FOUND;
 
 @Slf4j
 @Repository
@@ -59,8 +58,7 @@ public class GameRepository {
     }
 
     public Optional<Arena> findArenaByRoomId(String roomId) {
-        return Optional.ofNullable(redisTemplate.opsForValue().get(ROOM_PREFIX + roomId))
-                .filter(arena -> arena.getGame() != null);
+        return Optional.ofNullable(redisTemplate.opsForValue().get(ROOM_PREFIX + roomId));
     }
 
     public void saveArena(String roomId, Arena arena) {
