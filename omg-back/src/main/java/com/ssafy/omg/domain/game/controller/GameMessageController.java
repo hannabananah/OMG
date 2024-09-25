@@ -47,7 +47,7 @@ public class GameMessageController {
     @MessageMapping("/game-initialize")
     public void initializeGame(@Payload StompPayload<Arena> gameInitializationPayload) throws BaseException {
         String roomId = gameInitializationPayload.getRoomId();
-        List<String> players = gameRepository.findPlayerList(roomId);
+        List<String> players = gameRepository.findinRoomPlayerList(roomId);
         Arena arena = gameService.initializeGame(roomId, players);
 //        gameBroadcastService.startBroadcast(roomId);
 

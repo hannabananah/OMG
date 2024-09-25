@@ -3,6 +3,7 @@ package com.ssafy.omg.domain.game;
 import com.ssafy.omg.config.baseresponse.BaseException;
 import com.ssafy.omg.domain.arena.entity.Arena;
 import com.ssafy.omg.domain.player.entity.Player;
+import com.ssafy.omg.domain.room.entity.InRoomPlayer;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -37,6 +38,14 @@ public class GameRepository {
         } else {
             throw new BaseException(ARENA_NOT_FOUND);
         }
+    }
+
+    public List<String> findinRoomPlayerList(String roomId) throws BaseException {
+        Arena arena = findArenaByRoomId(roomId);
+        List<String> players = arena.getRoom().getInRoomPlayers().stream()
+                .map(InRoomPlayer::getNickname)
+                .collect(Collectors.toList());
+        return players;
     }
 
     public List<String> findPlayerList(String roomId) throws BaseException {
