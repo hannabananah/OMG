@@ -29,12 +29,8 @@ public class GameRepository {
         if (keys != null) {
             return keys.stream()
                     .map(key -> {
-                        try {
-                            return findArenaByRoomId(key.substring(ROOM_PREFIX.length()));
-                        } catch (BaseException e) {
-                            log.error("Key에 해당하는 아레나가 존재하지 않습니다: " + key, e);
-                            return null;
-                        }
+                        Arena arena = redisTemplate.opsForValue().get(key);
+                        return arena;
                     })
                     .filter(arena -> arena != null)
                     .collect(Collectors.toList());
