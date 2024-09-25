@@ -26,6 +26,7 @@ import org.springframework.web.bind.annotation.CrossOrigin;
 import java.util.List;
 import java.util.Optional;
 
+import static com.ssafy.omg.config.baseresponse.BaseResponseStatus.ARENA_NOT_FOUND;
 import static com.ssafy.omg.config.baseresponse.BaseResponseStatus.REQUEST_ERROR;
 
 @Slf4j
@@ -66,7 +67,7 @@ public class GameMessageController {
     @MessageMapping("/game-status")
     public void changeGameStatus(@Payload StompPayload<Arena> changeGameStatusPayload) throws BaseException {
         String roomId = changeGameStatusPayload.getRoomId();
-        Arena arena = gameRepository.findArenaByRoomId(roomId);
+        Arena arena = gameRepository.findArenaByRoomId(roomId).orElseThrow(() -> new BaseException(ARENA_NOT_FOUND));
         Game game = arena.getGame();
         game.setGameStatus(GameStatus.IN_GAME);
         game.setRoundStatus(RoundStatus.ROUND_START);
@@ -122,8 +123,8 @@ public class GameMessageController {
     }
 
     @MessageMapping("/player-move")
-    public void playerMove(@Valid @Payload PlayerMoveRequest playerMoveRequest) throws BaseException {
-        gameService.movePlayer(playerMoveRequest);
+    public void playerMove(@Payload StompPayload<PlayerMoveRequest> message) throws BaseException {
+        gameService.movePlayer(message);
     }
 
     @MessageMapping("/game/takeLoan")

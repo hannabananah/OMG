@@ -24,7 +24,7 @@ public interface GameService {
     // 경제 이벤트 발생(조회) 및 금리 변동 (2~10라운드)
     GameEvent createGameEventandInterestChange(String roomId) throws BaseException;
 
-    void movePlayer(PlayerMoveRequest playerMoveRequest) throws BaseException;
+    void movePlayer(StompPayload<PlayerMoveRequest> playerMoveRequest) throws BaseException;
 
     void takeLoan(StompPayload<UserActionDTO> userActionPayload) throws BaseException;
 

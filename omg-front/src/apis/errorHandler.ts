@@ -22,12 +22,17 @@ export const handleApiError = (error: AxiosError) => {
       return { status: 'UNAUTHORIZED', message: '인증이 필요합니다.' };
     case HTTP_STATUS_CODE.NOT_FOUND:
       return { status: 'NOT_FOUND', message: '리소스를 찾을 수 없습니다.' };
+    case HTTP_STATUS_CODE.CONTENT_TOO_LARGE:
+      return {
+        status: 'CONTENT_TOO_LARGE',
+        message: '요청한 콘텐츠가 너무 큽니다.',
+      };
     case HTTP_STATUS_CODE.INTERNAL_SERVER_ERROR:
       return { status: 'SERVER_ERROR', message: '서버 에러가 발생했습니다.' };
     default:
       return {
         status: 'UNKNOWN_ERROR',
-        message: '알 수 없는 에러가 발생했습니다.',
+        message: errorData.message || '알 수 없는 에러가 발생했습니다.',
       };
   }
 };

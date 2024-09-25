@@ -10,6 +10,7 @@ import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
@@ -41,7 +42,7 @@ public class GameRepository {
     }
 
     public List<String> findinRoomPlayerList(String roomId) throws BaseException {
-        Arena arena = findArenaByRoomId(roomId);
+        Arena arena = findArenaByRoomId(roomId).orElseThrow(() -> new BaseException(ARENA_NOT_FOUND));
         List<String> players = arena.getRoom().getInRoomPlayers().stream()
                 .map(InRoomPlayer::getNickname)
                 .collect(Collectors.toList());
@@ -49,7 +50,7 @@ public class GameRepository {
     }
 
     public List<String> findPlayerList(String roomId) throws BaseException {
-        Arena arena = findArenaByRoomId(roomId);
+        Arena arena = findArenaByRoomId(roomId).orElseThrow(() -> new BaseException(ARENA_NOT_FOUND));
         List<Player> players = arena.getGame().getPlayers();
 
         return players.stream()
@@ -57,12 +58,9 @@ public class GameRepository {
                 .collect(Collectors.toList());
     }
 
-    public Arena findArenaByRoomId(String roomId) throws BaseException {
-        Arena arena = redisTemplate.opsForValue().get(ROOM_PREFIX + roomId);
-        if (arena == null || arena.getGame() == null) {
-            throw new BaseException(GAME_NOT_FOUND);
-        }
-        return arena;
+    public Optional<Arena> findArenaByRoomId(String roomId) {
+        return Optional.ofNullable(redisTemplate.opsForValue().get(ROOM_PREFIX + roomId))
+                .filter(arena -> arena.getGame() != null);
     }
 
     public void saveArena(String roomId, Arena arena) {

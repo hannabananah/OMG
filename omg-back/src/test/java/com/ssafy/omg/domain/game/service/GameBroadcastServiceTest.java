@@ -19,6 +19,7 @@ import org.mockito.stubbing.Answer;
 import org.springframework.messaging.simp.SimpMessageSendingOperations;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
@@ -87,14 +88,14 @@ class GameBroadcastServiceTest {
 
         testArena = new Arena("room1", "INIT", game, new Room("room1", "host"));
 
-        when(gameRepository.findArenaByRoomId("room1")).thenReturn(testArena);
+        when(gameRepository.findArenaByRoomId("room1")).thenReturn(Optional.ofNullable(testArena));
     }
 
     @Test
     void testStartBroadcast() throws Exception {
         // Given
         String roomId = "room1";
-        when(gameRepository.findArenaByRoomId(roomId)).thenReturn(testArena);
+        when(gameRepository.findArenaByRoomId(roomId)).thenReturn(Optional.ofNullable(testArena));
 
         // When
         gameBroadcastService.startBroadcast(roomId);
@@ -110,7 +111,7 @@ class GameBroadcastServiceTest {
     void testStopBroadcast() throws BaseException, InterruptedException {
         // Given
         String roomId = "room1";
-        when(gameRepository.findArenaByRoomId(roomId)).thenReturn(testArena);
+        when(gameRepository.findArenaByRoomId(roomId)).thenReturn(Optional.ofNullable(testArena));
 
         // Start broadcast (which uses the mockScheduler)
         gameBroadcastService.startBroadcast(roomId);

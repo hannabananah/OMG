@@ -4,11 +4,13 @@ import MainMap from '@/pages/MainMap';
 import { SocketContext } from '@/utils/SocketContext';
 
 export default function Game() {
-  const { rendered_complete } = useContext(SocketContext);
+  const { socket, online, rendered_complete } = useContext(SocketContext);
 
   useEffect(() => {
-    rendered_complete();
-  }, []);
+    if (socket && online) {
+      rendered_complete();
+    }
+  }, [socket, online]);
 
   return (
     <div>

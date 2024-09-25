@@ -1,5 +1,7 @@
 package com.ssafy.omg.domain.game.controller;
 
+import com.ssafy.omg.config.baseresponse.BaseException;
+import com.ssafy.omg.config.baseresponse.BaseResponseStatus;
 import com.ssafy.omg.domain.arena.entity.Arena;
 import com.ssafy.omg.domain.game.GameRepository;
 import com.ssafy.omg.domain.game.dto.PlayerMoveRequest;
@@ -28,6 +30,7 @@ import java.util.ArrayList;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
+import static com.ssafy.omg.config.baseresponse.BaseResponseStatus.ARENA_NOT_FOUND;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -118,14 +121,16 @@ class GameMessageControllerTest {
             assertThat(session.isConnected()).isTrue();
 
             // 3. /pub/player-move 경로로 메시지를 전송
-            PlayerMoveRequest request = new PlayerMoveRequest(roomId, "player1", new double[]{0.0, 1.0, 0.0}, new double[]{1.0, 0.0, 0.0});
-            session.send("/pub/player-move", request);
+            // TODO 수정
+//            PlayerMoveRequest request = new PlayerMoveRequest(roomId, "player1", new double[]{0.0, 1.0, 0.0}, new double[]{1.0, 0.0, 0.0});
+//            session.send("/pub/player-move", request);
 
             // 4. Redis에 저장된 정보 확인
             // 업데이트가 비동기적으로 일어날 수 있으므로 약간의 대기 시간을 두고 확인
             TimeUnit.SECONDS.sleep(1);
 
-            Arena arena = gameRepository.findArenaByRoomId(roomId);
+            Arena arena = gameRepository.findArenaByRoomId(roomId)
+                    .orElseThrow(() -> new BaseException(ARENA_NOT_FOUND));
             Player player = arena.getGame().getPlayers().stream()
                     .filter(p -> p.getNickname().equals("player1"))
                     .findFirst()

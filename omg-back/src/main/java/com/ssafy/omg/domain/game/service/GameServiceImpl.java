@@ -60,7 +60,8 @@ public class GameServiceImpl implements GameService {
      */
     @Override
     public void saveGame(Game game) throws BaseException {
-        Arena arena = gameRepository.findArenaByRoomId(game.getGameId());
+        Arena arena = gameRepository.findArenaByRoomId(game.getGameId())
+                .orElseThrow(() -> new BaseException(ARENA_NOT_FOUND));
         arena.setGame(game);
         gameRepository.saveArena(game.getGameId(), arena);
     }
@@ -311,7 +312,7 @@ public class GameServiceImpl implements GameService {
         // 입력값 오류
         validateRequest(roomId, sender);
 
-        Arena arena = gameRepository.findArenaByRoomId(roomId);
+        Arena arena = gameRepository.findArenaByRoomId(roomId).orElseThrow(() -> new BaseException(ARENA_NOT_FOUND));
         Player player = findPlayer(arena, sender);
 
         // 이미 대출을 받은 적이 있는 경우
@@ -355,7 +356,7 @@ public class GameServiceImpl implements GameService {
         }
 
         // 대출금을 자산에 반영
-        Arena arena = gameRepository.findArenaByRoomId(roomId);
+        Arena arena = gameRepository.findArenaByRoomId(roomId).orElseThrow(() -> new BaseException(ARENA_NOT_FOUND));
         Player player = findPlayer(arena, sender);
         int interest = amount * (arena.getGame().getCurrentInterestRate() / 100);
 
@@ -384,7 +385,8 @@ public class GameServiceImpl implements GameService {
 
         validateRequest(roomId, sender);
 
-        Arena arena = gameRepository.findArenaByRoomId(roomId);
+        Arena arena = gameRepository.findArenaByRoomId(roomId).orElseThrow(() -> new BaseException(ARENA_NOT_FOUND));
+        ;
         Player player = findPlayer(arena, sender);
 
         // 상환 후 자산에 반영(갚아야 할 금액 차감, 현금 차감)
@@ -403,7 +405,8 @@ public class GameServiceImpl implements GameService {
 
         validateRequest(roomId, sender);
 
-        Arena arena = gameRepository.findArenaByRoomId(roomId);
+        Arena arena = gameRepository.findArenaByRoomId(roomId).orElseThrow(() -> new BaseException(ARENA_NOT_FOUND));
+        ;
         Game game = arena.getGame();
         StockInfo[] market = game.getMarketStocks();
 
@@ -503,7 +506,8 @@ public class GameServiceImpl implements GameService {
      */
     public void changeStockLevel(int[] orgState, int[] newState, String roomId) throws BaseException {
 
-        Arena arena = gameRepository.findArenaByRoomId(roomId);
+        Arena arena = gameRepository.findArenaByRoomId(roomId).orElseThrow(() -> new BaseException(ARENA_NOT_FOUND));
+        ;
         Game game = arena.getGame();
         int stockPriceLevel = game.getCurrentStockPriceLevel();
 
@@ -522,13 +526,13 @@ public class GameServiceImpl implements GameService {
 
     // 플레이어 이동
     @Override
-    public synchronized void movePlayer(PlayerMoveRequest playerMoveRequest) throws BaseException {
-        String roomId = playerMoveRequest.roomId();
+    public synchronized void movePlayer(StompPayload<PlayerMoveRequest> payload) throws BaseException {
+        String roomId = payload.getRoomId();
 
-        Arena arena = gameRepository.findArenaByRoomId(roomId);
+        Arena arena = gameRepository.findArenaByRoomId(roomId).orElseThrow(() -> new BaseException(ARENA_NOT_FOUND));
 
-        Player player = findPlayer(arena, playerMoveRequest.nickname());
-
+        Player player = findPlayer(arena, payload.getSender());
+        PlayerMoveRequest playerMoveRequest = payload.getData();
         player.setDirection(playerMoveRequest.direction());
         player.setPosition(playerMoveRequest.position());
 
