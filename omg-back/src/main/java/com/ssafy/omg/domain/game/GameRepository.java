@@ -59,7 +59,7 @@ public class GameRepository {
 
     public Arena findArenaByRoomId(String roomId) throws BaseException {
         Arena arena = redisTemplate.opsForValue().get(ROOM_PREFIX + roomId);
-        if (arena == null || arena.getGame() == null) {
+        if (arena == null) {
             throw new BaseException(GAME_NOT_FOUND);
         }
         return arena;
