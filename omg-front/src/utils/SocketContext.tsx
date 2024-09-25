@@ -17,7 +17,7 @@ interface SocketContextType {
   connect: () => void;
   disconnect: () => void;
   roomSubscription: () => void;
-  leaveRoom: (sender: string) => void;
+  leaveRoom: () => void;
   chatSubscription: () => void;
   sendMessage: (msg: string) => void;
   hostPlayer: string | null;
@@ -69,9 +69,9 @@ export default function SocketProvider({ children }: SocketProviderProps) {
   const subGameId = `game-${roomId}`;
 
   // 방 나가기
-  const leaveRoom = (sender: string) => {
+  const leaveRoom = () => {
     if (!socket) {
-      console.log('소켓 연결이 되어 있지 않음');
+      console.log('소켓이 아직 연결되지 않았습니다.');
       return;
     }
     // 구독 해제
@@ -150,6 +150,9 @@ export default function SocketProvider({ children }: SocketProviderProps) {
             // TODO: 게임 시작 알림->음향? 텍스트? 유저들에게 보여주기
             console.log('호스트가 게임을 시작했습니다');
             navigate(`/game/${roomId}`);
+            socket.unsubscribe(subRoomId);
+            gameSubscription();
+            chatSubscription();
             break;
           case 'RENDERED_COMPLETE':
             if (parsedMessage.roomId === roomId && parsedMessage.sender) {
@@ -170,10 +173,44 @@ export default function SocketProvider({ children }: SocketProviderProps) {
       sender,
       message: 'ENTER_ROOM',
     };
+    console.log(messagePayload);
 
     // 방에 들어간 메시지 전송
     socket.publish({
       destination: '/pub/room',
+      body: JSON.stringify(messagePayload),
+    });
+  };
+
+  // 게임방 구독
+  const gameSubscription = () => {
+    if (!socket || !socket.connected) {
+      console.log('소켓이 아직 연결되지 않았습니다.');
+      return;
+    }
+    socket.subscribe(
+      gameTopic,
+      message => {
+        console.log('게임방 구독', JSON.parse(message.body));
+        const parsedMessage = JSON.parse(message.body);
+        console.log('parsedMessage: ', parsedMessage);
+      },
+      { id: subGameId },
+    );
+    const messagePayload: {
+      roomId: string;
+      type: string;
+      sender: string;
+      data: null | object;
+    } = {
+      type: 'test',
+      roomId,
+      sender,
+      data: null,
+    };
+
+    socket.publish({
+      destination: '/pub/game-initialize',
       body: JSON.stringify(messagePayload),
     });
   };
@@ -249,28 +286,12 @@ export default function SocketProvider({ children }: SocketProviderProps) {
 
     // 방에 들어간 메시지 전송
     socket.publish({
-      destination: `/pub/room`,
+      destination: '/pub/room',
       body: JSON.stringify(messagePayload),
     });
   };
 
   // 게임방 구독
-  const gameSubscription = () => {
-    if (!socket || !socket.connected) {
-      console.log('소켓이 아직 연결되지 않았습니다.');
-      return;
-    }
-
-    socket.subscribe(
-      gameTopic,
-      message => {
-        console.log('게임방 구독', JSON.parse(message.body));
-        const parsedMessage = JSON.parse(message.body);
-        console.log('parsedMessage: ', parsedMessage);
-      },
-      { id: subGameId },
-    );
-  };
 
   // 게임시작 메시지 전송
   const startGame = () => {
@@ -291,19 +312,7 @@ export default function SocketProvider({ children }: SocketProviderProps) {
     });
   };
 
-  useEffect(() => {
-    if (socket && online && location.pathname === `/game/${roomId}`) {
-      // game방으로 갈 시 채팅방 구독 유지
-      chatSubscription();
-    }
-
-    return () => {
-      if (socket && online && location.pathname !== `/game/${roomId}`) {
-        // game방으로 아닐 때 채팅 구독 해제
-        socket.unsubscribe(subChatId);
-      }
-    };
-  }, [socket, online, roomId]);
+  // 게임 초기화
 
   const contextValue = useMemo(
     () => ({

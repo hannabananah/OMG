@@ -47,7 +47,7 @@ export default function Waiting() {
   };
 
   const handleExit = () => {
-    leaveRoom(name);
+    leaveRoom();
     disconnect();
     navigate(-1);
   };
