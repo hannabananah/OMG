@@ -1,17 +1,16 @@
 import { Suspense, useMemo } from 'react';
 
-import Mickey from '@/components/character/Mickey';
-// import GingerBread from '@/components/character/GingerBread';
+// import Mickey from '@/components/character/Mickey';
+import GingerBread from '@/components/character/GingerBread';
 import Map from '@/components/main-map/Map';
 import {
   KeyboardControls,
   type KeyboardControlsEntry,
   OrbitControls,
+  PerspectiveCamera,
 } from '@react-three/drei';
 import { Canvas } from '@react-three/fiber';
 import { Physics } from '@react-three/rapier';
-
-// import Controller from 'ecctrl';
 
 // import { useChatFocusStore, useUserStore, useWorldStore } from '../../store';
 // 사용자 및 세계 상태를 관리하는 스토어 훅
@@ -27,8 +26,6 @@ import { Physics } from '@react-three/rapier';
 //   const { id } = useUserStore();  사용자 ID 가져옴
 //   const { focus } = useChatFocusStore();  채팅 포커스 상태 가져옴
 //   const [sub] = useKeyboardControls<Controls>();  키보드 입력 상태 구독
-
-// import { useControls } from 'leva';
 
 export enum Controls {
   forward = 'forward', // 전진
@@ -59,21 +56,27 @@ export default function MainMap() {
     <main className='relative w-full h-screen p-1'>
       <KeyboardControls map={keyboardMap}>
         <Canvas>
-          {/* 이 밑부터 작업 필요 */}
-
-          <ambientLight intensity={1.5} />
-          <directionalLight position={[10, 10, 5]} intensity={1} />
-          <OrbitControls />
           <Suspense>
+            <OrbitControls />
             <Physics>
-              {/* 이동 최대 속도 5 */}
-              {/* <Controller maxVelLimit={5}> */}
-              <Mickey />
-              {/* </Controller> */}
+              <ambientLight />
+              <directionalLight />
               <Map />
+              <PerspectiveCamera />
+              {/* {world.map((character) => ( world에 있는 캐릭터 리스트를 매핑하여 각각 아바타를 렌더링
+          <Suspense key={character.id} fallback={null}> 캐릭터가 로드될 때까지 Suspense 
+            <Avatar
+              id={character.id} 캐릭터 ID
+              url={character.avatar} 아바타 이미지 URL
+              nickname={character.nickname} 캐릭터 닉네임
+              position={character.position} 캐릭터 위치
+              socket={socket}  소켓 연결
+            />
+          </Suspense>
+        ))} */}
+              <GingerBread />
             </Physics>
           </Suspense>
-          {/* 이 위까지 */}
         </Canvas>
       </KeyboardControls>
     </main>

@@ -20,6 +20,9 @@ export default function GingerBread({ position, onLoadComplete }: Props) {
   >('idle');
 
   const [rotation, setRotation] = useState(0); // 캐릭터의 회전을 관리
+  const [characterPosition, setCharacterPosition] = useState(
+    new THREE.Vector3(0, 0.3, 0),
+  ); // 캐릭터의 위치를 관리
 
   const runningCheckIntervalRef = useRef<NodeJS.Timeout | null>(null);
   const keyPressStartTime = useRef<number | null>(null);
@@ -131,7 +134,7 @@ export default function GingerBread({ position, onLoadComplete }: Props) {
           setAction(idleAction);
           setMovementState('idle');
         }, 500); // 애니메이션이 끝날 때쯤 회전 적용 및 대기 상태로 전환
-      } else if (event.key === 'ArrowDown') {
+      } else if (event.key === ' ') {
         // 줍기 애니메이션
         const pickUpAction = mixer.current!.clipAction(animations[1]);
         action?.stop();
@@ -187,18 +190,66 @@ export default function GingerBread({ position, onLoadComplete }: Props) {
     };
   }, [animations, action, movementState, setAnimationState, startRunningCheck]);
 
+  // 위치를 서버로 전송하는 함수
+  const sendPositionToServer = (position: THREE.Vector3, rotation: number) => {
+    const directionVector = new THREE.Vector3(
+      Math.sin(rotation),
+      0,
+      Math.cos(rotation),
+    );
+
+    const startMessagePayload = {
+      roomId: 'example-room-id',
+      nickname: 'example-nickname',
+      position: [position.x, position.y, position.z],
+      direction: [directionVector.x, directionVector.y, directionVector.z], // 올바른 방향 값
+    };
+    console.log('서버로 전송할 좌표:', startMessagePayload);
+    // 여기에 WebSocket이나 다른 통신 방법을 사용해 좌표를 전송하는 로직을 추가하세요
+  };
+
   // 매 프레임마다 애니메이션 업데이트 및 회전 적용
   useFrame((_, delta) => {
     mixer.current?.update(delta);
     if (scene) {
       scene.rotation.y = rotation; // 회전 적용
+      if (movementState === 'walking' || movementState === 'running') {
+        // 전진 이동
+        const moveSpeed = movementState === 'walking' ? 0.05 : 0.1;
+        const forwardDirection = new THREE.Vector3(
+          Math.sin(rotation),
+          0,
+          Math.cos(rotation),
+        );
+        const newPosition = characterPosition
+          .clone()
+          .add(forwardDirection.multiplyScalar(moveSpeed));
+        setCharacterPosition(newPosition);
+        scene.position.copy(newPosition); // 실제 씬의 위치 업데이트
+      }
     }
   });
+
+  // 2초마다 포지션을 서버로 전송
+  useEffect(() => {
+    const interval = setInterval(() => {
+      if (scene) {
+        const position = scene.position;
+        sendPositionToServer(position, rotation); // 회전 값을 함께 전송
+      }
+    }, 2000);
+
+    return () => clearInterval(interval); // 컴포넌트 언마운트 시 클리어
+  }, [scene, rotation]);
 
   return (
     <>
       {/* 캐릭터 렌더링 */}
-      <primitive object={scene} scale={[5, 5, 6]} position={position} />
+      <primitive
+        object={scene}
+        scale={[5, 5, 6]}
+        position={characterPosition}
+      />
     </>
   );
 }
