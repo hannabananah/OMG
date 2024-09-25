@@ -19,7 +19,7 @@ export default function Mickey({ onLoadComplete }: Props) {
   >('idle');
   const [rotation, setRotation] = useState(0); // 캐릭터의 회전을 관리
   const [characterPosition, setCharacterPosition] = useState(
-    new THREE.Vector3(0, -0.3, 0),
+    new THREE.Vector3(0, 0.3, 0),
   ); // 캐릭터의 위치를 관리
 
   const runningCheckIntervalRef = useRef<NodeJS.Timeout | null>(null);
@@ -182,14 +182,14 @@ export default function Mickey({ onLoadComplete }: Props) {
     }
   });
 
-  // 5초마다 포지션을 서버로 전송
+  // 2초마다 포지션을 서버로 전송
   useEffect(() => {
     const interval = setInterval(() => {
       if (scene) {
         const position = scene.position;
         sendPositionToServer(position, rotation); // 회전 값을 함께 전송
       }
-    }, 2000); // 5000ms (5초)
+    }, 2000);
 
     return () => clearInterval(interval); // 컴포넌트 언마운트 시 클리어
   }, [scene, rotation]);
