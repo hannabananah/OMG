@@ -2,7 +2,7 @@ import { handleApiError } from '@/apis/errorHandler';
 import axios from 'axios';
 
 export const axiosInstance = axios.create({
-  baseURL: 'http://localhost:8080',
+  baseURL: import.meta.env.VITE_APP_BASE_URL,
   timeout: 5000,
 });
 
