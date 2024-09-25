@@ -1,7 +1,10 @@
 import { Suspense, useMemo } from 'react';
 
+// import Elf from '@/components/character/Elf';
 // import Mickey from '@/components/character/Mickey';
 import GingerBread from '@/components/character/GingerBread';
+// import Santa from '@/components/character/Santa';
+// import Snowman from '@/components/character/Snowman';
 import Map from '@/components/main-map/Map';
 import {
   KeyboardControls,
@@ -75,6 +78,9 @@ export default function MainMap() {
           </Suspense>
         ))} */}
               <GingerBread />
+              {/* <Santa /> */}
+              {/* <Snowman /> */}
+              {/* <Elf /> */}
             </Physics>
           </Suspense>
         </Canvas>
