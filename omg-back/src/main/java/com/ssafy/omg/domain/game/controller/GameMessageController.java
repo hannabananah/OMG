@@ -10,6 +10,7 @@ import com.ssafy.omg.domain.game.dto.UserActionRequest;
 import com.ssafy.omg.domain.game.entity.Game;
 import com.ssafy.omg.domain.game.entity.GameEvent;
 import com.ssafy.omg.domain.game.entity.GameStatus;
+import com.ssafy.omg.domain.game.entity.RoundStatus;
 import com.ssafy.omg.domain.game.service.GameBroadcastService;
 import com.ssafy.omg.domain.game.service.GameService;
 import com.ssafy.omg.domain.socket.dto.StompPayload;
@@ -68,6 +69,8 @@ public class GameMessageController {
         Arena arena = gameRepository.findArenaByRoomId(roomId);
         Game game = arena.getGame();
         game.setGameStatus(GameStatus.IN_GAME);
+        game.setRoundStatus(RoundStatus.ROUND_START);
+        gameRepository.saveArena(roomId, arena);
         StompPayload<Arena> response = new StompPayload<>("GAME_STATUS_CHANGE", roomId, "GAME_MANAGER", arena);
         messagingTemplate.convertAndSend("/sub/" + roomId + "/game", response);
 
