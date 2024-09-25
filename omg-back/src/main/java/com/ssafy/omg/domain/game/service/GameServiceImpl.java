@@ -11,6 +11,7 @@ import com.ssafy.omg.domain.game.entity.*;
 import com.ssafy.omg.domain.game.entity.StockState.Stock;
 import com.ssafy.omg.domain.game.repository.GameEventRepository;
 import com.ssafy.omg.domain.player.entity.Player;
+import com.ssafy.omg.domain.socket.dto.StompPayload;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
@@ -61,7 +62,8 @@ public class GameServiceImpl implements GameService {
      */
     @Override
     public void saveGame(Game game) throws BaseException {
-        Arena arena = gameRepository.findArenaByRoomId(game.getGameId());
+        Arena arena = gameRepository.findArenaByRoomId(game.getGameId())
+                .orElseThrow(() -> new BaseException(ARENA_NOT_FOUND));
         arena.setGame(game);
         gameRepository.saveArena(game.getGameId(), arena);
     }
@@ -496,13 +498,13 @@ public class GameServiceImpl implements GameService {
 
     // 플레이어 이동
     @Override
-    public synchronized void movePlayer(PlayerMoveRequest playerMoveRequest) throws BaseException {
-        String roomId = playerMoveRequest.roomId();
+    public synchronized void movePlayer(StompPayload<PlayerMoveRequest> payload) throws BaseException {
+        String roomId = payload.getRoomId();
 
-        Arena arena = gameRepository.findArenaByRoomId(roomId);
+        Arena arena = gameRepository.findArenaByRoomId(roomId).orElseThrow(() -> new BaseException(ARENA_NOT_FOUND));
 
-        Player player = findPlayer(arena, playerMoveRequest.nickname());
-
+        Player player = findPlayer(arena, payload.getSender());
+        PlayerMoveRequest playerMoveRequest = payload.getData();
         player.setDirection(playerMoveRequest.direction());
         player.setPosition(playerMoveRequest.position());
 

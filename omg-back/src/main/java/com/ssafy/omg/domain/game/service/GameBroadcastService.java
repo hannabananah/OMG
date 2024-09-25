@@ -3,8 +3,13 @@ package com.ssafy.omg.domain.game.service;
 import com.ssafy.omg.config.baseresponse.BaseException;
 import com.ssafy.omg.domain.arena.entity.Arena;
 import com.ssafy.omg.domain.game.GameRepository;
+import com.ssafy.omg.domain.game.dto.GameStatusDto;
 import com.ssafy.omg.domain.game.dto.PlayerResponse;
+import com.ssafy.omg.domain.game.entity.Game;
+import com.ssafy.omg.domain.game.entity.GameStatus;
 import com.ssafy.omg.domain.player.entity.Player;
+import com.ssafy.omg.domain.socket.dto.StompPayload;
+import com.ssafy.omg.domain.socket.dto.StompResponsePayload;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -19,6 +24,7 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
 import static com.ssafy.omg.config.baseresponse.BaseResponseStatus.ARENA_NOT_FOUND;
+import static com.ssafy.omg.config.baseresponse.BaseResponseStatus.GAME_NOT_FOUND;
 import static com.ssafy.omg.config.baseresponse.BaseResponseStatus.PLAYER_NOT_FOUND;
 
 @Slf4j
@@ -37,7 +43,7 @@ public class GameBroadcastService {
         ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor();
         scheduler.scheduleWithFixedDelay(() -> {
             try {
-                broadcastPlayerPositions(roomId);
+                broadcastGameState(roomId);
             } catch (BaseException e) {
                 log.error("방 {} 브로드캐스트 실패", roomId, e);
                 stopBroadcast(roomId);
@@ -55,22 +61,19 @@ public class GameBroadcastService {
         }
     }
 
-    private void broadcastPlayerPositions(String roomId) throws BaseException {
-        Arena arena = gameRepository.findArenaByRoomId(roomId);
-        if (arena == null || arena.getGame() == null) {
-            log.warn("No arena or game found for roomId: {}", roomId);
-            throw new BaseException(ARENA_NOT_FOUND);
-        }
-        List<Player> players = arena.getGame().getPlayers();
-        if (players == null || players.isEmpty()) {
-            log.warn("No players found for roomId: {}", roomId);
-            throw new BaseException(PLAYER_NOT_FOUND);
+    private void broadcastGameState(String roomId) throws BaseException {
+        Arena arena = gameRepository.findArenaByRoomId(roomId)
+                .orElseThrow(() -> new BaseException(ARENA_NOT_FOUND));
+
+        Game game = arena.getGame();
+        if (game == null) {
+            log.warn("No found for roomId: {}", roomId);
+            throw new BaseException(GAME_NOT_FOUND);
         }
 
-        List<PlayerResponse> playerResponses = players.stream()
-                .map(player -> new PlayerResponse(player.getNickname(), player.getPosition(), player.getDirection()))
-                .toList();
-        log.info("Broadcasting player positions to roomId {}: {}", roomId, playerResponses);
-        messagingTemplate.convertAndSend("/sub/" + roomId + "/game", playerResponses);
+        StompResponsePayload<GameStatusDto> payload = new StompResponsePayload<>("GAME_STATE", GameStatusDto.convertToDto(game));
+
+        log.debug("send payload roomId = {}", roomId);
+        messagingTemplate.convertAndSend("/sub/" + roomId + "/game", payload);
     }
 }

@@ -6,6 +6,7 @@ import com.ssafy.omg.domain.game.dto.PlayerMoveRequest;
 import com.ssafy.omg.domain.game.dto.UserActionRequest;
 import com.ssafy.omg.domain.game.entity.Game;
 import com.ssafy.omg.domain.game.entity.GameEvent;
+import com.ssafy.omg.domain.socket.dto.StompPayload;
 
 import java.util.List;
 
@@ -27,5 +28,5 @@ public interface GameService {
 
     void repayLoan(UserActionRequest userActionRequest) throws BaseException;
 
-    void movePlayer(PlayerMoveRequest playerMoveRequest) throws BaseException;
+    void movePlayer(StompPayload<PlayerMoveRequest> playerMoveRequest) throws BaseException;
 }
