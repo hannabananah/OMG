@@ -2,6 +2,7 @@ import { ReactNode, createContext, useEffect, useMemo, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 
 import { useRoomStore } from '@/stores/room';
+import type { Player } from '@/types';
 import { Client } from '@stomp/stompjs';
 
 interface ChatMessage {
@@ -12,7 +13,7 @@ interface ChatMessage {
 interface SocketContextType {
   socket: Client | null;
   online: boolean;
-  players: string[];
+  player: string[];
   chatMessages: ChatMessage[];
   connect: () => void;
   disconnect: () => void;
@@ -24,12 +25,13 @@ interface SocketContextType {
   startGame: () => void;
   rendered_complete: () => void;
   gameSubscription: () => void;
+  players: Player[];
 }
 
 const defaultContextValue: SocketContextType = {
   socket: null,
   online: false,
-  players: [],
+  player: [],
   chatMessages: [],
   connect: () => {},
   disconnect: () => {},
@@ -41,6 +43,7 @@ const defaultContextValue: SocketContextType = {
   startGame: () => {},
   rendered_complete: () => {},
   gameSubscription: () => {},
+  players: [],
 };
 
 export const SocketContext =
@@ -56,7 +59,8 @@ export default function SocketProvider({ children }: SocketProviderProps) {
   const base_url = import.meta.env.VITE_APP_SOCKET_URL;
   const [socket, setSocket] = useState<Client | null>(null);
   const [online, setOnline] = useState(false);
-  const [players, setPlayers] = useState<string[]>([]);
+  const [player, setPlayer] = useState<string[]>([]);
+  const [players, setPlayers] = useState<Player[]>([]);
   const [chatMessages, setChatMessages] = useState<ChatMessage[]>([]);
   const [hostPlayer, setHostPlayer] = useState<string | null>(null);
   const navigate = useNavigate();
@@ -134,7 +138,7 @@ export default function SocketProvider({ children }: SocketProviderProps) {
             const playerNicknames = playerList.map(
               (player: { nickname: string }) => player.nickname,
             );
-            setPlayers(playerNicknames);
+            setPlayer(playerNicknames);
             setHostPlayer(hostPlayer);
             break;
           case 'ENTER_FAILURE':
@@ -142,7 +146,7 @@ export default function SocketProvider({ children }: SocketProviderProps) {
           case 'PREPARE_GAME_START':
             break;
           case 'LEAVE_ROOM':
-            setPlayers(prevPlayers =>
+            setPlayer(prevPlayers =>
               prevPlayers.filter(player => player !== parsedMessage.sender),
             );
             break;
@@ -161,6 +165,7 @@ export default function SocketProvider({ children }: SocketProviderProps) {
           case 'ALL_RENDERED_COMPLETED':
             console.log('모든 렌더링이 완료되었습니다.');
             socket.unsubscribe(subRoomId);
+            // 게임방 구독
             gameSubscription();
             chatSubscription();
             break;
@@ -193,7 +198,16 @@ export default function SocketProvider({ children }: SocketProviderProps) {
       message => {
         console.log('게임방 구독', JSON.parse(message.body));
         const parsedMessage = JSON.parse(message.body);
-        console.log('parsedMessage: ', parsedMessage);
+        const gameInfo = parsedMessage.data;
+        console.log('gameInfo', gameInfo);
+        switch (gameInfo.message) {
+          case 'GAME_INITIALIZED':
+            const { players } = gameInfo.game;
+            setPlayers(players);
+            break;
+          case 'GAME_EVENT':
+            break;
+        }
       },
       { id: subGameId },
     );
@@ -291,8 +305,6 @@ export default function SocketProvider({ children }: SocketProviderProps) {
     });
   };
 
-  // 게임방 구독
-
   // 게임시작 메시지 전송
   const startGame = () => {
     if (!socket || !socket.connected) {
@@ -318,7 +330,7 @@ export default function SocketProvider({ children }: SocketProviderProps) {
     () => ({
       socket,
       online,
-      players,
+      player,
       chatMessages,
       connect,
       disconnect,
@@ -330,8 +342,9 @@ export default function SocketProvider({ children }: SocketProviderProps) {
       startGame,
       rendered_complete,
       gameSubscription,
+      players,
     }),
-    [socket, online, players, chatMessages],
+    [socket, online, player, players, chatMessages],
   );
 
   return (
