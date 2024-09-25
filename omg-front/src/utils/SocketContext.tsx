@@ -150,9 +150,6 @@ export default function SocketProvider({ children }: SocketProviderProps) {
             // TODO: 게임 시작 알림->음향? 텍스트? 유저들에게 보여주기
             console.log('호스트가 게임을 시작했습니다');
             navigate(`/game/${roomId}`);
-            socket.unsubscribe(subRoomId);
-            gameSubscription();
-            chatSubscription();
             break;
           case 'RENDERED_COMPLETE':
             if (parsedMessage.roomId === roomId && parsedMessage.sender) {
@@ -163,6 +160,9 @@ export default function SocketProvider({ children }: SocketProviderProps) {
             break;
           case 'ALL_RENDERED_COMPLETED':
             console.log('모든 렌더링이 완료되었습니다.');
+            socket.unsubscribe(subRoomId);
+            gameSubscription();
+            chatSubscription();
             break;
         }
       },
