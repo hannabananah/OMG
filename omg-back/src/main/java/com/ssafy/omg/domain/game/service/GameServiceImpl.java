@@ -130,7 +130,7 @@ public class GameServiceImpl implements GameService {
                     .gameStatus(GameStatus.BEFORE_START)  // 게임 대기 상태로 시작
                     .message("GAME_INITIALIZED")
                     .players(players)
-                    .time(120)                            // 한 라운드 2분(120초)으로 설정
+                    .time(5)                            // 한 라운드 2분(120초)으로 설정
                     .round(1)                             // 시작 라운드 1
                     .roundStatus(null)
                     .isStockChanged(new boolean[6])       // 5개 주식에 대한 변동 여부 초기화
@@ -183,7 +183,7 @@ public class GameServiceImpl implements GameService {
 
         int currentRound = game.getRound();
         if (currentRound < 2 || currentRound > 10) {
-            log.info("라운드 수가 적절하지 않습니다. 2~10사이어야합니다.");
+            log.info("경제 이벤트는 2라운드 부터 발생합니다.");
             throw new BaseException(INVALID_ROUND);
         }
 

@@ -1,8 +1,10 @@
-package com.ssafy.omg.domain.game.entity;
+package com.ssafy.omg.domain.game.service;
 
 import com.ssafy.omg.config.baseresponse.BaseException;
 import com.ssafy.omg.domain.arena.entity.Arena;
-import com.ssafy.omg.domain.game.service.GameService;
+import com.ssafy.omg.domain.game.entity.Game;
+import com.ssafy.omg.domain.game.entity.GameStatus;
+import com.ssafy.omg.domain.game.entity.RoundStatus;
 import com.ssafy.omg.domain.socket.dto.StompPayload;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -111,7 +113,7 @@ public class GameScheduler {
                 gameService.createGameEventandInterestChange(game.getGameId());
                 notifyPlayers(game.getGameId(), "경제 이벤트가 발생했습니다!");
             } catch (Exception e) {
-                log.error("경제 이벤트 발생에 실패했습니다 : ", e);
+                log.debug("경제 이벤트 발생에 실패했습니다 : ", e);
             }
         } else if (game.getTime() == 0) {
             game.setRoundStatus(ROUND_IN_PROGRESS);

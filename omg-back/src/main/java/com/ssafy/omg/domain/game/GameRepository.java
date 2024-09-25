@@ -2,6 +2,8 @@ package com.ssafy.omg.domain.game;
 
 import com.ssafy.omg.config.baseresponse.BaseException;
 import com.ssafy.omg.domain.arena.entity.Arena;
+import com.ssafy.omg.domain.player.entity.Player;
+import com.ssafy.omg.domain.room.entity.InRoomPlayer;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -28,18 +30,31 @@ public class GameRepository {
         if (keys != null) {
             return keys.stream()
                     .map(key -> {
-                        try {
-                            return findArenaByRoomId(key.substring(ROOM_PREFIX.length()));
-                        } catch (BaseException e) {
-                            log.error("Key에 해당하는 아레나가 존재하지 않습니다: " + key, e);
-                            return null;
-                        }
+                        Arena arena = redisTemplate.opsForValue().get(key);
+                        return arena;
                     })
                     .filter(arena -> arena != null)
                     .collect(Collectors.toList());
         } else {
             throw new BaseException(ARENA_NOT_FOUND);
         }
+    }
+
+    public List<String> findinRoomPlayerList(String roomId) throws BaseException {
+        Arena arena = findArenaByRoomId(roomId);
+        List<String> players = arena.getRoom().getInRoomPlayers().stream()
+                .map(InRoomPlayer::getNickname)
+                .collect(Collectors.toList());
+        return players;
+    }
+
+    public List<String> findPlayerList(String roomId) throws BaseException {
+        Arena arena = findArenaByRoomId(roomId);
+        List<Player> players = arena.getGame().getPlayers();
+
+        return players.stream()
+                .map(Player::getNickname)
+                .collect(Collectors.toList());
     }
 
     public Arena findArenaByRoomId(String roomId) throws BaseException {
