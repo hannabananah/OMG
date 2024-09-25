@@ -7,7 +7,9 @@ import com.ssafy.omg.domain.game.GameRepository;
 import com.ssafy.omg.domain.game.dto.GameEventDto;
 import com.ssafy.omg.domain.game.dto.PlayerMoveRequest;
 import com.ssafy.omg.domain.game.dto.UserActionRequest;
+import com.ssafy.omg.domain.game.entity.Game;
 import com.ssafy.omg.domain.game.entity.GameEvent;
+import com.ssafy.omg.domain.game.entity.GameStatus;
 import com.ssafy.omg.domain.game.service.GameBroadcastService;
 import com.ssafy.omg.domain.game.service.GameService;
 import com.ssafy.omg.domain.socket.dto.StompPayload;
@@ -49,6 +51,24 @@ public class GameMessageController {
 //        gameBroadcastService.startBroadcast(roomId);
 
         StompPayload<Arena> response = new StompPayload<>("GAME_INITIALIZED", roomId, "GAME_MANAGER", arena);
+        messagingTemplate.convertAndSend("/sub/" + roomId + "/game", response);
+
+    }
+
+
+    /**
+     * gameStatus를 BEFORE_START에서 IN_GAME으로 변경하여 1라운드 시작과 동시에 타이머를 시작함.
+     *
+     * @param changeGameStatusPayload
+     * @throws BaseException
+     */
+    @MessageMapping("/game-status")
+    public void changeGameStatus(@Payload StompPayload<Arena> changeGameStatusPayload) throws BaseException {
+        String roomId = changeGameStatusPayload.getRoomId();
+        Arena arena = gameRepository.findArenaByRoomId(roomId);
+        Game game = arena.getGame();
+        game.setGameStatus(GameStatus.IN_GAME);
+        StompPayload<Arena> response = new StompPayload<>("GAME_STATUS_CHANGE", roomId, "GAME_MANAGER", arena);
         messagingTemplate.convertAndSend("/sub/" + roomId + "/game", response);
 
     }
