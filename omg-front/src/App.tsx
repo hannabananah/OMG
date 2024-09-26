@@ -24,6 +24,9 @@ const Game = loadable(() => import('@/pages/Game'), {
 const MainMap = loadable(() => import('@/pages/MainMap'), {
   fallback: <div>메인 맵 로딩중</div>,
 });
+const StockMarket = loadable(() => import('@/pages/StockMarket'), {
+  fallback: <div>주식 시장 로드중</div>,
+});
 
 export default function App() {
   return (
@@ -55,6 +58,15 @@ export default function App() {
           element={
             <SocketProvider>
               <MainMap />
+            </SocketProvider>
+          }
+        />
+
+        <Route
+          path='/stockmarket'
+          element={
+            <SocketProvider>
+              <StockMarket />
             </SocketProvider>
           }
         />
