@@ -1,3 +1,5 @@
+import { Client } from '@stomp/stompjs';
+
 export interface Player {
   nickname: string;
   characterType: number;
@@ -14,4 +16,9 @@ export interface Player {
   state: string;
   isConnected: number;
   actionToggle: boolean;
+}
+
+export interface ChatMessage {
+  sender: string;
+  content: string;
 }
