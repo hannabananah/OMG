@@ -15,16 +15,21 @@ import lombok.*;
 public class Player {
     private String nickname;           // 플레이어 닉네임
 
+    // 메인 맵 관련
     private int characterType;
+    private boolean characterMovement; // 줍기 행동 유무
     private double[] position = new double[3];         // 플레이어 좌표(x, y, z)
     private double[] direction = new double[3];        // 플레이어 방향
+    private int[] carryingStocks;      // 플레이어별 집에 가지고 갈 주식
+    private int carryingGolds;       // 플레이어별 집에 가지고 갈 금괴
 
+    // 거래소 관련
     private int hasLoan;               // 대출 유무
     private int loanPrincipal;         // 대출원금
     private int loanInterest;          // 이자
     private int totalDebt;             // 갚아야 할 금액
     private int cash;                  // 현금
-    private int[] stock = new int[6];               // 보유 주식 개수
+    private int[] stock = new int[6];  // 보유 주식 개수
     private int goldOwned;             // 보유 금괴 개수
 
     private PlayerAction action;       // 플레이어 행위 (주식 매수, 주식 매도, 금괴 매입, 대출, 상환)
