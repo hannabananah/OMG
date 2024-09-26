@@ -1,4 +1,7 @@
+import { useContext } from 'react';
+
 import type { Player } from '@/types';
+import { SocketContext } from '@/utils/SocketContext';
 import { create } from 'zustand';
 
 interface CharacterStore {
@@ -91,3 +94,27 @@ export const useCharacter = create<CharacterStore>(set => ({
     }));
   },
 }));
+
+export const useUpdatedCharacterStore = () => {
+  const { moveCharacter } = useContext(SocketContext);
+  const store = useCharacter();
+  const { players } = store;
+
+  const updatePlayerPosition = (nickname: string, position: number[]) => {
+    store.setPlayerPosition(nickname, position);
+    const player = players[nickname];
+    if (player) {
+      moveCharacter(position, player.direction);
+    }
+  };
+
+  const updatePlayerDirection = (nickname: string, direction: number[]) => {
+    store.setPlayerDirection(nickname, direction);
+    const player = players[nickname];
+    if (player) {
+      moveCharacter(player.position, direction);
+    }
+  };
+
+  return { ...store, updatePlayerPosition, updatePlayerDirection };
+};
