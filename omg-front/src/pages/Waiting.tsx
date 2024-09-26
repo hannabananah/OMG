@@ -12,7 +12,7 @@ export default function Waiting() {
   const {
     socket,
     online,
-    players,
+    player,
     roomSubscription,
     disconnect,
     leaveRoom,
@@ -37,8 +37,8 @@ export default function Waiting() {
   }, [online, socket]);
 
   useEffect(() => {
-    setIsRoomFull(players.length >= 2);
-  }, [socket, players]);
+    setIsRoomFull(player.length >= 2);
+  }, [socket, player]);
 
   const handleClick = () => {
     if (isRoomFull) {
@@ -57,12 +57,12 @@ export default function Waiting() {
       <button className='absolute right-1 bottom-1' onClick={handleExit}>
         <p>대기방 나가기</p>
       </button>
-      <h2 className='text-lime-700'>대기 중인 플레이어 수: {players.length}</h2>
+      <h2 className='text-lime-700'>대기 중인 플레이어 수: {player.length}</h2>
       <ul>
-        {players.map((player, index) => (
+        {player.map((currentPlayer, index) => (
           <li key={index} className='flex items-center text-lime-500'>
-            {player}
-            {player === hostPlayer && (
+            {currentPlayer}
+            {currentPlayer === hostPlayer && (
               <FaCrown className='ml-2 text-yellow-500' />
             )}
           </li>

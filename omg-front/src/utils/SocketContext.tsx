@@ -1,14 +1,10 @@
 import { ReactNode, createContext, useEffect, useMemo, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 
+import { useSocketMessage } from '@/stores/useSocketMessage';
 import useUser from '@/stores/useUser';
-import type { Player } from '@/types';
+import type { ChatMessage, Player } from '@/types';
 import { Client } from '@stomp/stompjs';
-
-interface ChatMessage {
-  sender: string;
-  content: string;
-}
 
 interface SocketContextType {
   socket: Client | null;
@@ -59,6 +55,7 @@ export default function SocketProvider({ children }: SocketProviderProps) {
   const { roomId } = useParams<{ roomId: string }>();
   const { nickname } = useUser();
   const base_url = import.meta.env.VITE_APP_SOCKET_URL;
+  const { setRoomMessage, setGameMessage } = useSocketMessage();
   const [socket, setSocket] = useState<Client | null>(null);
   const [online, setOnline] = useState(false);
   const [player, setPlayer] = useState<string[]>([]);
@@ -135,9 +132,9 @@ export default function SocketProvider({ children }: SocketProviderProps) {
     socket.subscribe(
       roomTopic,
       message => {
-        console.log('대기방 구독', JSON.parse(message.body));
         const parsedMessage = JSON.parse(message.body);
-        console.log('parsedMessage.message:', parsedMessage.message);
+        console.log('대기방 구독', parsedMessage);
+        setRoomMessage(parsedMessage);
         switch (parsedMessage.message) {
           case 'ENTER_SUCCESS':
             const playerList = parsedMessage.room.inRoomPlayers;
@@ -199,8 +196,10 @@ export default function SocketProvider({ children }: SocketProviderProps) {
     socket.subscribe(
       gameTopic,
       message => {
-        console.log('게임방 구독', JSON.parse(message.body));
         const parsedMessage = JSON.parse(message.body);
+        console.log('게임방 구독', parsedMessage);
+        setGameMessage(parsedMessage);
+
         const gameInfo = parsedMessage.data;
         switch (gameInfo.message) {
           case 'GAME_INITIALIZED':
