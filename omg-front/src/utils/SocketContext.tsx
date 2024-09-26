@@ -73,7 +73,6 @@ export default function SocketProvider({ children }: SocketProviderProps) {
   const subChatId = `chat-${roomId}`;
   const subGameId = `game-${roomId}`;
 
-  // 소켓 연결 상태 확인 함수
   const isSocketConnected = () => {
     if (!socket || !socket.connected) {
       console.log('소켓이 아직 연결되지 않았습니다.');
@@ -82,11 +81,10 @@ export default function SocketProvider({ children }: SocketProviderProps) {
     return true;
   };
 
-  // 방 나가기
   const leaveRoom = () => {
     if (!isSocketConnected()) return;
 
-    // 구독 해제
+    //  대기방 구독 해제
     socket.unsubscribe(subRoomId);
 
     const leaveMessagePayload = {
@@ -199,13 +197,17 @@ export default function SocketProvider({ children }: SocketProviderProps) {
       message => {
         const parsedMessage = JSON.parse(message.body);
         console.log('게임방 구독', parsedMessage);
-        setGameMessage(parsedMessage);
 
-        const gameInfo = parsedMessage.data;
-        switch (gameInfo.message) {
+        switch (parsedMessage.type) {
           case 'GAME_INITIALIZED':
-            const { players } = gameInfo.game;
-            setPlayers(players);
+            const initPlayerData = parsedMessage.data.game.players;
+            setGameMessage(initPlayerData);
+            console.log('게임 초기 정보 data: ', initPlayerData);
+            setPlayers(initPlayerData);
+            break;
+          case 'PLAYER_STATE':
+            console.log('16ms마다 들어오는 실시간 게임 정보');
+            setGameMessage(parsedMessage);
             break;
           case 'GAME_EVENT':
             break;
