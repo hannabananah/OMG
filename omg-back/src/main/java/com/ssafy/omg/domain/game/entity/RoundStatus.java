@@ -6,6 +6,7 @@ import com.fasterxml.jackson.annotation.JsonValue;
 import java.util.Arrays;
 
 public enum RoundStatus {
+    TUTORIAL(20),
     ROUND_START(3),         // 3초
     ECONOMIC_EVENT(5),      // 5초
     ROUND_IN_PROGRESS(120), // 120초
