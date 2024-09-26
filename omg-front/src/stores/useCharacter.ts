@@ -1,31 +1,31 @@
+import type { Player } from '@/types';
 import { create } from 'zustand';
-
-interface Player {
-  characterType: number;
-  nickname: string;
-  position: { x: number; y: number; z: number };
-  direction: { x: number; y: number; z: number };
-  action: string;
-}
 
 interface CharacterStore {
   players: Record<string, Player>;
+  initPlayer: (nickname: string, playerData: Player) => void;
   setPlayer: (nickname: string, playerData: Partial<Player>) => void;
-  setPlayerPosition: (
-    nickname: string,
-    position: { x: number; y: number; z: number },
-  ) => void;
-  setPlayerDirection: (
-    nickname: string,
-    direction: { x: number; y: number; z: number },
-  ) => void;
-  setPlayerAction: (nickname: string, action: string) => void;
+  setPlayerPosition: (nickname: string, position: number[]) => void;
+  setPlayerDirection: (nickname: string, direction: number[]) => void;
+  setPlayerAction: (nickname: string, actionToggle: boolean | null) => void;
+  updatePlayer: (messageData: {
+    nickname: string;
+    playerData: Partial<Player>;
+  }) => void;
 }
 
-const useCharacterStore = create<CharacterStore>(set => ({
+export const useCharacter = create<CharacterStore>(set => ({
   players: {},
+  initPlayer: (nickname, playerData) => {
+    set(state => ({
+      players: {
+        ...state.players,
+        [nickname]: playerData,
+      },
+    }));
+  },
 
-  setPlayer: (nickname, playerData) =>
+  setPlayer: (nickname: string, playerData) => {
     set(state => ({
       players: {
         ...state.players,
@@ -34,9 +34,10 @@ const useCharacterStore = create<CharacterStore>(set => ({
           ...playerData,
         },
       },
-    })),
+    }));
+  },
 
-  setPlayerPosition: (nickname, position) =>
+  setPlayerPosition: (nickname, position) => {
     set(state => ({
       players: {
         ...state.players,
@@ -45,9 +46,10 @@ const useCharacterStore = create<CharacterStore>(set => ({
           position,
         },
       },
-    })),
+    }));
+  },
 
-  setPlayerDirection: (nickname, direction) =>
+  setPlayerDirection: (nickname, direction) => {
     set(state => ({
       players: {
         ...state.players,
@@ -56,18 +58,36 @@ const useCharacterStore = create<CharacterStore>(set => ({
           direction,
         },
       },
-    })),
+    }));
+  },
 
-  setPlayerAction: (nickname, action) =>
+  setPlayerAction: (nickname, actionToggle) => {
+    set(state => {
+      const player = state.players[nickname];
+      if (!player) return state;
+
+      return {
+        players: {
+          ...state.players,
+          [nickname]: {
+            ...player,
+            actionToggle,
+          },
+        },
+      };
+    });
+  },
+
+  updatePlayer: messageData => {
+    const { nickname, playerData } = messageData;
     set(state => ({
       players: {
         ...state.players,
         [nickname]: {
           ...state.players[nickname],
-          action,
+          ...playerData,
         },
       },
-    })),
+    }));
+  },
 }));
-
-export default useCharacterStore;
