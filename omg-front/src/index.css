@@ -12,9 +12,7 @@ button,
 a,
 input,
 svg .clickable {
-  cursor:
-    url('/assets/cursor.cur') 16 16,
-    auto;
+  cursor: url('/assets/cursor.cur'), auto;
 }
 
 html {
