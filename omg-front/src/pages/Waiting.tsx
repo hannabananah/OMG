@@ -3,7 +3,7 @@ import { FaCrown } from 'react-icons/fa';
 import { useNavigate, useParams } from 'react-router-dom';
 
 import Chatting from '@/components/chat/Chatting';
-import { useUserStore } from '@/stores/user';
+import useUser from '@/stores/useUser';
 import { SocketContext } from '@/utils/SocketContext';
 
 export default function Waiting() {
@@ -20,7 +20,7 @@ export default function Waiting() {
     hostPlayer,
     startGame,
   } = useContext(SocketContext);
-  const { name } = useUserStore();
+  const { nickname } = useUser();
 
   if (!roomId) {
     console.error('Room ID is undefined');
@@ -69,7 +69,7 @@ export default function Waiting() {
         ))}
       </ul>
 
-      {hostPlayer === name && (
+      {hostPlayer === nickname && (
         <button onClick={handleClick} disabled={!isRoomFull}>
           {isRoomFull ? (
             <span>START</span>
