@@ -1,20 +1,13 @@
-import { useContext, useEffect } from 'react';
+import { Suspense, lazy } from 'react';
 
-import MainMap from '@/pages/MainMap';
-import { SocketContext } from '@/utils/SocketContext';
+import Loading from '@/components/common/Loading';
+
+const MainMap = lazy(() => import('@/pages/MainMap'));
 
 export default function Game() {
-  const { socket, online, rendered_complete } = useContext(SocketContext);
-
-  useEffect(() => {
-    if (socket && online) {
-      rendered_complete();
-    }
-  }, [socket, online]);
-
   return (
-    <div>
+    <Suspense fallback={<Loading />}>
       <MainMap />
-    </div>
+    </Suspense>
   );
 }
