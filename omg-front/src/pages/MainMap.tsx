@@ -1,10 +1,12 @@
 import { Suspense, useMemo } from 'react';
+import { useNavigate } from 'react-router-dom';
 
 // import Elf from '@/components/character/Elf';
 // import Mickey from '@/components/character/Mickey';
 import GingerBread from '@/components/character/GingerBread';
 // import Santa from '@/components/character/Santa';
 // import Snowman from '@/components/character/Snowman';
+import MainAlert from '@/components/common/MainAlert';
 import Map from '@/components/main-map/Map';
 import {
   KeyboardControls,
@@ -55,8 +57,24 @@ export default function MainMap() {
   // 카메라 시점 이동
   // const { camera } = useThree();
 
+  const navigate = useNavigate();
+
+  // 주식 방으로 페이지 이동
+  const goToStockMarket = () => {
+    navigate('/stockmarket');
+  };
+
   return (
-    <main className='relative w-full h-screen p-1'>
+    <main className='relative w-full h-screen'>
+      {/* MainAlert 컴포넌트 고정된 위치로 렌더링 */}
+      <div
+        className='absolute z-10 transform -translate-x-1/2 bottom-10 left-1/2'
+        onClick={goToStockMarket}
+      >
+        <MainAlert text='클릭하면 임시 주식방으로' />
+        {/* <MainAlert text='메인 판 세팅을 진행합니다.' /> */}
+      </div>
+
       <KeyboardControls map={keyboardMap}>
         <Canvas>
           <Suspense>
