@@ -5,7 +5,9 @@ import com.ssafy.omg.config.baseresponse.BaseResponse;
 import com.ssafy.omg.domain.arena.entity.Arena;
 import com.ssafy.omg.domain.game.service.GameBroadcastService;
 import com.ssafy.omg.domain.game.service.GameService;
+import com.ssafy.omg.domain.socket.dto.StompPayload;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.ResponseEntity;
 import org.springframework.messaging.simp.SimpMessageSendingOperations;
 import org.springframework.web.bind.annotation.*;
 
@@ -33,5 +35,14 @@ public class GameController {
         // TODO 게임 결과를 반환해야 한다.
         return new BaseResponse<>(null);
     }
+
+    // TODO 대출, 상환, 주식 매도
+    // 대출
+    @PostMapping("/take-loan")
+    public ResponseEntity<String> takeLoan(@RequestBody StompPayload<Integer> data) {
+
+        return ResponseEntity.ok("대출 성공했습니다.");
+    }
+
 
 }

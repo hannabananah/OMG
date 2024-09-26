@@ -14,7 +14,6 @@ import com.ssafy.omg.domain.game.entity.RoundStatus;
 import com.ssafy.omg.domain.game.service.GameBroadcastService;
 import com.ssafy.omg.domain.game.service.GameService;
 import com.ssafy.omg.domain.socket.dto.StompPayload;
-import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.messaging.handler.annotation.MessageMapping;
@@ -127,12 +126,12 @@ public class GameMessageController {
         gameService.movePlayer(message);
     }
 
-    @MessageMapping("/game/takeLoan")
-    public void takeLoan(@Payload StompPayload<UserActionDTO> userActionPayload) throws BaseException {
-        validateUserAction(userActionPayload);
-
-        gameService.takeLoan(userActionPayload);
-    }
+//    @MessageMapping("/game/takeLoan")
+//    public void takeLoan(@Payload StompPayload<UserActionDTO> userActionPayload) throws BaseException {
+//        validateUserAction(userActionPayload);
+//
+//        gameService.takeLoan(userActionPayload);
+//    }
 
     @MessageMapping("/game/repayLoan")
     public void repayLoan(@Payload StompPayload<UserActionDTO> userActionPayload) throws BaseException {

@@ -6,13 +6,11 @@ import com.ssafy.omg.domain.game.GameRepository;
 import com.ssafy.omg.domain.game.dto.PlayerMoveRequest;
 import com.ssafy.omg.domain.game.dto.UserActionDTO;
 import com.ssafy.omg.domain.game.entity.*;
-import com.ssafy.omg.domain.game.entity.StockState.Stock;
 import com.ssafy.omg.domain.game.repository.GameEventRepository;
 import com.ssafy.omg.domain.player.entity.Player;
 import com.ssafy.omg.domain.socket.dto.StompPayload;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.redis.core.RedisTemplate;
-import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
@@ -27,7 +25,6 @@ import static org.hibernate.query.sqm.tree.SqmNode.log;
 public class GameServiceImpl implements GameService {
 
     private final RedisTemplate<String, Arena> redisTemplate;
-    private final SimpMessagingTemplate messagingTemplate;
     // Redis에서 대기방 식별을 위한 접두사 ROOM_PREFIX 설정
     private static final String ROOM_PREFIX = "room";
     private final int[][] LOAN_RANGE = new int[][]{{50, 100}, {150, 300}, {500, 1000}};
@@ -35,7 +32,6 @@ public class GameServiceImpl implements GameService {
     private final GameEventRepository gameEventRepository;
     private final GameRepository gameRepository;
     private final StockState stockState;
-    private final Stock[][] stockStandard = stockState.getStockStandard();
 
     /**
      * 진행중인 게임의 리스트를 반환 ( 모든 진행중인 게임들을 관리 )
@@ -257,7 +253,7 @@ public class GameServiceImpl implements GameService {
         return pocket;
     }
 
-    private int[] generateRandomStock() throws BaseException {
+    public int[] generateRandomStock() throws BaseException {
         Random random = new Random();
         int[] result = new int[6];
         result[0] = 0;
@@ -401,59 +397,69 @@ public class GameServiceImpl implements GameService {
     public void sellStock(StompPayload<UserActionDTO> userActionPayload) throws BaseException {
         String roomId = userActionPayload.getRoomId();
         String sender = userActionPayload.getSender();
-        int[] stocks = userActionPayload.getData().getStocks();
+        int[] sellingStocks = userActionPayload.getData().getStocks();
 
         validateRequest(roomId, sender);
 
         Arena arena = gameRepository.findArenaByRoomId(roomId).orElseThrow(() -> new BaseException(ARENA_NOT_FOUND));
-        ;
+
         Game game = arena.getGame();
+        int stockPriceLevel = game.getCurrentStockPriceLevel();
         StockInfo[] market = game.getMarketStocks();
+        int[] stockSellTrack = game.getStockSellTrack();
+
+        Player player = findPlayer(arena, sender);
+        int[] orgStocks = player.getStock();
 
         // 주식 매도 (개수는 프론트에서 제한)
         // 0. stocks 유효성 검사 (각 숫자가 0 이상/합산한 개수가 0 초과 주가 수준 거래 가능 토큰 개수 이하)
-        validateStocks(roomId, stocks, game.getCurrentStockPriceLevel());
+        validateStocks(orgStocks, sellingStocks, stockPriceLevel);
 
         // 1. 주식 매도 가격 계산
         int salePrice = 0;  // 주식 매도 대금
         int marketPrice;    // 주가
         for (int i = 1; i < 6; i++) {
-            marketPrice = stockStandard[market[i].getState()[0]][market[i].getState()[1]].getPrice();
-            salePrice += marketPrice * stocks[i];
+            marketPrice = stockState.getStockStandard()[market[i].getState()[0]][market[i].getState()[1]].getPrice();
+            salePrice += marketPrice * sellingStocks[i];
+            orgStocks[i] -= sellingStocks[i]; // 2. 개인 보유 주식 개수 적용
         }
 
-        // 2. 주식 매도 가격 적용
-        Player player = findPlayer(arena, sender);
+        // 2. 개인 현금에 매도 가격 적용
         player.addCash(salePrice);
 
-        // 3. 매도 트랙 적용
-        int[] possibleStocks = getStocksForSellTrack(stocks, game.getStockSellTrack());
+        // 3. 매도 트랙에서 주식시장으로 토큰 옮기기
+        int[] possibleStocks = getStocksFromSellTrack(sellingStocks, stockSellTrack);
 
         int tokenIdx = selectRandomTokenIndex(possibleStocks);
-        market[tokenIdx].addCnt();
+        stockSellTrack[tokenIdx] -= 1;
+        market[tokenIdx].addCnt(1);
 
         // 4. 주가 하락
         market[tokenIdx].decreaseState();
 
         // 5. 남은 주식토큰이 5개면 주가 변동 -> 주식 매도트랙 세팅
-        // TODO 주가변동 구현 후 보충
+        int leftStocks = 0;
+        for (int i = 1; i < 6; i++) {
+            leftStocks += stockSellTrack[i];
+        }
+        if (leftStocks == 5) changeStockPrice(game, stockPriceLevel);
+
+        // TODO 6. 매도트랙 세팅
+        //      - 주머니에 매도트랙에 있던 토큰들 넣기
+        //      - 매도트랙 세팅 (검은색 토큰도 2개로 {2, 2, 2, 2, 2, 2})
 
         gameRepository.saveArena(roomId, arena);
 
     }
 
-    // 매도트랙에서 주식시장으로 옮겨 놓을 수 있는 주식토큰 종류 메세지 전송
-    // 1. 여러 종류의 주식 매도
-    // 1-1. 여러 종류의 주식 중 하나라도 매도트랙에 있는 경우
-    //      -> 여러 종류의 주식 중 매도트랙에 있는 종류들
-    // 1-2. 여러 종류의 주식 모두 매도트랙에 없는 경우
-    //      -> 나머지 종류의 주식
-    // 2. 한가지 종류의 주식 매도
-    // 2-1. 해당 주식이 매도트랙에 있음
-    //      -> 해당 주식
-    // 2-2. 해당 주식이 매도트랙에 없음
-    //      -> 해당 주식 제외 주식시장에 있는 나머지 주식들
-    public int[] getStocksForSellTrack(int[] stocks, int[] stockSellTrack) {
+    /**
+     * 매도 트랙에서 주식시장으로 옮길 수 있는 주식의 종류 return
+     *
+     * @param stocks
+     * @param stockSellTrack
+     * @return
+     */
+    public int[] getStocksFromSellTrack(int[] stocks, int[] stockSellTrack) {
         int[] possibleStocks = new int[6];
         for (int i = 1; i < 6; i++) {
             if (stocks[i] != 0 && stockSellTrack[i] != 0) {
@@ -491,38 +497,104 @@ public class GameServiceImpl implements GameService {
     // 금괴 매입
 
     // 주가 변동
+    public void changeStockPrice(Game game, int stockPriceLevel) throws BaseException {
+        int[] stockTokensPocket = game.getStockTokensPocket();
 
+        // 1. 현재 주가 수준에 해당하는 주식 토큰의 개수를 뽑기
+        Random random = new Random();
+        int[] selectedStockCnts = new int[6];
 
-    // 주가 수준 변동
-    // TODO 아래 주가수준변경은 (주가변동 -> 주가상승) 시에만 실행
-
-    /**
-     * 기존과 새로운 좌표의 주가수준 비교 후, 필요시 주가수준변경
-     *
-     * @param orgState
-     * @param newState
-     * @param roomId
-     * @throws BaseException
-     */
-    public void changeStockLevel(int[] orgState, int[] newState, String roomId) throws BaseException {
-
-        Arena arena = gameRepository.findArenaByRoomId(roomId).orElseThrow(() -> new BaseException(ARENA_NOT_FOUND));
-        ;
-        Game game = arena.getGame();
-        int stockPriceLevel = game.getCurrentStockPriceLevel();
-
-        int orgLevel = stockStandard[orgState[0]][orgState[1]].getLevel();
-        int newLevel = stockStandard[newState[0]][newState[1]].getLevel();
-
-        // 기존과 새로운 좌표의 주가수준이 다른지
-        // 다르다면 새로운 주가수준이 상위영역에 처음 진입했는지
-        if (orgLevel != newLevel && stockPriceLevel < newLevel) {
-            game.setCurrentStockPriceLevel(newLevel);
-            arena.setGame(game);
-            gameRepository.saveArena(roomId, arena);
+        // 1-1. 0번 인덱스 제외 0 초과인 인덱스 선택
+        List<Integer> validIndices = new ArrayList<>();
+        for (int i = 0; i < 6; i++) {
+            if (stockTokensPocket[i] > 0) {
+                validIndices.add(i);
+            }
         }
-    }
 
+        // 1-2. 주어진 tokensCnt 만큼 랜덤으로 인덱스 선택해서 값 줄이기
+        int tokensCnt = stockState.getStockLevelCards()[stockPriceLevel][1];
+        for (int i = 0; i < tokensCnt; i++) {
+            if (validIndices.isEmpty()) {
+                throw new BaseException(INSUFFICIENT_STOCK);
+            }
+
+            int randomIndex = validIndices.get(random.nextInt(validIndices.size()));
+
+            stockTokensPocket[randomIndex] -= 1;
+            selectedStockCnts[randomIndex] += 1;
+
+            if (stockTokensPocket[randomIndex] == 0) {
+                validIndices.remove((Integer) randomIndex);
+            }
+        }
+
+        // 2. 금 시세 조정
+        int blackTokenCnt = selectedStockCnts[0];
+        if (blackTokenCnt > 0) {
+            // 2-1. 검은색 주식 토큰 개수만큼 금 마커를 금 시세 트랙에서 위쪽으로 한 칸씩 이동
+            game.addGoldPrice(blackTokenCnt);
+            // 2-2. 매입 금괴 표시 트랙에서 금 마커가 마지막으로 지나가거나, 도달한 3의 배수 칸 오른쪽 아래에 표시된 숫자만큼 위쪽으로 이동.
+            game.addGoldPrice(game.getGoldPriceIncreaseCnt() / 3);
+        }
+        // 2-3. 매입 금괴 표시 트랙에 놓인 금 마커를 0으로 이동
+        game.setGoldPriceIncreaseCnt(0);
+
+        // 3. 주가 조정
+        StockInfo[] marketStocks = game.getMarketStocks();
+        if (0 <= blackTokenCnt && blackTokenCnt <= 12) {
+
+            // 3-1. 검은색 토큰 1개: 검은색 토큰을 다시 주머니에 넣고, 나머지 주식 토큰들로 아래 수행
+            if (blackTokenCnt == 1) {
+                stockTokensPocket[0] += 1;
+                selectedStockCnts[0] = 0;
+            }
+
+            // 3-2. 뽑은 주식 토큰 中, 각 색깔의 주가 토큰 개수가 표시된 위치로 이동(*주가 조정 참조표* 참고)
+            for (int i = 1; i < 6; i++) {
+                int stockCntDiff = selectedStockCnts[i] - selectedStockCnts[0];
+                if (stockCntDiff < -6) {
+                    throw new BaseException(INVALID_BLACK_TOKEN);
+                }
+                int[] stockPriceState = marketStocks[i].getState();
+
+                if (0 < stockCntDiff && stockCntDiff < 7) {
+                    stockPriceState[0] += stockState.getStockDr()[stockCntDiff];
+                    stockPriceState[1] += stockState.getStockDc()[stockCntDiff];
+                }
+                // 3-3. 7개 이상 뽑았다면, 참조표에 표시된 6까지 이동 후 -> 초과한 숫자만큼 위로 한 칸씩 이동
+                else if (7 <= stockCntDiff && stockCntDiff <= 12) {
+                    stockPriceState[0] += stockState.getStockDr()[6];
+                    stockPriceState[1] += stockState.getStockDc()[6];
+                    for (int j = 0; j < stockCntDiff - 6; j++) {
+                        if (stockPriceState[0] == 0) {
+                            break;
+                        }
+                        stockPriceState[0] -= 1;
+                    }
+                } else {
+                    throw new BaseException(INVALID_STOCK_CNT);
+                }
+
+                // 4. 주식 토큰 정리: 주머니에서 뽑은 색깔 주식 토큰을 일치하는 색깔의 주식시장에 놓기
+                marketStocks[i].addCnt(selectedStockCnts[i]);
+
+                // 5. 주가 상승: 여전히 주식 시장에 주식 토큰이 없는 색깔은 주가를 위쪽으로 한 칸 이동
+                stockPriceState[0] -= 1;
+
+                // 6. 주가 수준 변동 조건 확인 후, 필요 시 주가 수준 변동
+                int newLevel = stockState.getStockStandard()[stockPriceState[0]][stockPriceState[1]].getLevel();
+                // 새로운 주가수준이 상위영역에 처음 진입했는지
+                if (stockPriceLevel < newLevel) {
+                    game.setCurrentStockPriceLevel(newLevel);
+                    stockPriceLevel = newLevel;
+                }
+            }
+        } else {
+            throw new BaseException(INVALID_BLACK_TOKEN);
+        }
+        // TODO arena를 리턴해야 하는지
+    }
 
     // 플레이어 이동
     @Override
@@ -561,21 +633,23 @@ public class GameServiceImpl implements GameService {
     /**
      * 주식 매수/매도 시 거래 요청한 주식의 검사
      *
-     * @param roomId
-     * @param stocks
-     * @param stockPriceLevel
-     * @throws BaseException
+     * @param orgStocks       : 플레이어가 보유하고 있는 주식들
+     * @param sellingStocks   : 플레이어가 파려고 하는 주식들
+     * @param stockPriceLevel : 주가 수준
+     * @throws BaseException : 아래 두 조건을 만족하지 않는 경우
+     *                       - 각 숫자가 0 미만인 동시에 거래 주식 개수가 0 초과 거래가능토큰개수(주가수준 기준) 이하
+     *                       - 주식 종류별 내가 보유한 주식 개수 이하
      */
-    private void validateStocks(String roomId, int[] stocks, int stockPriceLevel) throws BaseException {
-        // 각 숫자가 0 이상 && 합산한 개수가 0 초과 주가 수준 거래 가능 토큰 개수 이하
+    private void validateStocks(int[] orgStocks, int[] sellingStocks, int stockPriceLevel) throws BaseException {
+        // 각 숫자가 0 이상 && 합산한 개수가 0 초과 주가 수준 거래 가능 토큰 개수 이하 && 내가 보유한 주식 개수 이하
         int stockCnt = 0;
         boolean exception = false;
         for (int i = 1; i < 6; i++) {
-            if (stocks[i] < 0) {
+            if (sellingStocks[i] < 0 || orgStocks[i] < sellingStocks[i]) {
                 exception = true;
                 break;
             }
-            stockCnt += stocks[i];
+            stockCnt += sellingStocks[i];
         }
 
         if (stockCnt > stockState.getStockLevelCards()[stockPriceLevel][0] || stockCnt <= 0) {

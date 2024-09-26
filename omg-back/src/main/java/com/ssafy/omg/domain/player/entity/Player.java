@@ -28,7 +28,7 @@ public class Player {
     private int loanInterest;          // 이자
     private int totalDebt;             // 갚아야 할 금액
     private int cash;                  // 현금
-    private int[] stock = new int[6];               // 보유 주식 개수
+    private int[] stock = new int[6];  // 보유 주식 개수
     private int goldOwned;             // 보유 금괴 개수
 
     private PlayerAction action;       // 플레이어 행위 (주식 매수, 주식 매도, 금괴 매입, 대출, 상환)

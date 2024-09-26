@@ -41,7 +41,7 @@ public class Game {
     private int currentStockPriceLevel;                // 현재 주가 수준
 
     // [게임] 게임판 트랙 정보 & 주머니
-    private int[] stockTokensPocket = new int[6];                        // 주머니 길이 6 배열; 5가지 주식 및 검정 토큰
+    private int[] stockTokensPocket = new int[6];    // 주머니 길이 6 배열; 5가지 주식 및 검정 토큰
     private StockInfo[] marketStocks;                // 현재 주식 상황 (주식시장(종류별 개수), 주가)
     private int[] stockSellTrack;                    // 매도 트랙
     private int[] stockBuyTrack;                        // 매수 트랙
@@ -50,4 +50,18 @@ public class Game {
     // [게임] 금괴 정보
     private int goldPrice;                        // 금괴 가격
     private int goldPriceIncreaseCnt;         // 금괴 가격 상승 체크용
+
+    public void addGoldPrice(int amount) {  // amount는 올라야 할 칸 수
+        for (int i = 0; i < amount; i++) {
+            if (this.goldPrice >= 100) {
+                break;
+            }
+
+            if (this.goldPrice < 30) {
+                this.goldPrice += 1;
+            } else {
+                this.goldPrice += 5;
+            }
+        }
+    }
 }

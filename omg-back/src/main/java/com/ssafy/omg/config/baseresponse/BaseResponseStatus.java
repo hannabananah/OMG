@@ -69,6 +69,7 @@ public enum BaseResponseStatus {
     INVALID_STOCK_STATE(false, 3107, "유효하지 않은 주가 기준표의 좌표입니다."), // TODO message로 보낼 필요 없는 예외 상황입니다.
     AMOUNT_EXCEED_DEBT(false, 3108, "상환 금액이 총 부채보다 많습니다."),
     AMOUNT_EXCEED_CASH(false, 3109, "상환 금액이 보유 자산보다 많습니다."),
+    INVALID_BLACK_TOKEN(false, 3110, "유효한 검은 토큰 개수가 아닙니다."),
 
     // 3201 ~~ 3299 : 전정민
 

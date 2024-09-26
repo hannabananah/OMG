@@ -20,8 +20,8 @@ public class StockInfo {
     @Size()
     private int[] state = new int[2]; // 현재 주식의 가격을 stockStandard(주가 기준표) 2차원 배열의 위치값으로 표현
 
-    public void addCnt() {
-        this.cnt += 1;
+    public void addCnt(int amount) {
+        this.cnt += amount;
     }
 
     public void decreaseState() throws BaseException {
@@ -46,6 +46,5 @@ public class StockInfo {
                 this.state[1] += 1;
             }
         }
-
     }
 }
