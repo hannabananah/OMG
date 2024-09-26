@@ -26,6 +26,7 @@ import java.util.stream.IntStream;
 import static com.ssafy.omg.config.baseresponse.BaseResponseStatus.*;
 import static com.ssafy.omg.config.baseresponse.MessageResponseStatus.OUT_OF_CASH;
 import static com.ssafy.omg.domain.game.entity.ActionStatus.*;
+import static com.ssafy.omg.domain.game.entity.RoundStatus.STOCK_FLUCTUATION;
 import static com.ssafy.omg.domain.player.entity.PlayerStatus.NOT_STARTED;
 import static org.hibernate.query.sqm.tree.SqmNode.log;
 
@@ -345,11 +346,14 @@ public class GameServiceImpl implements GameService {
 
         int[] goldBuyTrack = game.getGoldBuyTrack();
         System.out.println("금괴 매수 트랙 : " + Arrays.toString(goldBuyTrack));
+
+        int selectedStock = -1;
         for (int i = 1; i < goldBuyTrack.length; i++) {
             if (goldBuyTrack[i] == 0) {
                 System.out.println("found");
                 Random random = new Random();
                 int randomIdx = selectableStocks.get(random.nextInt(selectableStocks.size()));
+                selectedStock = randomIdx;
                 System.out.println("랜덤으로 선택된 인덱스: " + randomIdx);
                 goldBuyTrack[i] = randomIdx;
                 // 선택 주식을 시장에서 제거
@@ -390,12 +394,46 @@ public class GameServiceImpl implements GameService {
             }
         }
         game.setPlayers(players);
+
+        // 금괴 매입 트랙에 의한 주가 상승 체크 및 반영
+        // 1. 넣은 주식과 같은 종류의 주식이 딱 3개
+        // 2. 뽑은 주식이 시장에서 해당 종류 마지막 토큰인 경우
+
+        if (isStockNumThree(goldBuyTrack, selectedStock)) { // &&으로 이전에 주가상승이 일어난 적이 없으면
+            // TODO 주가 상승 메서드 호출
+        }
+
+        // 금괴 매입 트랙에 의한 주가 변동 체크 및 반영
+        if (isStockFluctuationAble(goldBuyTrack, selectedStock)) {
+            game.setGoldBuyTrack(new int[]{0, 0, 0, 0, 0, 0});
+            game.setRoundStatus(STOCK_FLUCTUATION); // TODO 주가변동 메서드 스케줄러에 넣기
+        }
+
         arena.setGame(game);
-
         gameRepository.saveArena(roomId, arena);
-
-        // TODO 만약 주가변동이 일어난다면 주가변동 로직 실행 후 5초간 타미어 정지하여 주가변동 일어남.
     }
+
+    private boolean isStockNumThree(int[] goldBuyTrack, int selectedStock) {
+        boolean isStockNumThree = false;
+        int checkStockCnt = 0;
+        for (int i = 1; i < goldBuyTrack.length; i++) {
+            if (goldBuyTrack[i] == selectedStock) {
+                checkStockCnt++;
+            }
+        }
+        return checkStockCnt == 3;
+    }
+
+    private boolean isStockFluctuationAble(int[] goldBuyTrack, int selectedStock) {
+        int cnt = 0;
+        for (int i = 1; i < goldBuyTrack.length; i++) {
+            if (goldBuyTrack[i] == 0) {
+                return false;
+            }
+        }
+        return true;
+    }
+
 
     /**
      * 주가 변동 가능 여부 체크 ( 주가 매수 트랙, 주가 매도 트랙, 금괴 매입 트랙) -> 주가 변동 로직 실행
