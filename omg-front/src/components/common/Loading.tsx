@@ -19,5 +19,6 @@ export default function Loading(): JSX.Element | null {
     }
   }, [active]);
 
+  // TODO: 프로그레스바 추가(useProgress)
   return null;
 }

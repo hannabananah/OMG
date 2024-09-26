@@ -1,5 +1,3 @@
-import { Client } from '@stomp/stompjs';
-
 export interface Player {
   nickname: string;
   characterType: number;
