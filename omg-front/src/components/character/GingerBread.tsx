@@ -272,9 +272,9 @@ export default function GingerBread({ position, onLoadComplete }: Props) {
 
       <PerspectiveCamera
         ref={cameraRef}
-        makeDefault // 이 카메라가 기본 카메라로 설정됨
-        // fov={100}
-        position={[0, 0.1, 13]} // 초기 카메라 위치
+        makeDefault
+        fov={100}
+        position={[0, 0.1, 13]}
         near={0.1}
         far={1000}
       />
