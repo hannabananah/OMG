@@ -14,6 +14,8 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
+import static com.ssafy.omg.config.baseresponse.MessageResponseStatus.OUT_OF_CASH;
+
 @RestController
 @RequestMapping("/games")
 @RequiredArgsConstructor
@@ -31,17 +33,24 @@ public class GameController {
     }
 
     @PostMapping("/gold")
-    public BaseResponse<?> purchaseGold(@RequestBody StompPayload<Integer> goldPurchasePayload) throws BaseException, MessageException {
+    public BaseResponse<?> purchaseGold(@RequestBody StompPayload<Integer> goldPurchasePayload) {
         String roomId = goldPurchasePayload.getRoomId();
         String userNickname = goldPurchasePayload.getSender();
         int purchasedGoldCnt = goldPurchasePayload.getData();
 
-        gameService.purchaseGold(roomId, userNickname, purchasedGoldCnt);
-
-//        Arena arena = gameRepository.findArenaByRoomId(roomId)
-//                .orElseThrow(() -> new BaseException(ARENA_NOT_FOUND));
-
-        return new BaseResponse<>("금괴 매입에 성공했습니다!");
+        try {
+            gameService.purchaseGold(roomId, userNickname, purchasedGoldCnt);
+            return new BaseResponse<>("금괴 매입에 성공했습니다!");
+        } catch (MessageException e) {
+            if (e.getStatus() == OUT_OF_CASH) {
+                return new BaseResponse<>("현재 보유한 자산이 부족하여 금괴를 매입할 수 없습니다.");
+            }
+            // 다른 MessageException 처리
+            return new BaseResponse<>(e.getMessage());
+        } catch (BaseException e) {
+            // 일단 추가 할 수도 있음
+            return new BaseResponse<>(e.getStatus());
+        }
     }
 
     @PostMapping("/end-game")

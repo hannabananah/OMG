@@ -26,6 +26,7 @@ import java.util.stream.IntStream;
 import static com.ssafy.omg.config.baseresponse.BaseResponseStatus.*;
 import static com.ssafy.omg.config.baseresponse.MessageResponseStatus.OUT_OF_CASH;
 import static com.ssafy.omg.domain.game.entity.ActionStatus.*;
+import static com.ssafy.omg.domain.game.entity.RoundStatus.ROUND_START;
 import static com.ssafy.omg.domain.game.entity.RoundStatus.STOCK_FLUCTUATION;
 import static com.ssafy.omg.domain.player.entity.PlayerStatus.NOT_STARTED;
 import static org.hibernate.query.sqm.tree.SqmNode.log;
@@ -139,13 +140,13 @@ public class GameServiceImpl implements GameService {
 
             Game newGame = Game.builder()
                     .gameId(roomId)
-                    .gameStatus(GameStatus.BEFORE_START)          // 게임 대기 상태로 시작
-                    .message("GAME_INITIALIZED")
+                    .gameStatus(GameStatus.IN_GAME)          // 게임 대기 상태로 시작
+                    .message("GAME_START")
                     .players(players)
 
-                    .time(25)
+                    .time(20)
                     .round(1)                                     // 시작 라운드 1
-                    .roundStatus(null)
+                    .roundStatus(ROUND_START)
 
                     .currentInterestRate(5)                       // 예: 초기 금리 5%로 설정
                     .economicEvent(randomEvent)                   // 초기 경제 이벤트 없음
@@ -331,7 +332,7 @@ public class GameServiceImpl implements GameService {
         if (player.getCash() < totalCost) {
             throw new MessageException(roomId, userNickname, OUT_OF_CASH);
         }
-
+        System.out.println("==================================================================");
         // 금괴 매입 표 변경 ( 시장에서 넣을 수 있는 랜덤 주식 넣기 )
         int[] currentMarketStocks = Arrays.stream(game.getMarketStocks())
                 .mapToInt(StockInfo::getCnt)
@@ -350,11 +351,10 @@ public class GameServiceImpl implements GameService {
         int selectedStock = -1;
         for (int i = 1; i < goldBuyTrack.length; i++) {
             if (goldBuyTrack[i] == 0) {
-                System.out.println("found");
                 Random random = new Random();
                 int randomIdx = selectableStocks.get(random.nextInt(selectableStocks.size()));
                 selectedStock = randomIdx;
-                System.out.println("랜덤으로 선택된 인덱스: " + randomIdx);
+                System.out.println("랜덤으로 선택된 주식 종류 : " + randomIdx);
                 goldBuyTrack[i] = randomIdx;
                 // 선택 주식을 시장에서 제거
                 currentMarketStocks[randomIdx]--;
@@ -362,7 +362,7 @@ public class GameServiceImpl implements GameService {
             }
         }
         game.setGoldBuyTrack(goldBuyTrack);
-        System.out.println("=======changed========");
+        System.out.println("==========                     changed                   =========");
         System.out.println("금괴 매수 트랙 : " + Arrays.toString(goldBuyTrack));
         System.out.println("변경된 시장 주식들 : " + Arrays.toString(currentMarketStocks));
 
@@ -401,16 +401,19 @@ public class GameServiceImpl implements GameService {
 
         if (isStockNumThree(goldBuyTrack, selectedStock) || isStockMarketEmpty(currentMarketStocks, selectedStock)) {
             updatedMarketStocks[selectedStock].increaseState();
+            System.out.println("주가상승!");
         }
 
         // 금괴 매입 트랙에 의한 주가 변동 체크 및 반영 - 꽉 찼을 때
         if (isStockFluctuationAble(goldBuyTrack)) {
             game.setGoldBuyTrack(new int[]{0, 0, 0, 0, 0, 0});
             game.setRoundStatus(STOCK_FLUCTUATION); // TODO 주가변동 메서드 스케줄러에 넣기
+            System.out.println("주가변동!!");
         }
 
         arena.setGame(game);
         gameRepository.saveArena(roomId, arena);
+        System.out.println("==================================================================");
     }
 
     private boolean isStockNumThree(int[] goldBuyTrack, int selectedStock) {
