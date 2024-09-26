@@ -23,6 +23,7 @@ interface SocketContextType {
   gameSubscription: () => void;
   players: Player[];
   moveCharacter: (position: number[], direction: number[]) => void;
+  initGameSetting: () => void;
 }
 
 const defaultContextValue: SocketContextType = {
@@ -42,6 +43,7 @@ const defaultContextValue: SocketContextType = {
   gameSubscription: () => {},
   players: [],
   moveCharacter: () => {},
+  initGameSetting: () => {},
 };
 
 export const SocketContext =
@@ -192,7 +194,6 @@ export default function SocketProvider({ children }: SocketProviderProps) {
   // 게임방 구독
   const gameSubscription = () => {
     if (!isSocketConnected()) return;
-
     socket.subscribe(
       gameTopic,
       message => {
@@ -212,29 +213,11 @@ export default function SocketProvider({ children }: SocketProviderProps) {
       },
       { id: subGameId },
     );
-
-    const messagePayload: {
-      roomId: string;
-      type: string;
-      sender: string;
-      data: null | object;
-    } = {
-      type: 'test',
-      roomId,
-      sender: nickname,
-      data: null,
-    };
-    console.log('messagePayload', messagePayload);
-
-    socket.publish({
-      destination: '/pub/game-initialize',
-      body: JSON.stringify(messagePayload),
-    });
   };
 
   useEffect(() => {
     if (roomId) {
-      disconnect(); // 기존 소켓이 있으면 해제 후
+      disconnect();
       connect();
     }
 
@@ -316,10 +299,35 @@ export default function SocketProvider({ children }: SocketProviderProps) {
     });
   };
 
+  // 초기 게임 세팅
+  const initGameSetting = () => {
+    if (nickname !== hostPlayer) {
+      console.log('Only the host can initialize the game settings.');
+      return;
+    }
+
+    const messagePayload: {
+      roomId: string;
+      type: string;
+      sender: string;
+      data: null | object;
+    } = {
+      type: 'test',
+      roomId,
+      sender: nickname,
+      data: null,
+    };
+    console.log('messagePayload', messagePayload);
+
+    socket.publish({
+      destination: '/pub/game-initialize',
+      body: JSON.stringify(messagePayload),
+    });
+  };
+
   // 캐릭터 이동
   const moveCharacter = (position: number[], direction: number[]) => {
     if (!isSocketConnected()) return;
-
     const messagePayload = {
       type: 'PLAYER_MOVE',
       roomId,
@@ -329,7 +337,6 @@ export default function SocketProvider({ children }: SocketProviderProps) {
         direction,
       },
     };
-
     socket.publish({
       destination: '/pub/player-move',
       body: JSON.stringify(messagePayload),
@@ -354,8 +361,9 @@ export default function SocketProvider({ children }: SocketProviderProps) {
       gameSubscription,
       players,
       moveCharacter,
+      initGameSetting,
     }),
-    [socket, online, player, players, chatMessages],
+    [socket, online, player, players, chatMessages, moveCharacter],
   );
 
   return (
