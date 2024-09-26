@@ -399,12 +399,12 @@ public class GameServiceImpl implements GameService {
         // 1. 넣은 주식과 같은 종류의 주식이 딱 3개
         // 2. 뽑은 주식이 시장에서 해당 종류 마지막 토큰인 경우
 
-        if (isStockNumThree(goldBuyTrack, selectedStock)) { // &&으로 이전에 주가상승이 일어난 적이 없으면
-            // TODO 주가 상승 메서드 호출
+        if (isStockNumThree(goldBuyTrack, selectedStock) || isStockMarketEmpty(currentMarketStocks, selectedStock)) {
+            updatedMarketStocks[selectedStock].increaseState();
         }
 
-        // 금괴 매입 트랙에 의한 주가 변동 체크 및 반영
-        if (isStockFluctuationAble(goldBuyTrack, selectedStock)) {
+        // 금괴 매입 트랙에 의한 주가 변동 체크 및 반영 - 꽉 찼을 때
+        if (isStockFluctuationAble(goldBuyTrack)) {
             game.setGoldBuyTrack(new int[]{0, 0, 0, 0, 0, 0});
             game.setRoundStatus(STOCK_FLUCTUATION); // TODO 주가변동 메서드 스케줄러에 넣기
         }
@@ -414,7 +414,6 @@ public class GameServiceImpl implements GameService {
     }
 
     private boolean isStockNumThree(int[] goldBuyTrack, int selectedStock) {
-        boolean isStockNumThree = false;
         int checkStockCnt = 0;
         for (int i = 1; i < goldBuyTrack.length; i++) {
             if (goldBuyTrack[i] == selectedStock) {
@@ -424,8 +423,11 @@ public class GameServiceImpl implements GameService {
         return checkStockCnt == 3;
     }
 
-    private boolean isStockFluctuationAble(int[] goldBuyTrack, int selectedStock) {
-        int cnt = 0;
+    private boolean isStockMarketEmpty(int[] currentMarketStocks, int selectedStock) {
+        return currentMarketStocks[selectedStock] == 0;
+    }
+
+    private boolean isStockFluctuationAble(int[] goldBuyTrack) {
         for (int i = 1; i < goldBuyTrack.length; i++) {
             if (goldBuyTrack[i] == 0) {
                 return false;
