@@ -2,6 +2,19 @@
 @tailwind components;
 @tailwind utilities;
 
+*,
+*::before,
+*::after,
+html,
+body,
+div,
+button,
+a,
+input,
+svg .clickable {
+  cursor: url('/assets/cursor.cur'), auto;
+}
+
 html {
   @apply h-screen w-full text-gray-800 break-words m-auto select-none;
   font-size: 14px; /* 1rem을 14px로 설정 */
@@ -9,6 +22,10 @@ html {
 
 input {
   @apply focus:outline-none;
+}
+
+button:disabled {
+  cursor: url('/assets/cursor.cur'), auto;
 }
 
 .modal-open {

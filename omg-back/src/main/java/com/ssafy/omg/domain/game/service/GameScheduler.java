@@ -31,7 +31,7 @@ public class GameScheduler {
     private final GameService gameService;
     private final SimpMessageSendingOperations messagingTemplate;
     private static final int MAX_ROUNDS = 10;
-
+/* 
     @Scheduled(fixedRate = 1000)  // 1초마다 실행
     public void updateGameState() throws BaseException {
         try {
@@ -44,7 +44,7 @@ public class GameScheduler {
             log.info("라운드 진행 상태 업데이트 중 오류가 발생하였습니다.");
             throw new BaseException(ROUND_STATUS_ERROR);
         }
-    }
+    } */
 
     /**
      * 시스템 상에서 자동적으로 라운드 진행 및 라운드 상태 변경
@@ -55,6 +55,9 @@ public class GameScheduler {
     private void updateRoundStatus(Game game) throws BaseException {
 
         switch (game.getRoundStatus()) {
+            case TUTORIAL:
+                handleTutorial(game);
+                break;
             case ROUND_START:
                 handleRoundStart(game);
                 break;
@@ -95,6 +98,14 @@ public class GameScheduler {
             game.setPauseTime(game.getPauseTime() - 1);
         }
         log.debug("게임 {}의 현재 시간 : {}초", game.getGameId(), game.getTime());  // 로그 추가
+    }
+
+    private void handleTutorial(Game game) {
+        if (game.getTime() == 0) {
+            game.setRoundStatus(ROUND_START);
+            game.setTime(3);
+            log.debug("상태를 ROUND_START로 변경. 새 시간: {}", game.getTime());
+        }
     }
 
     private void handleRoundStart(Game game) throws BaseException {

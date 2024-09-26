@@ -122,8 +122,8 @@ class GameMessageControllerTest {
 
             // 3. /pub/player-move 경로로 메시지를 전송
             // TODO 수정
-//            PlayerMoveRequest request = new PlayerMoveRequest(roomId, "player1", new double[]{0.0, 1.0, 0.0}, new double[]{1.0, 0.0, 0.0});
-//            session.send("/pub/player-move", request);
+        //    PlayerMoveRequest request = new PlayerMoveRequest(roomId, "player1", new double[]{0.0, 1.0, 0.0}, new double[]{1.0, 0.0, 0.0});
+        //    session.send("/pub/player-move", request);
 
             // 4. Redis에 저장된 정보 확인
             // 업데이트가 비동기적으로 일어날 수 있으므로 약간의 대기 시간을 두고 확인
