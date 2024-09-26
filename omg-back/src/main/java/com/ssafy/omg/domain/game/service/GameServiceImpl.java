@@ -1,6 +1,7 @@
 package com.ssafy.omg.domain.game.service;
 
 import com.ssafy.omg.config.baseresponse.BaseException;
+import com.ssafy.omg.config.baseresponse.MessageException;
 import com.ssafy.omg.domain.arena.entity.Arena;
 import com.ssafy.omg.domain.game.GameRepository;
 import com.ssafy.omg.domain.game.dto.GameStatusResponse;
@@ -11,6 +12,7 @@ import com.ssafy.omg.domain.game.entity.*;
 import com.ssafy.omg.domain.game.entity.StockState.Stock;
 import com.ssafy.omg.domain.game.repository.GameEventRepository;
 import com.ssafy.omg.domain.player.entity.Player;
+import com.ssafy.omg.domain.player.entity.PlayerStatus;
 import com.ssafy.omg.domain.socket.dto.StompPayload;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -19,8 +21,10 @@ import org.springframework.stereotype.Service;
 
 import java.util.*;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 import static com.ssafy.omg.config.baseresponse.BaseResponseStatus.*;
+import static com.ssafy.omg.config.baseresponse.MessageResponseStatus.OUT_OF_CASH;
 import static com.ssafy.omg.domain.game.entity.ActionStatus.*;
 import static com.ssafy.omg.domain.player.entity.PlayerStatus.NOT_STARTED;
 import static org.hibernate.query.sqm.tree.SqmNode.log;
@@ -107,20 +111,25 @@ public class GameServiceImpl implements GameService {
                 int characterType = characterTypes.remove(0);
 
                 Player newPlayer = Player.builder()
-                        .nickname(inRoomPlayers.get(i))
-                        .characterType(characterType)
-                        .position(new double[]{0, 0, 0}) // TODO 임시로 (0,0,0)으로 해뒀습니다 고쳐야함
+                        .nickname(inRoomPlayers.get(i))   // 플레이어 닉네임
+                        .characterType(characterType)     // 캐릭터 에셋 종류
+                        .characterMovement(false)         // 줍기 행동 유무
+                        .position(new double[]{0, 0, 0})  // TODO 임시로 (0,0,0)으로 해뒀습니다 고쳐야함
                         .direction(new double[]{0, 0, 0}) // TODO 임시로 (0,0,0)으로 해뒀습니다 고쳐야함
-                        .hasLoan(0)
-                        .loanPrincipal(0)
-                        .loanInterest(0)
-                        .totalDebt(0)
-                        .cash(100)
-                        .stock(randomStock)
-                        .goldOwned(0)
-                        .action(null)
-                        .state(NOT_STARTED)
-                        .isConnected(1)
+                        .carryingStocks(new int[]{0, 0, 0, 0, 0, 0})
+                        .carryingGolds(0)
+
+                        .hasLoan(0)                       // 대출 유무
+                        .loanPrincipal(0)                 // 대출원금
+                        .loanInterest(0)                  // 이자
+                        .totalDebt(0)                     // 갚아야 할 금액
+                        .cash(100)                        // 현금
+                        .stock(randomStock)               // 보유 주식 개수
+                        .goldOwned(0)                     // 보유 금괴 개수
+
+                        .action(null)                     // 플레이어 행위 (주식 매수, 주식 매도, 금괴 매입, 대출, 상환)
+                        .state(NOT_STARTED)               // 플레이어 행위 상태 (시작전, 진행중, 완료)
+                        .isConnected(1)                   // 플레이어 접속 상태 (0: 끊김, 1: 연결됨)
                         .build();
                 players.add(newPlayer);
             }
@@ -129,24 +138,26 @@ public class GameServiceImpl implements GameService {
 
             Game newGame = Game.builder()
                     .gameId(roomId)
-                    .gameStatus(GameStatus.BEFORE_START)  // 게임 대기 상태로 시작
+                    .gameStatus(GameStatus.BEFORE_START)          // 게임 대기 상태로 시작
                     .message("GAME_INITIALIZED")
                     .players(players)
-                    .time(5)                            // 한 라운드 2분(120초)으로 설정
-                    .round(1)                             // 시작 라운드 1
+
+                    .time(25)
+                    .round(1)                                     // 시작 라운드 1
                     .roundStatus(null)
-                    .isStockChanged(new boolean[6])       // 5개 주식에 대한 변동 여부 초기화
-                    .isGoldChanged(false)
-                    .currentInterestRate(5)               // 예: 초기 금리 5%로 설정
-                    .economicEvent(randomEvent)           // 초기 경제 이벤트 없음
-                    .currentStockPriceLevel(0)            // 주가 수준
-                    .stockTokensPocket(pocket)            // 주머니 초기화
-                    .marketStocks(market)                 // 주식 시장 초기화
-                    .stockSellTrack(new int[10])          // 주식 매도 트랙 초기화
-                    .stockBuyTrack(new int[6])            // 주식 매수 트랙 초기화
-                    .goldBuyTrack(new int[6])             // 금 매입 트랙 초기화
-                    .goldPrice(20)                        // 초기 금 가격 20
-                    .goldPriceIncreaseCnt(0)          // 초기 금괴 매입 개수 0
+
+                    .currentInterestRate(5)                       // 예: 초기 금리 5%로 설정
+                    .economicEvent(randomEvent)                   // 초기 경제 이벤트 없음
+                    .currentStockPriceLevel(0)                    // 주가 수준
+
+                    .stockTokensPocket(pocket)                    // 주머니 초기화
+                    .marketStocks(market)                         // 주식 시장 초기화
+                    .stockSellTrack(new int[]{1, 2, 2, 2, 2, 2})  // 주식 매도 트랙 초기화
+                    .stockBuyTrack(new int[6])                    // 주식 매수 트랙 초기화
+                    .goldBuyTrack(new int[6])                     // 금 매입 트랙 초기화
+
+                    .goldPrice(20)                                // 초기 금 가격 20
+                    .goldPriceIncreaseCnt(0)                      // 초기 금괴 매입 개수 0
                     .build();
 
             arena.setGame(newGame);
@@ -298,6 +309,105 @@ public class GameServiceImpl implements GameService {
         return result;
     }
 
+    /**
+     * 매입한 금괴 개수를 플레이어 자산 및 금괴 매입 트랙( + 추가개수)에 반영
+     * 플레이어별 개인 정보는 계속 브로드캐스팅 되기 때문에 redis 데이터 값만 바꿔주면됨
+     *
+     * @param goldBuyCount
+     * @throws BaseException
+     */
+    @Override
+    public void purchaseGold(String roomId, String userNickname, int goldBuyCount) throws BaseException, MessageException {
+        Arena arena = gameRepository.findArenaByRoomId(roomId)
+                .orElseThrow(() -> new BaseException(ARENA_NOT_FOUND));
+        Game game = arena.getGame();
+        Player player = getPlayer(arena, userNickname);
+
+        // 금괴 매입 비용 계산
+        int currentGoldPrice = game.getGoldPrice();
+        int totalCost = currentGoldPrice * goldBuyCount;
+
+        if (player.getCash() < totalCost) {
+            throw new MessageException(roomId, userNickname, OUT_OF_CASH);
+        }
+
+        // 금괴 매입 표 변경 ( 시장에서 넣을 수 있는 랜덤 주식 넣기 )
+        int[] currentMarketStocks = Arrays.stream(game.getMarketStocks())
+                .mapToInt(StockInfo::getCnt)
+                .toArray();
+        System.out.println("현재 시장 주식들 : " + Arrays.toString(currentMarketStocks));
+
+        List<Integer> selectableStocks = IntStream.range(1, currentMarketStocks.length)
+                .filter(i -> currentMarketStocks[i] != 0)
+                .boxed()
+                .collect(Collectors.toList());
+        System.out.println("뽑을 수 있는 0이 아닌 주식 : " + selectableStocks);
+
+        int[] goldBuyTrack = game.getGoldBuyTrack();
+        System.out.println("금괴 매수 트랙 : " + Arrays.toString(goldBuyTrack));
+        for (int i = 1; i < goldBuyTrack.length; i++) {
+            if (goldBuyTrack[i] == 0) {
+                System.out.println("found");
+                Random random = new Random();
+                int randomIdx = selectableStocks.get(random.nextInt(selectableStocks.size()));
+                System.out.println("랜덤으로 선택된 인덱스: " + randomIdx);
+                goldBuyTrack[i] = randomIdx;
+                // 선택 주식을 시장에서 제거
+                currentMarketStocks[randomIdx]--;
+                break;
+            }
+        }
+        game.setGoldBuyTrack(goldBuyTrack);
+        System.out.println("=======changed========");
+        System.out.println("금괴 매수 트랙 : " + Arrays.toString(goldBuyTrack));
+        System.out.println("변경된 시장 주식들 : " + Arrays.toString(currentMarketStocks));
+
+        // 시장에 반영
+        StockInfo[] updatedMarketStocks = game.getMarketStocks();
+        for (int i = 0; i < currentMarketStocks.length; i++) {
+            updatedMarketStocks[i].setCnt(currentMarketStocks[i] + goldBuyTrack[i]);
+        }
+        game.setMarketStocks(updatedMarketStocks);
+
+        // 금괴 추가 매입 수치 변경
+        int currentGoldPriceIncreaseCnt = game.getGoldPriceIncreaseCnt();
+        game.setGoldPriceIncreaseCnt(currentGoldPriceIncreaseCnt + goldBuyCount);
+
+        // 자산에 금괴 개수 반영 및 금액 지불
+        int currentMyCash = player.getCash();
+        int currentMyGold = player.getGoldOwned();
+
+        player.setCash(currentMyCash - currentGoldPrice * goldBuyCount);
+        player.setGoldOwned(currentMyGold + goldBuyCount);
+        player.setState(PlayerStatus.COMPLETED);
+
+        // 변경된 정보를 반영
+        List<Player> players = game.getPlayers();
+        for (int i = 0; i < players.size(); i++) {
+            if (players.get(i).getNickname().equals(userNickname)) {
+                players.set(i, player);
+                break;
+            }
+        }
+        game.setPlayers(players);
+        arena.setGame(game);
+
+        gameRepository.saveArena(roomId, arena);
+
+        // TODO 만약 주가변동이 일어난다면 주가변동 로직 실행 후 5초간 타미어 정지하여 주가변동 일어남.
+    }
+
+    /**
+     * 주가 변동 가능 여부 체크 ( 주가 매수 트랙, 주가 매도 트랙, 금괴 매입 트랙) -> 주가 변동 로직 실행
+     *
+     * @param roomId
+     * @return
+     * @throws BaseException
+     */
+    @Override
+    public boolean isStockFluctuationAble(String roomId) throws BaseException {
+        return false;
+    }
 
     // 대출
 
