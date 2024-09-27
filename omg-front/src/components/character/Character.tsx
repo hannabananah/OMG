@@ -16,7 +16,7 @@ export default function Character({
   characterURL,
   characterScale,
 }: Props) {
-  const { movePlayer, allRendered } = useContext(SocketContext);
+  const { movePlayer } = useContext(SocketContext);
   const [characterPosition, setCharacterPosition] = useState(
     new THREE.Vector3(0, 0.3, 0),
   );
@@ -54,12 +54,12 @@ export default function Character({
   });
 
   useEffect(() => {
-    if (scene && allRendered) {
+    if (scene) {
       const positionArray = scene.position.toArray();
       const directionArray = [Math.sin(rotation), 0, Math.cos(rotation)];
       movePlayer(positionArray, directionArray);
     }
-  }, [scene, characterPosition, rotation, allRendered]);
+  }, [scene, characterPosition, rotation]);
 
   return (
     <primitive

@@ -33,10 +33,11 @@ const CharacterInfo = {
 };
 
 export default function MainMap() {
-  const { socket, online, initGameSetting } = useContext(SocketContext);
+  const { socket, online, initGameSetting, allRendered } =
+    useContext(SocketContext);
 
   useEffect(() => {
-    if (socket && online) {
+    if (socket && online && allRendered) {
       initGameSetting();
     }
   });
