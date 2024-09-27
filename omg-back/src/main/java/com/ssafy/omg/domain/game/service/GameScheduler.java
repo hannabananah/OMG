@@ -55,6 +55,9 @@ public class GameScheduler {
     private void updateRoundStatus(Game game) throws BaseException {
 
         switch (game.getRoundStatus()) {
+            case TUTORIAL:
+                handleTutorial(game);
+                break;
             case ROUND_START:
                 handleRoundStart(game);
                 break;
@@ -97,9 +100,17 @@ public class GameScheduler {
         log.debug("게임 {}의 현재 시간 : {}초", game.getGameId(), game.getTime());  // 로그 추가
     }
 
+    private void handleTutorial(Game game) {
+        if (game.getTime() == 0) {
+            game.setRoundStatus(ROUND_START);
+            game.setTime(3);
+            log.debug("상태를 ROUND_START로 변경. 새 시간: {}", game.getTime());
+        }
+    }
+
     private void handleRoundStart(Game game) throws BaseException {
         if (game.getTime() == 2) {
-            notifyPlayers(game.getGameId(), "곧 " + game.getRound() + "라운드가 시작됩니다!");
+            notifyPlayers(game.getGameId(), +game.getRound() + "라운드가 시작됩니다!");
         } else if (game.getTime() == 0) {
             game.setRoundStatus(ECONOMIC_EVENT);
             game.setTime(5);
@@ -111,6 +122,7 @@ public class GameScheduler {
         if (game.getTime() == 4) {
             try {
                 gameService.createGameEventandInterestChange(game.getGameId());
+                // TODO 변동금리
                 notifyPlayers(game.getGameId(), "경제 이벤트가 발생했습니다!");
             } catch (Exception e) {
                 log.debug("경제 이벤트 발생에 실패했습니다 : ", e);

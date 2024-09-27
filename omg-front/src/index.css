@@ -12,9 +12,7 @@ button,
 a,
 input,
 svg .clickable {
-  cursor:
-    url('/assets/cursor.cur') 16 16,
-    auto;
+  cursor: url('/system/cursor.cur'), auto;
 }
 
 html {
@@ -27,7 +25,7 @@ input {
 }
 
 button:disabled {
-  cursor: url('/assets/cursor.cur'), auto;
+  cursor: url('/system/cursor.cur'), auto;
 }
 
 .modal-open {
