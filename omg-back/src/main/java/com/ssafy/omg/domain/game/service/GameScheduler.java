@@ -110,7 +110,7 @@ public class GameScheduler {
 
     private void handleRoundStart(Game game) throws BaseException {
         if (game.getTime() == 2) {
-            notifyPlayers(game.getGameId(), "곧 " + game.getRound() + "라운드가 시작됩니다!");
+            notifyPlayers(game.getGameId(), +game.getRound() + "라운드가 시작됩니다!");
         } else if (game.getTime() == 0) {
             game.setRoundStatus(ECONOMIC_EVENT);
             game.setTime(5);
@@ -122,6 +122,7 @@ public class GameScheduler {
         if (game.getTime() == 4) {
             try {
                 gameService.createGameEventandInterestChange(game.getGameId());
+                // TODO 변동금리
                 notifyPlayers(game.getGameId(), "경제 이벤트가 발생했습니다!");
             } catch (Exception e) {
                 log.debug("경제 이벤트 발생에 실패했습니다 : ", e);
