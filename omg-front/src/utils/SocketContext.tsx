@@ -208,10 +208,28 @@ export default function SocketProvider({ children }: SocketProviderProps) {
             setGameMessage(initPlayerData);
             console.log('게임 초기 정보 data: ', initPlayerData);
             setPlayers(initPlayerData);
+
+            const currentUserIndex = initPlayerData.findIndex(
+              (player: Player) => player.nickname === nickname,
+            );
+
+            if (currentUserIndex !== -1) {
+              setPlayerIndex(currentUserIndex);
+            }
+
+            const currentUser = initPlayerData.find(
+              (player: Player) => player.nickname === nickname,
+            );
+
+            if (currentUser) {
+              setCharacterType(currentUser.characterType);
+            }
             break;
+
           case 'PLAYER_STATE':
             console.log('16ms마다 들어오는 실시간 게임 정보');
             setGameMessage(parsedMessage);
+            // 로컬스토리지 nickname이 본인이면, return
             break;
           case 'GAME_EVENT':
             break;
