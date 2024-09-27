@@ -22,7 +22,7 @@ interface SocketContextType {
   rendered_complete: () => void;
   gameSubscription: () => void;
   players: Player[];
-  moveCharacter: (position: number[], direction: number[]) => void;
+  movePlayer: (position: number[], direction: number[]) => void;
   initGameSetting: () => void;
 }
 
@@ -42,7 +42,7 @@ const defaultContextValue: SocketContextType = {
   rendered_complete: () => {},
   gameSubscription: () => {},
   players: [],
-  moveCharacter: () => {},
+  movePlayer: () => {},
   initGameSetting: () => {},
 };
 
@@ -138,12 +138,12 @@ export default function SocketProvider({ children }: SocketProviderProps) {
         switch (parsedMessage.message) {
           case 'ENTER_SUCCESS':
             const playerList = parsedMessage.room.inRoomPlayers;
-            const hostPlayer = parsedMessage.room.hostNickname;
+            const host = parsedMessage.room.hostNickname;
             const playerNicknames = playerList.map(
               (player: { nickname: string }) => player.nickname,
             );
             setPlayer(playerNicknames);
-            setHostPlayer(hostPlayer);
+            setHostPlayer(host);
             break;
           case 'ENTER_FAILURE':
             break;
@@ -328,7 +328,7 @@ export default function SocketProvider({ children }: SocketProviderProps) {
   };
 
   // 캐릭터 이동
-  const moveCharacter = (position: number[], direction: number[]) => {
+  const movePlayer = (position: number[], direction: number[]) => {
     if (!isSocketConnected()) return;
     const messagePayload = {
       type: 'PLAYER_MOVE',
@@ -339,6 +339,7 @@ export default function SocketProvider({ children }: SocketProviderProps) {
         direction,
       },
     };
+    console.log('messagePayload===>', messagePayload);
     socket.publish({
       destination: '/pub/player-move',
       body: JSON.stringify(messagePayload),
@@ -362,10 +363,10 @@ export default function SocketProvider({ children }: SocketProviderProps) {
       rendered_complete,
       gameSubscription,
       players,
-      moveCharacter,
+      movePlayer,
       initGameSetting,
     }),
-    [socket, online, player, players, chatMessages, moveCharacter],
+    [socket, online, player, players, chatMessages, movePlayer],
   );
 
   return (
