@@ -58,6 +58,8 @@ public enum BaseResponseStatus {
     INSUFFICIENT_STOCK(false, 3034, "주머니에 주식 개수가 충분하지 않습니다."),
     ROUND_STATUS_ERROR(false, 3035, "라운드 진행 상태 업데이트 중 오류가 발생하였습니다."),
     INVALID_ROUND_STATUS(false, 3036, "유효하지 않은 라운드 상태값입니다."),
+    PLAYER_STATE_ERROR(false, 3037, "거래할 수 없는 플레이어 상태입니다"),
+
 
     // 3101 ~~ 3199 : 이가은
     GAME_NOT_FOUND(false, 3101, "게임이 존재하지 않습니다."),

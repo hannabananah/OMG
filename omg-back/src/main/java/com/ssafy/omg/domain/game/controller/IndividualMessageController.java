@@ -49,6 +49,8 @@ public class IndividualMessageController {
             messagingTemplate.convertAndSend("/sub/" + roomId + "/game", response);
             log.debug("현재 자산이 부족합니다!");
             return new BaseResponse<>(OUT_OF_CASH);
+        } catch (BaseException e) {
+            return new BaseResponse<>(e.getStatus());
         }
     }
 

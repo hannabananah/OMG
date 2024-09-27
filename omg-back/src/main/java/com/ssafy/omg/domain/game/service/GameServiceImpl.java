@@ -25,6 +25,7 @@ import static com.ssafy.omg.config.baseresponse.MessageResponseStatus.OUT_OF_CAS
 import static com.ssafy.omg.domain.game.entity.ActionStatus.*;
 import static com.ssafy.omg.domain.game.entity.RoundStatus.ROUND_START;
 import static com.ssafy.omg.domain.game.entity.RoundStatus.STOCK_FLUCTUATION;
+import static com.ssafy.omg.domain.player.entity.PlayerStatus.COMPLETED;
 import static com.ssafy.omg.domain.player.entity.PlayerStatus.NOT_STARTED;
 import static org.hibernate.query.sqm.tree.SqmNode.log;
 
@@ -356,6 +357,10 @@ public class GameServiceImpl implements GameService {
         // 금괴 매입 비용 계산
         int currentGoldPrice = game.getGoldPrice();
         int totalCost = currentGoldPrice * goldBuyCount;
+
+        if (player.getState() == COMPLETED) {
+            throw new BaseException(PLAYER_STATE_ERROR);
+        }
 
         if (player.getCash() < totalCost) {
             throw new MessageException(roomId, userNickname, OUT_OF_CASH);
