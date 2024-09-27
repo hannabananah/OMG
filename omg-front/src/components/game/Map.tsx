@@ -9,7 +9,7 @@ export default function Map() {
       <primitive
         object={scene}
         scale={[0.05, 0.05, 0.05]}
-        position={[0, 0, 0]}
+        position={[0, -8, 0]}
       />
     </RigidBody>
   );

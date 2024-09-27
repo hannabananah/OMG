@@ -2,7 +2,7 @@
 
 // import { CameraControls } from '@react-three/drei';
 
-// import { useCamera } from '../../stores/camera';
+// // import { useCamera } from '../../stores/camera';
 // import { useScreenControl } from '../../stores/screen';
 
 // // GingerBread 위치 제어

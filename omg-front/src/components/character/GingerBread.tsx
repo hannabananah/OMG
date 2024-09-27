@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 
-import { PerspectiveCamera, useGLTF } from '@react-three/drei';
+import { useGLTF } from '@react-three/drei';
 import { useFrame } from '@react-three/fiber';
 // import { RigidBody } from '@react-three/rapier';
 import * as THREE from 'three';
@@ -25,8 +25,8 @@ export default function GingerBread({ position, onLoadComplete }: Props) {
 
   const [rotation, setRotation] = useState(0); // 캐릭터의 회전을 관리
   const [characterPosition, setCharacterPosition] = useState(
-    new THREE.Vector3(0, 0.3, 0),
-  ); // 캐릭터의 위치를 관리
+    new THREE.Vector3(0, -7.8, 10),
+  ); // 캐릭터 기본 위치
 
   const cameraRef = useRef<THREE.PerspectiveCamera | null>(null); // 카메라 참조
 
@@ -270,14 +270,14 @@ export default function GingerBread({ position, onLoadComplete }: Props) {
         position={characterPosition}
       />
 
-      <PerspectiveCamera
+      {/* <PerspectiveCamera
         ref={cameraRef}
         makeDefault
         fov={100}
         position={[0, 0.1, 13]}
         near={0.1}
         far={1000}
-      />
+      /> */}
       {/* </RigidBody> */}
     </>
   );

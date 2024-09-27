@@ -10,14 +10,14 @@ interface IntroStore {
 export const useIntroStore = create<IntroStore>()(
   persist(
     set => ({
-      showIntro: false,
+      showIntro: true, // 처음에는 true로 설정
       setShowIntro: () => {
-        set(state => ({ ...state, showIntro: false }));
+        set({ showIntro: false }); // 호출되면 false로 변경
       },
     }),
     {
       name: 'intro-animation',
-      storage: createJSONStorage(() => sessionStorage),
+      storage: createJSONStorage(() => sessionStorage), // 세션 스토리지에 상태 저장
     },
   ),
 );
