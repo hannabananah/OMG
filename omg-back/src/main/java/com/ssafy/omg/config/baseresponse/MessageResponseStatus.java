@@ -12,6 +12,9 @@ public enum MessageResponseStatus {
     AMOUNT_OUT_OF_RANGE(3105, "요청 금액이 대출 한도 범위를 벗어납니다."),
     INVALID_REPAY_AMOUNT(3106, "유효하지 않은 상환 금액입니다."),
 
+    STOCK_NOT_AVAILABLE(500, "주식 시장에 주식 토큰이 존재하지 않습니다."),
+    INSUFFICIENT_CASH(501, "주식을 지불할 현금이 부족합니다."),
+
     // Gold
     INVALID_GOLD_VALUE(3201, "유효하지 않은 금괴 매입수입니다.");
 

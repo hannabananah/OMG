@@ -8,6 +8,7 @@ import com.ssafy.omg.domain.game.GameRepository;
 import com.ssafy.omg.domain.game.service.GameBroadcastService;
 import com.ssafy.omg.domain.game.service.GameService;
 import com.ssafy.omg.domain.socket.dto.StompPayload;
+import jdk.jfr.Description;
 import lombok.RequiredArgsConstructor;
 import org.springframework.messaging.simp.SimpMessageSendingOperations;
 import org.springframework.web.bind.annotation.*;
@@ -19,6 +20,7 @@ import static com.ssafy.omg.config.baseresponse.MessageResponseStatus.OUT_OF_CAS
 @RestController
 @RequestMapping("/games")
 @RequiredArgsConstructor
+@Description("Postman 테스트용 RestAPI입니다")
 public class GameController {
     private final GameService gameService;
     private final GameBroadcastService gameBroadcastService;
@@ -61,4 +63,22 @@ public class GameController {
         return new BaseResponse<>(null);
     }
 
+    // 대출
+    @PostMapping("/take-loan")
+    public BaseResponse<?> takeLoan(@RequestBody StompPayload<Integer> data) throws BaseException {
+        gameService.takeLoan(data);
+        return new BaseResponse<>("대출이 성공적으로 처리되었습니다.");
+    }
+
+    @PostMapping("/repay-loan")
+    public BaseResponse<?> repayLoan(@RequestBody StompPayload<Integer> data) throws BaseException {
+        gameService.repayLoan(data);
+        return new BaseResponse<>("상환이 성공적으로 처리되었습니다.");
+    }
+
+    @PostMapping("/sell-stock")
+    public BaseResponse<?> sellStock(@RequestBody StompPayload<int[]> data) throws BaseException {
+        gameService.sellStock(data);
+        return new BaseResponse<>("주식 매도가 성공적으로 처리되었습니다.");
+    }
 }

@@ -18,22 +18,22 @@
 	"nodes":[
 		{
 			"mesh":0,
-			"name":"Candy-in-Sock",
+			"name":"Sock-Gift",
 			"rotation":[
 				0,
-				0.2535039782524109,
+				0.2965766489505768,
 				0,
-				0.9673343300819397
+				0.9550091624259949
 			],
 			"scale":[
-				0.06605904549360275,
-				0.06605904549360275,
-				0.06605904549360275
+				0.03160424157977104,
+				0.03160424157977104,
+				0.03160424157977104
 			],
 			"translation":[
-				0.013502582907676697,
-				2.288029670715332,
-				-0.03467202186584473
+				0.10121560096740723,
+				0.17506612837314606,
+				0.0022825002670288086
 			]
 		}
 	],
@@ -45,7 +45,7 @@
 					"specularFactor":0
 				}
 			},
-			"name":"20 - Default.004",
+			"name":"Material #262",
 			"pbrMetallicRoughness":{
 				"baseColorTexture":{
 					"index":0
@@ -56,7 +56,7 @@
 	],
 	"meshes":[
 		{
-			"name":"Mesh.066",
+			"name":"Mesh.030",
 			"primitives":[
 				{
 					"attributes":{
@@ -79,69 +79,69 @@
 	"images":[
 		{
 			"mimeType":"image/png",
-			"name":"Curve_Candy_01",
-			"uri":"Curve_Candy_01.png"
+			"name":"elf-rudoft-ginger-gift",
+			"uri":"elf-rudoft-ginger-gift.png"
 		}
 	],
 	"accessors":[
 		{
 			"bufferView":0,
 			"componentType":5126,
-			"count":196,
+			"count":557,
 			"max":[
-				5.0596818923950195,
-				2.363849639892578,
-				3.6974830627441406
+				7.623199462890625,
+				35.41164779663086,
+				6.669464111328125
 			],
 			"min":[
-				-6.768211841583252,
-				-34.40464401245117,
-				-1.9404222965240479
+				-16.821502685546875,
+				-5.19741153717041,
+				-6.908172607421875
 			],
 			"type":"VEC3"
 		},
 		{
 			"bufferView":1,
 			"componentType":5126,
-			"count":196,
+			"count":557,
 			"type":"VEC3"
 		},
 		{
 			"bufferView":2,
 			"componentType":5126,
-			"count":196,
+			"count":557,
 			"type":"VEC2"
 		},
 		{
 			"bufferView":3,
 			"componentType":5123,
-			"count":1062,
+			"count":2532,
 			"type":"SCALAR"
 		}
 	],
 	"bufferViews":[
 		{
 			"buffer":0,
-			"byteLength":2352,
+			"byteLength":6684,
 			"byteOffset":0,
 			"target":34962
 		},
 		{
 			"buffer":0,
-			"byteLength":2352,
-			"byteOffset":2352,
+			"byteLength":6684,
+			"byteOffset":6684,
 			"target":34962
 		},
 		{
 			"buffer":0,
-			"byteLength":1568,
-			"byteOffset":4704,
+			"byteLength":4456,
+			"byteOffset":13368,
 			"target":34962
 		},
 		{
 			"buffer":0,
-			"byteLength":2124,
-			"byteOffset":6272,
+			"byteLength":5064,
+			"byteOffset":17824,
 			"target":34963
 		}
 	],
@@ -153,7 +153,7 @@
 	],
 	"buffers":[
 		{
-			"byteLength":8396,
+			"byteLength":22888,
 			"uri":"socks.bin"
 		}
 	]
