@@ -1,10 +1,10 @@
 import { create } from 'zustand';
 
 interface SocketMessageState {
-  roomMessage: any;
-  gameMessage: any;
-  setRoomMessage: (newRoomMessage: any) => void;
-  setGameMessage: (newGameMessage: any) => void;
+  roomMessage: unknown;
+  gameMessage: unknown;
+  setRoomMessage: (newRoomMessage: unknown) => void;
+  setGameMessage: (newGameMessage: unknown) => void;
 }
 
 export const useSocketMessage = create<SocketMessageState>(set => ({
