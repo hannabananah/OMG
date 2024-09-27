@@ -4,6 +4,8 @@ import { useNavigate } from 'react-router-dom';
 import Character from '@/components/character/Character';
 import MainAlert from '@/components/common/MainAlert';
 import Map from '@/components/main-map/Map';
+import { useOtherUserStore } from '@/stores/useOtherUserState';
+import useUser from '@/stores/useUser';
 import { SocketContext } from '@/utils/SocketContext';
 import {
   KeyboardControls,
@@ -33,13 +35,36 @@ const CharacterInfo = {
 };
 
 export default function MainMap() {
+  const { characterType } = useUser();
   const { socket, online, initGameSetting, allRendered } =
     useContext(SocketContext);
+  const { otherUsers } = useOtherUserStore();
+
+  console.log('otherUsers', otherUsers);
 
   useEffect(() => {
     if (socket && online && allRendered) {
       initGameSetting();
     }
+  }),
+    [initGameSetting];
+
+  const characterKeys = Object.keys(CharacterInfo) as Array<
+    keyof typeof CharacterInfo
+  >;
+
+  const selectedCharacterKey = characterKeys[characterType] || 'santa';
+  const selectedCharacter = CharacterInfo[selectedCharacterKey];
+
+  const otherCharacters = otherUsers.map(user => {
+    const userCharacterKey = characterKeys[user.characterType] || 'santa';
+
+    return {
+      id: user.id,
+      ...CharacterInfo[userCharacterKey],
+      position: user.position,
+      direction: user.direction,
+    };
   });
 
   const Controls = {
@@ -81,22 +106,22 @@ export default function MainMap() {
               <directionalLight />
               <Map />
               <PerspectiveCamera />
+              {/* 자신의 캐릭터를 렌더링 */}
               <Character
-                characterURL={CharacterInfo['santa'].url}
-                characterScale={CharacterInfo['santa'].scale}
+                characterURL={selectedCharacter.url}
+                characterScale={selectedCharacter.scale}
               />
-              {/* <Character
-                characterURL={CharacterInfo['elf'].url}
-                characterScale={CharacterInfo['elf'].scale}
-              />
-              <Character
-                characterURL={CharacterInfo['snowman'].url}
-                characterScale={CharacterInfo['snowman'].scale}
-              />
-              <Character
-                characterURL={CharacterInfo['gingerbread'].url}
-                characterScale={CharacterInfo['gingerbread'].scale}
-              /> */}
+
+              {/* 다른 유저들의 캐릭터를 렌더링 */}
+              {otherCharacters.map(userCharacter => (
+                <Character
+                  key={userCharacter.id}
+                  characterURL={userCharacter.url}
+                  characterScale={userCharacter.scale}
+                  position={userCharacter.position}
+                  direction={userCharacter.direction}
+                />
+              ))}
             </Physics>
           </Suspense>
         </Canvas>
