@@ -48,4 +48,18 @@ public class Game {
     // [게임] 금괴 정보
     private int goldPrice;                        // 금괴 가격
     private int goldPriceIncreaseCnt;             // 금괴 가격 상승 체크용
+
+    public void addGoldPrice(int amount) {  // amount는 올라야 할 칸 수
+        for (int i = 0; i < amount; i++) {
+            if (this.goldPrice >= 100) {
+                break;
+            }
+
+            if (this.goldPrice < 30) {
+                this.goldPrice += 1;
+            } else {
+                this.goldPrice += 5;
+            }
+        }
+    }
 }

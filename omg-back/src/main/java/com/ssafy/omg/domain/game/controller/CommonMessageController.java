@@ -6,7 +6,7 @@ import com.ssafy.omg.domain.arena.entity.Arena;
 import com.ssafy.omg.domain.game.GameRepository;
 import com.ssafy.omg.domain.game.dto.GameEventDto;
 import com.ssafy.omg.domain.game.dto.PlayerMoveRequest;
-import com.ssafy.omg.domain.game.dto.UserActionRequest;
+import com.ssafy.omg.domain.game.dto.UserActionDTO;
 import com.ssafy.omg.domain.game.entity.Game;
 import com.ssafy.omg.domain.game.entity.GameEvent;
 import com.ssafy.omg.domain.game.entity.GameStatus;
@@ -126,20 +126,6 @@ public class CommonMessageController {
         gameService.movePlayer(message);
     }
 
-    @MessageMapping("/game.takeLoan")
-    public void takeLoan(@Payload StompPayload<UserActionRequest> message) throws BaseException {
-        validateUserAction(message);
-
-        gameService.takeLoan(message.getData());
-    }
-
-    @MessageMapping("/game.repayLoan")
-    public void repayLoan(@Payload StompPayload<UserActionRequest> message) throws BaseException {
-        validateUserAction(message);
-
-        gameService.repayLoan(message.getData());
-    }
-
     // 주식 매도
     // TODO 주식 관련 메서드는 synchronized
 
@@ -152,11 +138,10 @@ public class CommonMessageController {
      * UserActionRequest의 입력유효성 검사
      *
      * @param message
-     * @throws BaseException data나 details가 null인 경우 체크
+     * @throws BaseException data가 null인 경우 체크
      */
-    private void validateUserAction(StompPayload<UserActionRequest> message) throws BaseException {
+    private void validateUserAction(StompPayload<UserActionDTO> message) throws BaseException {
         Optional.ofNullable(message.getData())
-                .map(UserActionRequest::getDetails)
                 .orElseThrow(() -> new BaseException(REQUEST_ERROR));
     }
 }
