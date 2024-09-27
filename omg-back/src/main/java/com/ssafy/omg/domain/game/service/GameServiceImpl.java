@@ -4,10 +4,7 @@ import com.ssafy.omg.config.baseresponse.BaseException;
 import com.ssafy.omg.config.baseresponse.MessageException;
 import com.ssafy.omg.domain.arena.entity.Arena;
 import com.ssafy.omg.domain.game.GameRepository;
-import com.ssafy.omg.domain.game.dto.GameStatusResponse;
-import com.ssafy.omg.domain.game.dto.PlayerMoveRequest;
-import com.ssafy.omg.domain.game.dto.UserActionRequest;
-import com.ssafy.omg.domain.game.dto.UserActionResponse;
+import com.ssafy.omg.domain.game.dto.*;
 import com.ssafy.omg.domain.game.entity.*;
 import com.ssafy.omg.domain.game.entity.StockState.Stock;
 import com.ssafy.omg.domain.game.repository.GameEventRepository;
@@ -58,6 +55,37 @@ public class GameServiceImpl implements GameService {
                 .map(Arena::getGame)
                 .filter(game -> game != null && game.getGameStatus() == GameStatus.IN_GAME)
                 .collect(Collectors.toList());
+    }
+
+    /**
+     * 거래소에서 응답으로 보낼 DTO 생성 메서드
+     *
+     * @param roomId
+     * @param sender
+     * @return
+     * @throws BaseException
+     */
+    @Override
+    public IndividualMessageDto getIndividualMessage(String roomId, String sender) throws BaseException {
+
+        Arena arena = gameRepository.findArenaByRoomId(roomId)
+                .orElseThrow(() -> new BaseException(ARENA_NOT_FOUND));
+        Game game = arena.getGame();
+        Player player = findPlayer(arena, sender);
+
+        return IndividualMessageDto.builder()
+                .hasLoan(player.getHasLoan())
+                .loanPrincipal(player.getLoanPrincipal())
+                .loanInterest(player.getLoanInterest())
+                .totalDebt(player.getTotalDebt())
+                .cash(player.getCash())
+                .stock(player.getStock())
+                .goldOwned(player.getGoldOwned())
+                .carryingStocks(player.getCarryingStocks())
+                .carryingGolds(player.getCarryingGolds())
+                .action(player.getAction())
+                .state(player.getState())
+                .build();
     }
 
     /**
@@ -384,6 +412,7 @@ public class GameServiceImpl implements GameService {
         player.setCash(currentMyCash - currentGoldPrice * goldBuyCount);
         player.setGoldOwned(currentMyGold + goldBuyCount);
         player.setState(PlayerStatus.COMPLETED);
+        player.setCarryingGolds(goldBuyCount);
 
         // 변경된 정보를 반영
         List<Player> players = game.getPlayers();
