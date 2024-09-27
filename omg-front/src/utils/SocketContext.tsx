@@ -1,6 +1,7 @@
 import { ReactNode, createContext, useEffect, useMemo, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 
+import { useOtherUserStore } from '@/stores/useOtherUserState';
 import { useSocketMessage } from '@/stores/useSocketMessage';
 import useUser from '@/stores/useUser';
 import type { ChatMessage, Player } from '@/types';
@@ -57,9 +58,9 @@ interface SocketProviderProps {
 
 export default function SocketProvider({ children }: SocketProviderProps) {
   const { roomId } = useParams<{ roomId: string }>();
-  const { nickname, playerIndex, setCharacterType, setPlayerIndex } = useUser();
+  const { nickname, setCharacterType, setPlayerIndex } = useUser();
   const base_url = import.meta.env.VITE_APP_SOCKET_URL;
-  const { setRoomMessage, setGameMessage } = useSocketMessage();
+  const { gameMessage, setRoomMessage, setGameMessage } = useSocketMessage();
   const [socket, setSocket] = useState<Client | null>(null);
   const [online, setOnline] = useState(false);
   const [player, setPlayer] = useState<string[]>([]);
@@ -136,7 +137,6 @@ export default function SocketProvider({ children }: SocketProviderProps) {
       roomTopic,
       message => {
         const parsedMessage = JSON.parse(message.body);
-        console.log('대기방 구독', parsedMessage);
         setRoomMessage(parsedMessage);
         switch (parsedMessage.message) {
           case 'ENTER_SUCCESS':
@@ -185,7 +185,6 @@ export default function SocketProvider({ children }: SocketProviderProps) {
       sender: nickname,
       message: 'ENTER_ROOM',
     };
-    console.log(messagePayload);
 
     socket.publish({
       destination: '/pub/room',
@@ -209,14 +208,21 @@ export default function SocketProvider({ children }: SocketProviderProps) {
             console.log('게임 초기 정보 data: ', initPlayerData);
             setPlayers(initPlayerData);
 
+            useOtherUserStore.getState().setOtherUsers(
+              initPlayerData.map((player: Player) => ({
+                id: player.nickname,
+                characterType: player.characterType,
+                position: player.position,
+                direction: player.direction,
+              })),
+            );
+
             const currentUserIndex = initPlayerData.findIndex(
               (player: Player) => player.nickname === nickname,
             );
-
             if (currentUserIndex !== -1) {
               setPlayerIndex(currentUserIndex);
             }
-
             const currentUser = initPlayerData.find(
               (player: Player) => player.nickname === nickname,
             );
@@ -228,8 +234,28 @@ export default function SocketProvider({ children }: SocketProviderProps) {
 
           case 'PLAYER_STATE':
             console.log('16ms마다 들어오는 실시간 게임 정보');
-            setGameMessage(parsedMessage);
-            // 로컬스토리지 nickname이 본인이면, return
+            const otherPlayersData = parsedMessage.data.filter(
+              (player: Player) => player.nickname !== nickname,
+            );
+
+            if (otherPlayersData.length > 0) {
+              const updatedOtherUsers = otherPlayersData.map(
+                (player: Player) => {
+                  const existingUser = useOtherUserStore
+                    .getState()
+                    .otherUsers.find(user => user.id === player.nickname);
+
+                  return {
+                    id: player.nickname,
+                    characterType: existingUser?.characterType || 0,
+                    position: player.position,
+                    direction: player.direction,
+                  };
+                },
+              );
+
+              useOtherUserStore.getState().setOtherUsers(updatedOtherUsers);
+            }
             break;
           case 'GAME_EVENT':
             break;
@@ -326,7 +352,6 @@ export default function SocketProvider({ children }: SocketProviderProps) {
   // 초기 게임 세팅
   const initGameSetting = () => {
     if (nickname !== hostPlayer) {
-      console.log('Only the host can initialize the game settings.');
       return;
     }
 
@@ -341,7 +366,6 @@ export default function SocketProvider({ children }: SocketProviderProps) {
       sender: nickname,
       data: null,
     };
-    console.log('messagePayload', messagePayload);
 
     socket.publish({
       destination: '/pub/game-initialize',
@@ -361,7 +385,6 @@ export default function SocketProvider({ children }: SocketProviderProps) {
         direction,
       },
     };
-    console.log('messagePayload===>', messagePayload);
     socket.publish({
       destination: '/pub/player-move',
       body: JSON.stringify(messagePayload),
@@ -389,7 +412,16 @@ export default function SocketProvider({ children }: SocketProviderProps) {
       initGameSetting,
       allRendered,
     }),
-    [socket, online, player, players, chatMessages, movePlayer, allRendered],
+    [
+      socket,
+      online,
+      player,
+      players,
+      chatMessages,
+      movePlayer,
+      allRendered,
+      gameMessage,
+    ],
   );
 
   return (
