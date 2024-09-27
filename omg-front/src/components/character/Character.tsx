@@ -58,6 +58,13 @@ export default function Character({
         }
       } else if (position && Array.isArray(position) && position.length === 3) {
         scene.position.set(...(position as [number, number, number]));
+
+        if (direction && Array.isArray(direction) && direction.length === 3) {
+          const [dirX, , dirZ] = direction;
+          const newRotation = Math.atan2(dirX, dirZ);
+          setRotation(newRotation);
+          scene.rotation.y = newRotation;
+        }
       }
     }
   });
