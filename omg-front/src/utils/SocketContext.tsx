@@ -24,6 +24,7 @@ interface SocketContextType {
   players: Player[];
   movePlayer: (position: number[], direction: number[]) => void;
   initGameSetting: () => void;
+  allRendered: boolean;
 }
 
 const defaultContextValue: SocketContextType = {
@@ -44,6 +45,7 @@ const defaultContextValue: SocketContextType = {
   players: [],
   movePlayer: () => {},
   initGameSetting: () => {},
+  allRendered: false,
 };
 
 export const SocketContext =
@@ -55,7 +57,7 @@ interface SocketProviderProps {
 
 export default function SocketProvider({ children }: SocketProviderProps) {
   const { roomId } = useParams<{ roomId: string }>();
-  const { nickname } = useUser();
+  const { nickname, playerIndex, setCharacterType, setPlayerIndex } = useUser();
   const base_url = import.meta.env.VITE_APP_SOCKET_URL;
   const { setRoomMessage, setGameMessage } = useSocketMessage();
   const [socket, setSocket] = useState<Client | null>(null);
@@ -64,6 +66,7 @@ export default function SocketProvider({ children }: SocketProviderProps) {
   const [players, setPlayers] = useState<Player[]>([]);
   const [chatMessages, setChatMessages] = useState<ChatMessage[]>([]);
   const [hostPlayer, setHostPlayer] = useState<string | null>(null);
+  const [allRendered, setAllRendered] = useState(false);
   const navigate = useNavigate();
 
   const roomTopic = `/sub/${roomId}/room`;
@@ -167,6 +170,7 @@ export default function SocketProvider({ children }: SocketProviderProps) {
             break;
           case 'ALL_RENDERED_COMPLETED':
             console.log('모든 렌더링이 완료되었습니다.');
+            setAllRendered(true);
             socket.unsubscribe(subRoomId);
             gameSubscription();
             chatSubscription();
@@ -365,8 +369,9 @@ export default function SocketProvider({ children }: SocketProviderProps) {
       players,
       movePlayer,
       initGameSetting,
+      allRendered,
     }),
-    [socket, online, player, players, chatMessages, movePlayer],
+    [socket, online, player, players, chatMessages, movePlayer, allRendered],
   );
 
   return (
