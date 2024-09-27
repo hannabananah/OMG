@@ -1,120 +1,101 @@
-import { useContext } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
-import type { Player } from '@/types';
-import { SocketContext } from '@/utils/SocketContext';
-import { create } from 'zustand';
+import { useGLTF } from '@react-three/drei';
+import * as THREE from 'three';
 
-interface CharacterStore {
-  players: Record<string, Player>;
-  initPlayer: (nickname: string, playerData: Player) => void;
-  setPlayer: (nickname: string, playerData: Partial<Player>) => void;
-  setPlayerPosition: (nickname: string, position: number[]) => void;
-  setPlayerDirection: (nickname: string, direction: number[]) => void;
-  setPlayerAction: (nickname: string, actionToggle: boolean | null) => void;
-  updatePlayer: (messageData: {
-    nickname: string;
-    playerData: Partial<Player>;
-  }) => void;
+interface Props {
+  onMovementChange: (movementState: 'idle' | 'walking' | 'running') => void;
+  onRotationChange: (rotation: number) => void;
+  onPositionChange: (position: THREE.Vector3) => void;
 }
 
-export const useCharacter = create<CharacterStore>(set => ({
-  players: {},
-  initPlayer: (nickname, playerData) => {
-    set(state => ({
-      players: {
-        ...state.players,
-        [nickname]: playerData,
-      },
-    }));
-  },
+export const useCharacter = ({
+  onMovementChange,
+  onRotationChange,
+  onPositionChange,
+}: Props) => {
+  const { scene, animations } = useGLTF('/models/gingerbread/gingerbread.gltf');
 
-  setPlayer: (nickname: string, playerData) => {
-    set(state => ({
-      players: {
-        ...state.players,
-        [nickname]: {
-          ...state.players[nickname],
-          ...playerData,
-        },
-      },
-    }));
-  },
+  const mixer = useRef<THREE.AnimationMixer | null>(null);
+  const [action, setAction] = useState<THREE.AnimationAction | null>(null);
+  const [movementState, setMovementState] = useState<
+    'idle' | 'walking' | 'running'
+  >('idle');
+  const [rotation, setRotation] = useState(0);
+  const [isMoving, setIsMoving] = useState(false);
 
-  setPlayerPosition: (nickname, position) => {
-    set(state => ({
-      players: {
-        ...state.players,
-        [nickname]: {
-          ...state.players[nickname],
-          position,
-        },
-      },
-    }));
-  },
+  useEffect(() => {
+    if (animations.length > 0 && scene) {
+      mixer.current = new THREE.AnimationMixer(scene);
+      const idleAction = mixer.current.clipAction(animations[0]); // 대기
+      idleAction.play();
+      setAction(idleAction);
+    }
+  }, [animations, scene]);
 
-  setPlayerDirection: (nickname, direction) => {
-    set(state => ({
-      players: {
-        ...state.players,
-        [nickname]: {
-          ...state.players[nickname],
-          direction,
-        },
-      },
-    }));
-  },
+  const setAnimationState = (state: 'idle' | 'walking' | 'running') => {
+    if (!mixer.current) return;
 
-  setPlayerAction: (nickname, actionToggle) => {
-    set(state => {
-      const player = state.players[nickname];
-      if (!player) return state;
+    const animationIndex = state === 'idle' ? 0 : state === 'walking' ? 5 : 2;
+    const newAction = mixer.current.clipAction(animations[animationIndex]);
 
-      return {
-        players: {
-          ...state.players,
-          [nickname]: {
-            ...player,
-            actionToggle,
-          },
-        },
-      };
-    });
-  },
+    action?.fadeOut(0.2);
+    newAction.reset().fadeIn(0.2).play();
+    setAction(newAction);
+    setMovementState(state);
+    onMovementChange(state);
+  };
 
-  updatePlayer: messageData => {
-    const { nickname, playerData } = messageData;
-    set(state => ({
-      players: {
-        ...state.players,
-        [nickname]: {
-          ...state.players[nickname],
-          ...playerData,
-        },
-      },
-    }));
-  },
-}));
-
-export const useUpdatedCharacterStore = () => {
-  const { moveCharacter } = useContext(SocketContext);
-  const store = useCharacter();
-  const { players } = store;
-
-  const updatePlayerPosition = (nickname: string, position: number[]) => {
-    store.setPlayerPosition(nickname, position);
-    const player = players[nickname];
-    if (player) {
-      moveCharacter(position, player.direction);
+  const handleKeyDown = (event: KeyboardEvent) => {
+    if (event.key === 'ArrowUp') {
+      if (!isMoving) {
+        setAnimationState('walking');
+        setIsMoving(true);
+      }
+    } else if (event.key === 'ArrowLeft') {
+      const turnLeftAction = mixer.current!.clipAction(animations[3]);
+      action?.stop();
+      turnLeftAction.reset().setLoop(THREE.LoopOnce, 1).clampWhenFinished =
+        true;
+      turnLeftAction.play();
+      setAction(turnLeftAction);
+      setRotation(prev => prev + Math.PI / 2);
+      onRotationChange(rotation + Math.PI / 2);
+      setAnimationState('idle');
+    } else if (event.key === 'ArrowRight') {
+      const turnRightAction = mixer.current!.clipAction(animations[4]);
+      action?.stop();
+      turnRightAction.reset().setLoop(THREE.LoopOnce, 1).clampWhenFinished =
+        true;
+      turnRightAction.play();
+      setAction(turnRightAction);
+      setRotation(prev => prev - Math.PI / 2);
+      onRotationChange(rotation - Math.PI / 2);
+      setAnimationState('idle');
+    } else if (event.key === ' ') {
+      const pickUpAction = mixer.current!.clipAction(animations[1]);
+      action?.stop();
+      pickUpAction.reset().setLoop(THREE.LoopOnce, 1).clampWhenFinished = true;
+      pickUpAction.play();
+      setAction(pickUpAction);
     }
   };
 
-  const updatePlayerDirection = (nickname: string, direction: number[]) => {
-    store.setPlayerDirection(nickname, direction);
-    const player = players[nickname];
-    if (player) {
-      moveCharacter(player.position, direction);
+  const handleKeyUp = (event: KeyboardEvent) => {
+    if (event.key === 'ArrowUp') {
+      setAnimationState('idle');
+      setIsMoving(false);
     }
   };
 
-  return { ...store, updatePlayerPosition, updatePlayerDirection };
+  useEffect(() => {
+    window.addEventListener('keydown', handleKeyDown);
+    window.addEventListener('keyup', handleKeyUp);
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+      window.removeEventListener('keyup', handleKeyUp);
+    };
+  }, [handleKeyDown, handleKeyUp, movementState, isMoving]);
+
+  return { scene, mixer };
 };
