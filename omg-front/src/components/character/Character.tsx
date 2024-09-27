@@ -7,16 +7,24 @@ import * as THREE from 'three';
 
 interface Props {
   position?: number[];
+  characterURL: string;
+  characterScale: number[];
 }
 
-export default function GingerBread({ position }: Props) {
+export default function Character({
+  position,
+  characterURL,
+  characterScale,
+}: Props) {
   const { movePlayer } = useContext(SocketContext);
   const [characterPosition, setCharacterPosition] = useState(
     new THREE.Vector3(0, 0.3, 0),
   );
   const [rotation, setRotation] = useState(0);
   const movementStateRef = useRef<'idle' | 'walking' | 'running'>('idle');
+
   const { scene, mixer } = useCharacter({
+    characterURL,
     onMovementChange: state => (movementStateRef.current = state),
     onRotationChange: setRotation,
     onPositionChange: setCharacterPosition,
@@ -49,16 +57,15 @@ export default function GingerBread({ position }: Props) {
     if (scene) {
       const positionArray = scene.position.toArray();
       const directionArray = [Math.sin(rotation), 0, Math.cos(rotation)];
-      console.log(
-        'positionArray, directionArray',
-        positionArray,
-        directionArray,
-      );
       movePlayer(positionArray, directionArray);
     }
   }, [scene, characterPosition, rotation]);
 
   return (
-    <primitive object={scene} scale={[2, 2, 2]} position={characterPosition} />
+    <primitive
+      object={scene}
+      scale={characterScale}
+      position={characterPosition}
+    />
   );
 }
