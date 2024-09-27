@@ -37,7 +37,7 @@ export default function Waiting() {
   }, [online, socket]);
 
   useEffect(() => {
-    setIsRoomFull(player.length >= 2);
+    setIsRoomFull(player.length >= 4);
   }, [socket, player]);
 
   const handleClick = () => {

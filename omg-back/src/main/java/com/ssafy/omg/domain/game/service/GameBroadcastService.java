@@ -51,8 +51,8 @@ public class GameBroadcastService {
                 log.error("방 {} 브로드캐스트 실패", roomId, e);
                 stopBroadcast(roomId);
             }
-        // }, 0, 16, TimeUnit.MILLISECONDS);
-        }, 0, 20000, TimeUnit.MILLISECONDS);
+         }, 0, 16, TimeUnit.MILLISECONDS);
+//        }, 0, 20000, TimeUnit.MILLISECONDS);
         schedulerMap.put(roomId, scheduler);
     }
 
