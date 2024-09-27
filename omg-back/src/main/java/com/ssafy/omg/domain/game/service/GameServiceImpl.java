@@ -1,8 +1,10 @@
 package com.ssafy.omg.domain.game.service;
 
 import com.ssafy.omg.config.baseresponse.BaseException;
+import com.ssafy.omg.config.baseresponse.MessageException;
 import com.ssafy.omg.domain.arena.entity.Arena;
 import com.ssafy.omg.domain.game.GameRepository;
+import com.ssafy.omg.domain.game.dto.StockRequest;
 import com.ssafy.omg.domain.game.dto.GameStatusResponse;
 import com.ssafy.omg.domain.game.dto.PlayerMoveRequest;
 import com.ssafy.omg.domain.game.dto.UserActionRequest;
@@ -21,6 +23,8 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 import static com.ssafy.omg.config.baseresponse.BaseResponseStatus.*;
+import static com.ssafy.omg.config.baseresponse.MessageResponseStatus.INSUFFICIENT_CASH;
+import static com.ssafy.omg.config.baseresponse.MessageResponseStatus.STOCK_NOT_AVAILABLE;
 import static com.ssafy.omg.domain.game.entity.ActionStatus.*;
 import static com.ssafy.omg.domain.player.entity.PlayerStatus.NOT_STARTED;
 import static org.hibernate.query.sqm.tree.SqmNode.log;
@@ -38,6 +42,7 @@ public class GameServiceImpl implements GameService {
     private final GameEventRepository gameEventRepository;
     private final GameRepository gameRepository;
     private final StockState stockState;
+    private Random random = new Random();
 
     /**
      * 진행중인 게임의 리스트를 반환 ( 모든 진행중인 게임들을 관리 )
@@ -215,7 +220,6 @@ public class GameServiceImpl implements GameService {
     }
 
     private int[] putRandomStockIntoMarket(int[] pocket, StockInfo[] market) throws BaseException {
-        Random random = new Random();
         int totalCount = 20;
         int[] count = new int[5];
 
@@ -260,7 +264,6 @@ public class GameServiceImpl implements GameService {
     }
 
     private int[] generateRandomStock() throws BaseException {
-        Random random = new Random();
         int[] result = new int[6];
         result[0] = 0;
         int remainingStockCounts = 5;
@@ -280,7 +283,6 @@ public class GameServiceImpl implements GameService {
     }
 
     private int[] generateRandomEvent() throws BaseException {
-        Random random = new Random();
         Set<Integer> selectedEconomicEvents = new HashSet<>();
         int[] result = new int[11];
         for (int i = 2; i < result.length; i++) {
@@ -510,6 +512,120 @@ public class GameServiceImpl implements GameService {
 
         gameRepository.saveArena(roomId, arena);
     }
+
+    @Override
+    public void buyStock(StompPayload<StockRequest> payload) throws BaseException, MessageException {
+        String roomId = payload.getRoomId();
+        String playerNickname = payload.getSender();
+        int[] stocksToBuy = payload.getData().stocks();
+
+        Arena arena = gameRepository.findArenaByRoomId(roomId).orElseThrow(() -> new BaseException(ARENA_NOT_FOUND));
+        Player player = findPlayer(arena, playerNickname);
+        Game game = arena.getGame();
+
+        StockInfo[] marketStocks = game.getMarketStocks();
+        int[] stockSellTrack = game.getStockSellTrack();
+
+        int totalCost = calculateTotalCost(stocksToBuy, marketStocks);
+
+        validateStockAvailability(stocksToBuy, marketStocks, roomId, playerNickname);
+
+        if (player.getCash() < totalCost) {
+            throw new MessageException(roomId, playerNickname, INSUFFICIENT_CASH);
+        }
+        player.setCash(player.getCash() - totalCost);
+
+        updatePlayerStocks(stocksToBuy, player);
+        updateStockMarket(stocksToBuy, marketStocks);
+
+        boolean hasStockPriceIncreased = updateSellTrackAndCheckIncrease(marketStocks, stockSellTrack);
+
+        if (!hasStockPriceIncreased) {
+            checkAndApplyStockPriceIncrease(stockSellTrack);
+        }
+
+        checkAndApplyStockPriceChange(stockSellTrack);
+
+        gameRepository.saveArena(roomId, arena);
+    }
+
+    private int calculateTotalCost(int[] stocksToBuy, StockInfo[] marketStocks) {
+        int totalCost = 0;
+        for (int i = 1; i < 6; i++) {
+            if (stocksToBuy[i] > 0) {
+                int[] priceLocation = marketStocks[i].getState();
+                int price = stockState.getStockStandard()[priceLocation[0]][priceLocation[1]].getPrice();
+                totalCost += price * stocksToBuy[i];
+            }
+        }
+        return totalCost;
+    }
+
+    private void validateStockAvailability(int[] stocksToBuy, StockInfo[] marketStocks, String roomId, String playerNickname) throws MessageException {
+        for (int i = 1; i < 6; i++) {
+            if (stocksToBuy[i] > 0 && marketStocks[i].getCnt() < stocksToBuy[i]) {
+                throw new MessageException(roomId, playerNickname, STOCK_NOT_AVAILABLE);
+            }
+        }
+    }
+
+    private void updatePlayerStocks(int[] stocksToBuy, Player player) {
+        for (int i = 1; i < 6; i++) {
+            if (stocksToBuy[i] > 0) {
+                player.getCarryingStocks()[i] += stocksToBuy[i];
+            }
+        }
+    }
+
+    private void updateStockMarket(int[] stocksToBuy, StockInfo[] marketStocks) {
+        for (int i = 1; i < 6; i++) {
+            if (stocksToBuy[i] > 0) {
+                marketStocks[i].setCnt(marketStocks[i].getCnt() - stocksToBuy[i]);
+            }
+        }
+    }
+
+    private boolean updateSellTrackAndCheckIncrease(StockInfo[] marketStocks, int[] stockSellTrack) {
+        List<Integer> availableStocks = new ArrayList<>(5);
+        for (int i = 1; i < 6; i++) {
+            if (marketStocks[i].getCnt() > 0) {
+                availableStocks.add(i);
+            }
+        }
+
+        if (!availableStocks.isEmpty()) {
+            int randomStockIndex = availableStocks.get(random.nextInt(availableStocks.size()));
+            stockSellTrack[randomStockIndex]++;
+
+            marketStocks[randomStockIndex].setCnt(marketStocks[randomStockIndex].getCnt() - 1);
+            if (marketStocks[randomStockIndex].getCnt() == 0) {
+                // TODO: 주가 상승 메소드 실행
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private void checkAndApplyStockPriceChange(int[] stockSellTrack) {
+        int totalStockInTrack = 0;
+        for (int count : stockSellTrack) {
+            totalStockInTrack += count;
+        }
+
+        if (totalStockInTrack == 5) {
+            // TODO: 주가를 변동시키는 로직 추가
+        }
+    }
+
+    private void checkAndApplyStockPriceIncrease(int[] stockSellTrack) {
+        for (int i = 1; i < 6; i++) {
+            if (stockSellTrack[i] == 3) {
+                // TODO: 주가 상승 메소드 실행
+                break; // 한번 주가 상승이 이루어지면 더 이상 체크하지 않음
+            }
+        }
+    }
+
 
     private Player findPlayer(Arena arena, String nickname) throws BaseException {
         return arena.getGame().getPlayers().stream()

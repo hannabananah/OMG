@@ -2,8 +2,10 @@ package com.ssafy.omg.domain.game.controller;
 
 import com.ssafy.omg.config.MessageController;
 import com.ssafy.omg.config.baseresponse.BaseException;
+import com.ssafy.omg.config.baseresponse.MessageException;
 import com.ssafy.omg.domain.arena.entity.Arena;
 import com.ssafy.omg.domain.game.GameRepository;
+import com.ssafy.omg.domain.game.dto.StockRequest;
 import com.ssafy.omg.domain.game.dto.GameEventDto;
 import com.ssafy.omg.domain.game.dto.PlayerMoveRequest;
 import com.ssafy.omg.domain.game.dto.UserActionRequest;
@@ -14,7 +16,6 @@ import com.ssafy.omg.domain.game.entity.RoundStatus;
 import com.ssafy.omg.domain.game.service.GameBroadcastService;
 import com.ssafy.omg.domain.game.service.GameService;
 import com.ssafy.omg.domain.socket.dto.StompPayload;
-import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.messaging.handler.annotation.MessageMapping;
@@ -146,6 +147,10 @@ public class GameMessageController {
 
     // 주식 매수
     // TODO 주식 관련 메서드는 synchronized
+    @MessageMapping("/buy-stock")
+    public void buyStock(@Payload StompPayload<StockRequest> message) throws BaseException, MessageException {
+        gameService.buyStock(message);
+    }
 
     // 금괴 매입
 

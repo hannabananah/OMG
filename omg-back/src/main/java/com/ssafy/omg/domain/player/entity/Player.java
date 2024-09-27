@@ -18,6 +18,7 @@ public class Player {
     private int characterType;
     private double[] position = new double[3];         // 플레이어 좌표(x, y, z)
     private double[] direction = new double[3];        // 플레이어 방향
+    private int[] carryingStocks = new int[6];
 
     private int hasLoan;               // 대출 유무
     private int loanPrincipal;         // 대출원금

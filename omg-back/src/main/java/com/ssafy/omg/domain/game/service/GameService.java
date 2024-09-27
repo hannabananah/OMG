@@ -1,11 +1,13 @@
 package com.ssafy.omg.domain.game.service;
 
 import com.ssafy.omg.config.baseresponse.BaseException;
+import com.ssafy.omg.config.baseresponse.MessageException;
 import com.ssafy.omg.domain.arena.entity.Arena;
+import com.ssafy.omg.domain.game.dto.StockRequest;
+import com.ssafy.omg.domain.game.entity.GameEvent;
 import com.ssafy.omg.domain.game.dto.PlayerMoveRequest;
 import com.ssafy.omg.domain.game.dto.UserActionRequest;
 import com.ssafy.omg.domain.game.entity.Game;
-import com.ssafy.omg.domain.game.entity.GameEvent;
 import com.ssafy.omg.domain.socket.dto.StompPayload;
 
 import java.util.List;
@@ -29,4 +31,6 @@ public interface GameService {
     void repayLoan(UserActionRequest userActionRequest) throws BaseException;
 
     void movePlayer(StompPayload<PlayerMoveRequest> playerMoveRequest) throws BaseException;
+
+    void buyStock(StompPayload<StockRequest> data) throws BaseException, MessageException;
 }
