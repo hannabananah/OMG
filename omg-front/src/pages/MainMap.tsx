@@ -68,7 +68,7 @@ export default function MainMap() {
     <main className='relative w-full h-screen'>
       {/* MainAlert 컴포넌트 고정된 위치로 렌더링 */}
       <div
-        className='absolute z-10 transform -translate-x-1/2 bottom-10 left-1/2'
+        className='absolute z-10 transform -translate-x-1/2 bottom-10 left-1/2 w-[70%]'
         onClick={goToStockMarket}
       >
         <MainAlert text='클릭하면 임시 주식방으로' />
