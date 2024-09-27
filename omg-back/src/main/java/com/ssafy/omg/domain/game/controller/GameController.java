@@ -7,7 +7,6 @@ import com.ssafy.omg.domain.game.service.GameBroadcastService;
 import com.ssafy.omg.domain.game.service.GameService;
 import com.ssafy.omg.domain.socket.dto.StompPayload;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.ResponseEntity;
 import org.springframework.messaging.simp.SimpMessageSendingOperations;
 import org.springframework.web.bind.annotation.*;
 
@@ -36,13 +35,22 @@ public class GameController {
         return new BaseResponse<>(null);
     }
 
-    // TODO 대출, 상환, 주식 매도
     // 대출
     @PostMapping("/take-loan")
-    public ResponseEntity<String> takeLoan(@RequestBody StompPayload<Integer> data) {
-
-        return ResponseEntity.ok("대출 성공했습니다.");
+    public BaseResponse<?> takeLoan(@RequestBody StompPayload<Integer> data) throws BaseException {
+        gameService.takeLoan(data);
+        return new BaseResponse<>("대출이 성공적으로 처리되었습니다.");
     }
 
+    @PostMapping("/repay-loan")
+    public BaseResponse<?> repayLoan(@RequestBody StompPayload<Integer> data) throws BaseException {
+        gameService.repayLoan(data);
+        return new BaseResponse<>("상환이 성공적으로 처리되었습니다.");
+    }
 
+    @PostMapping("/sell-stock")
+    public BaseResponse<?> sellStock(@RequestBody StompPayload<int[]> data) throws BaseException {
+        gameService.sellStock(data);
+        return new BaseResponse<>("주식 매도가 성공적으로 처리되었습니다.");
+    }
 }

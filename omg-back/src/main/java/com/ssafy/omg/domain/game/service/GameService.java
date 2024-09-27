@@ -3,7 +3,6 @@ package com.ssafy.omg.domain.game.service;
 import com.ssafy.omg.config.baseresponse.BaseException;
 import com.ssafy.omg.domain.arena.entity.Arena;
 import com.ssafy.omg.domain.game.dto.PlayerMoveRequest;
-import com.ssafy.omg.domain.game.dto.UserActionDTO;
 import com.ssafy.omg.domain.game.entity.Game;
 import com.ssafy.omg.domain.game.entity.GameEvent;
 import com.ssafy.omg.domain.socket.dto.StompPayload;
@@ -24,10 +23,11 @@ public interface GameService {
     // 경제 이벤트 발생(조회) 및 금리 변동 (2~10라운드)
     GameEvent createGameEventandInterestChange(String roomId) throws BaseException;
 
-    void takeLoan(StompPayload<UserActionDTO> userActionPayload) throws BaseException;
+    void takeLoan(StompPayload<Integer> userActionPayload) throws BaseException;
 
-    void repayLoan(StompPayload<UserActionDTO> userActionPayload) throws BaseException;
+    void repayLoan(StompPayload<Integer> userActionPayload) throws BaseException;
 
-    void sellStock(StompPayload<UserActionDTO> userActionPayload) throws BaseException;
+    void sellStock(StompPayload<int[]> userActionPayload) throws BaseException;
+
     void movePlayer(StompPayload<PlayerMoveRequest> playerMoveRequest) throws BaseException;
 }

@@ -4,7 +4,6 @@ import com.ssafy.omg.config.baseresponse.BaseException;
 import com.ssafy.omg.domain.arena.entity.Arena;
 import com.ssafy.omg.domain.game.GameRepository;
 import com.ssafy.omg.domain.game.dto.PlayerMoveRequest;
-import com.ssafy.omg.domain.game.dto.UserActionDTO;
 import com.ssafy.omg.domain.game.entity.*;
 import com.ssafy.omg.domain.game.repository.GameEventRepository;
 import com.ssafy.omg.domain.player.entity.Player;
@@ -338,28 +337,29 @@ public class GameServiceImpl implements GameService {
      * @throws BaseException 요청 금액이 대출 한도를 넘어가는 경우
      */
     @Override
-    public void takeLoan(StompPayload<UserActionDTO> userActionPayload) throws BaseException {
+    public void takeLoan(StompPayload<Integer> userActionPayload) throws BaseException {
         String roomId = userActionPayload.getRoomId();
         String sender = userActionPayload.getSender();
-        int amount = userActionPayload.getData().getAmount();
+        int amount = userActionPayload.getData();
 
         validateRequest(roomId, sender);
         int range = preLoan(roomId, sender);
 
         // 요청 금액이 대출 한도를 이내인지 검사
-        if (amount <= LOAN_RANGE[range][0] || LOAN_RANGE[range][1] <= amount) {
+        if (amount < LOAN_RANGE[range][0] || LOAN_RANGE[range][1] < amount) {
             throw new BaseException(AMOUNT_OUT_OF_RANGE);
         }
 
         // 대출금을 자산에 반영
         Arena arena = gameRepository.findArenaByRoomId(roomId).orElseThrow(() -> new BaseException(ARENA_NOT_FOUND));
         Player player = findPlayer(arena, sender);
-        int interest = amount * (arena.getGame().getCurrentInterestRate() / 100);
+        int interest = (int) (amount * (arena.getGame().getCurrentInterestRate() / 100.0));
+        System.out.println("==================대출 이자============== : " + interest);
 
         player.setHasLoan(1);
         player.setLoanPrincipal(amount);
         player.setLoanInterest(interest);
-        player.setTotalDebt(amount + interest);
+        player.setTotalDebt(amount);
         player.setCash(player.getCash() + amount);
 
         gameRepository.saveArena(roomId, arena);
@@ -374,10 +374,10 @@ public class GameServiceImpl implements GameService {
      * @throws BaseException 상환 금액이 유효하지 않은 값일 때
      */
     @Override
-    public void repayLoan(StompPayload<UserActionDTO> userActionPayload) throws BaseException {
+    public void repayLoan(StompPayload<Integer> userActionPayload) throws BaseException {
         String roomId = userActionPayload.getRoomId();
         String sender = userActionPayload.getSender();
-        int amount = userActionPayload.getData().getAmount();
+        int amount = userActionPayload.getData();
 
         validateRequest(roomId, sender);
 
@@ -394,13 +394,12 @@ public class GameServiceImpl implements GameService {
 
     // 주식 매도
     @Override
-    public void sellStock(StompPayload<UserActionDTO> userActionPayload) throws BaseException {
+    public void sellStock(StompPayload<int[]> userActionPayload) throws BaseException {
         String roomId = userActionPayload.getRoomId();
         String sender = userActionPayload.getSender();
-        int[] sellingStocks = userActionPayload.getData().getStocks();
+        int[] sellingStocks = userActionPayload.getData();
 
         validateRequest(roomId, sender);
-
         Arena arena = gameRepository.findArenaByRoomId(roomId).orElseThrow(() -> new BaseException(ARENA_NOT_FOUND));
 
         Game game = arena.getGame();
@@ -422,31 +421,44 @@ public class GameServiceImpl implements GameService {
             marketPrice = stockState.getStockStandard()[market[i].getState()[0]][market[i].getState()[1]].getPrice();
             salePrice += marketPrice * sellingStocks[i];
             orgStocks[i] -= sellingStocks[i]; // 2. 개인 보유 주식 개수 적용
+            market[i].addCnt(sellingStocks[i]);
+            System.out.println("개인 보유 주식 개수 적용 " + i + "번째 주식 : " + Arrays.toString(orgStocks));
         }
 
         // 2. 개인 현금에 매도 가격 적용
         player.addCash(salePrice);
+        System.out.println("개인 현금에 매도금 적용 : " + player.getCash());
 
         // 3. 매도 트랙에서 주식시장으로 토큰 옮기기
         int[] possibleStocks = getStocksFromSellTrack(sellingStocks, stockSellTrack);
 
         int tokenIdx = selectRandomTokenIndex(possibleStocks);
+        System.out.println("매도트랙에서 옮길 토큰 인덱스 : " + tokenIdx);
         stockSellTrack[tokenIdx] -= 1;
         market[tokenIdx].addCnt(1);
+        System.out.println("매도 트랙에서 주식시장으로 토큰 옮김(매도 트랙) : " + Arrays.toString(stockSellTrack));
+        System.out.println("매도 트랙에서 주식시장으로 토큰 옮김(주식 토큰 개수) : " + market[tokenIdx].getCnt());
 
         // 4. 주가 하락
         market[tokenIdx].decreaseState();
+        // TODO 주가 변동으로 가는 GAME에 적용 안됨
+        System.out.println("매도트랙으로 옮긴 주식 주가 하락(주가) : " + Arrays.toString(market[tokenIdx].getState()));
 
         // 5. 남은 주식토큰이 5개면 주가 변동 -> 주식 매도트랙 세팅
         int leftStocks = 0;
         for (int i = 1; i < 6; i++) {
             leftStocks += stockSellTrack[i];
         }
-        if (leftStocks == 5) changeStockPrice(game, stockPriceLevel);
+        if (leftStocks == 5) {
+            System.out.println("!!!!!남은 주식이 5개로 주가변동!!!!!");
+            changeStockPrice(game, stockPriceLevel);
+        }
 
-        // TODO 6. 매도트랙 세팅
-        //      - 주머니에 매도트랙에 있던 토큰들 넣기
-        //      - 매도트랙 세팅 (검은색 토큰도 2개로 {2, 2, 2, 2, 2, 2})
+        // 6. 매도트랙 세팅
+        for (int i = 1; i < 6; i++) {
+            game.getStockTokensPocket()[i] += stockSellTrack[i];
+        }
+        game.setStockSellTrack(new int[]{2, 2, 2, 2, 2, 2});
 
         gameRepository.saveArena(roomId, arena);
 
@@ -478,12 +490,20 @@ public class GameServiceImpl implements GameService {
     }
 
     private int selectRandomTokenIndex(int[] possibleStocks) throws BaseException {
+        if (possibleStocks == null || possibleStocks.length < 6) {
+            throw new BaseException(INVALID_ARRAY_SIZE);
+        }
+
         List<Integer> possibleIndices = new ArrayList<>();
 
         for (int i = 1; i < 6; i++) {
             if (possibleStocks[i] == 1) {
                 possibleIndices.add(i);
             }
+        }
+
+        if (possibleIndices.isEmpty()) {
+            throw new BaseException(NO_POSSIBLE_INDICES);
         }
 
         Random random = new Random();
@@ -504,7 +524,7 @@ public class GameServiceImpl implements GameService {
         Random random = new Random();
         int[] selectedStockCnts = new int[6];
 
-        // 1-1. 0번 인덱스 제외 0 초과인 인덱스 선택
+        // 1-1. 인덱스 선택
         List<Integer> validIndices = new ArrayList<>();
         for (int i = 0; i < 6; i++) {
             if (stockTokensPocket[i] > 0) {
@@ -529,6 +549,7 @@ public class GameServiceImpl implements GameService {
             }
         }
 
+        System.out.println("[주가변동] 주머니에서 뽑은 주식들 : " + Arrays.toString(selectedStockCnts));
         // 2. 금 시세 조정
         int blackTokenCnt = selectedStockCnts[0];
         if (blackTokenCnt > 0) {
@@ -549,21 +570,26 @@ public class GameServiceImpl implements GameService {
                 stockTokensPocket[0] += 1;
                 selectedStockCnts[0] = 0;
             }
-
+            System.out.println("[주가변동] 1~5번째 주식 주가 조정 시작");
             // 3-2. 뽑은 주식 토큰 中, 각 색깔의 주가 토큰 개수가 표시된 위치로 이동(*주가 조정 참조표* 참고)
             for (int i = 1; i < 6; i++) {
+                System.out.println("[주가변동] " + i + "번째 시작!!!!!!!!!!!!!!!!!!!!!!!!!!!!!11");
                 int stockCntDiff = selectedStockCnts[i] - selectedStockCnts[0];
+                System.out.println("[주가변동] 검은색 주식 개수 : " + selectedStockCnts[0] + " , " + i + "번째 주식 개수 : " + selectedStockCnts[i] + " , 검은색 토큰과의 개수 차이" + stockCntDiff);
                 if (stockCntDiff < -6) {
                     throw new BaseException(INVALID_BLACK_TOKEN);
                 }
                 int[] stockPriceState = marketStocks[i].getState();
 
-                if (0 < stockCntDiff && stockCntDiff < 7) {
+                if (0 <= stockCntDiff && stockCntDiff < 7) {
+                    System.out.println("[주가변동] 주가 이동 전 좌표" + stockPriceState[0] + ", " + stockPriceState[1]);
                     stockPriceState[0] += stockState.getStockDr()[stockCntDiff];
                     stockPriceState[1] += stockState.getStockDc()[stockCntDiff];
+                    System.out.println("[주가변동] 주가 이동 후 좌표" + stockPriceState[0] + ", " + stockPriceState[1]);
                 }
                 // 3-3. 7개 이상 뽑았다면, 참조표에 표시된 6까지 이동 후 -> 초과한 숫자만큼 위로 한 칸씩 이동
                 else if (7 <= stockCntDiff && stockCntDiff <= 12) {
+                    System.out.println("[주가변동] 검은 토큰과의 차이 7개 이상");
                     stockPriceState[0] += stockState.getStockDr()[6];
                     stockPriceState[1] += stockState.getStockDc()[6];
                     for (int j = 0; j < stockCntDiff - 6; j++) {
@@ -573,19 +599,23 @@ public class GameServiceImpl implements GameService {
                         stockPriceState[0] -= 1;
                     }
                 } else {
-                    throw new BaseException(INVALID_STOCK_CNT);
+                    throw new BaseException(EXCEEDS_DIFF_RANGE);
                 }
 
                 // 4. 주식 토큰 정리: 주머니에서 뽑은 색깔 주식 토큰을 일치하는 색깔의 주식시장에 놓기
                 marketStocks[i].addCnt(selectedStockCnts[i]);
+                System.out.println("[주가변경] 주식 토큰 정리 후 주식시장 상태 : " + Arrays.toString(marketStocks));
 
                 // 5. 주가 상승: 여전히 주식 시장에 주식 토큰이 없는 색깔은 주가를 위쪽으로 한 칸 이동
-                stockPriceState[0] -= 1;
+                System.out.println("[주가변경] 여전히 주식 시장에 주식 토큰이 없는 색깔 주가 상승 !전! : " + Arrays.toString(stockPriceState));
+                if (marketStocks[i].getCnt() == 0) stockPriceState[0] -= 1;
+                System.out.println("[주가변경] 여전히 주식 시장에 주식 토큰이 없는 색깔 주가 상승 !후! : " + Arrays.toString(stockPriceState));
 
                 // 6. 주가 수준 변동 조건 확인 후, 필요 시 주가 수준 변동
                 int newLevel = stockState.getStockStandard()[stockPriceState[0]][stockPriceState[1]].getLevel();
                 // 새로운 주가수준이 상위영역에 처음 진입했는지
                 if (stockPriceLevel < newLevel) {
+                    System.out.println("[주가변동] 주가변동으로 인한 주가수준변경. 원래 수준 : " + stockPriceLevel + " , 새로운 수준 : " + newLevel);
                     game.setCurrentStockPriceLevel(newLevel);
                     stockPriceLevel = newLevel;
                 }
@@ -593,7 +623,6 @@ public class GameServiceImpl implements GameService {
         } else {
             throw new BaseException(INVALID_BLACK_TOKEN);
         }
-        // TODO arena를 리턴해야 하는지
     }
 
     // 플레이어 이동
@@ -643,21 +672,17 @@ public class GameServiceImpl implements GameService {
     private void validateStocks(int[] orgStocks, int[] sellingStocks, int stockPriceLevel) throws BaseException {
         // 각 숫자가 0 이상 && 합산한 개수가 0 초과 주가 수준 거래 가능 토큰 개수 이하 && 내가 보유한 주식 개수 이하
         int stockCnt = 0;
-        boolean exception = false;
         for (int i = 1; i < 6; i++) {
             if (sellingStocks[i] < 0 || orgStocks[i] < sellingStocks[i]) {
-                exception = true;
-                break;
+                throw new BaseException(INVALID_SELL_STOCKS);
             }
             stockCnt += sellingStocks[i];
         }
 
         if (stockCnt > stockState.getStockLevelCards()[stockPriceLevel][0] || stockCnt <= 0) {
-            exception = true;
-        }
-
-        if (exception) {
-            throw new BaseException(INVALID_STOCK_CNT);
+            System.out.println("^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^");
+            System.out.println("stockCnt: " + stockCnt + " | 지금 거래 가능한 주가 토큰 수 : " + stockState.getStockLevelCards()[stockPriceLevel][0]);
+            throw new BaseException(IMPOSSIBLE_STOCK_CNT);
         }
     }
 }

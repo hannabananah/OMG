@@ -126,28 +126,8 @@ public class GameMessageController {
         gameService.movePlayer(message);
     }
 
-//    @MessageMapping("/game/takeLoan")
-//    public void takeLoan(@Payload StompPayload<UserActionDTO> userActionPayload) throws BaseException {
-//        validateUserAction(userActionPayload);
-//
-//        gameService.takeLoan(userActionPayload);
-//    }
-
-    @MessageMapping("/game/repayLoan")
-    public void repayLoan(@Payload StompPayload<UserActionDTO> userActionPayload) throws BaseException {
-        validateUserAction(userActionPayload);
-
-        gameService.repayLoan(userActionPayload);
-    }
-
     // 주식 매도
     // TODO 주식 관련 메서드는 synchronized
-    @MessageMapping("game/sellStock")
-    public void sellStock(@Payload StompPayload<UserActionDTO> userActionPayload) throws BaseException {
-        validateUserAction(userActionPayload);
-
-        gameService.sellStock(userActionPayload);
-    }
 
     // 주식 매수
     // TODO 주식 관련 메서드는 synchronized

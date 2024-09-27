@@ -8,6 +8,8 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.util.Arrays;
+
 import static com.ssafy.omg.config.baseresponse.BaseResponseStatus.INVALID_STOCK_STATE;
 
 @Getter
@@ -46,5 +48,13 @@ public class StockInfo {
                 this.state[1] += 1;
             }
         }
+    }
+
+    @Override
+    public String toString() {
+        return "StockInfo{" +
+                "cnt=" + cnt +
+                ", state=" + Arrays.toString(state) +
+                '}';
     }
 }
