@@ -32,7 +32,7 @@ import static com.ssafy.omg.config.baseresponse.BaseResponseStatus.REQUEST_ERROR
 @MessageController
 @RequiredArgsConstructor
 @CrossOrigin("*")
-public class GameMessageController {
+public class CommonMessageController {
     private final SimpMessageSendingOperations messagingTemplate;
     private final GameService gameService;
     private final GameBroadcastService gameBroadcastService;

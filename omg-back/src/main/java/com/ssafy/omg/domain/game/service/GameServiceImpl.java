@@ -4,7 +4,11 @@ import com.ssafy.omg.config.baseresponse.BaseException;
 import com.ssafy.omg.config.baseresponse.MessageException;
 import com.ssafy.omg.domain.arena.entity.Arena;
 import com.ssafy.omg.domain.game.GameRepository;
+import com.ssafy.omg.domain.game.dto.GameStatusResponse;
+import com.ssafy.omg.domain.game.dto.IndividualMessageDto;
 import com.ssafy.omg.domain.game.dto.PlayerMoveRequest;
+import com.ssafy.omg.domain.game.dto.UserActionRequest;
+import com.ssafy.omg.domain.game.dto.UserActionResponse;
 import com.ssafy.omg.domain.game.entity.*;
 import com.ssafy.omg.domain.game.repository.GameEventRepository;
 import com.ssafy.omg.domain.player.entity.Player;
@@ -14,14 +18,36 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Optional;
+import java.util.Random;
+import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
-import static com.ssafy.omg.config.baseresponse.BaseResponseStatus.*;
+import static com.ssafy.omg.config.baseresponse.BaseResponseStatus.AMOUNT_OUT_OF_RANGE;
+import static com.ssafy.omg.config.baseresponse.BaseResponseStatus.ARENA_NOT_FOUND;
+import static com.ssafy.omg.config.baseresponse.BaseResponseStatus.EVENT_NOT_FOUND;
+import static com.ssafy.omg.config.baseresponse.BaseResponseStatus.GAME_NOT_FOUND;
+import static com.ssafy.omg.config.baseresponse.BaseResponseStatus.INSUFFICIENT_STOCK;
+import static com.ssafy.omg.config.baseresponse.BaseResponseStatus.INVALID_REPAY_AMOUNT;
+import static com.ssafy.omg.config.baseresponse.BaseResponseStatus.INVALID_ROUND;
+import static com.ssafy.omg.config.baseresponse.BaseResponseStatus.INVALID_STOCK_LEVEL;
+import static com.ssafy.omg.config.baseresponse.BaseResponseStatus.LOAN_ALREADY_TAKEN;
+import static com.ssafy.omg.config.baseresponse.BaseResponseStatus.PLAYER_NOT_FOUND;
+import static com.ssafy.omg.config.baseresponse.BaseResponseStatus.PLAYER_STATE_ERROR;
+import static com.ssafy.omg.config.baseresponse.BaseResponseStatus.REQUEST_ERROR;
 import static com.ssafy.omg.config.baseresponse.MessageResponseStatus.OUT_OF_CASH;
+import static com.ssafy.omg.domain.game.entity.ActionStatus.ACTION_FAILURE;
+import static com.ssafy.omg.domain.game.entity.ActionStatus.ACTION_SUCCESS;
+import static com.ssafy.omg.domain.game.entity.ActionStatus.MARKET_UPDATE;
 import static com.ssafy.omg.domain.game.entity.RoundStatus.ROUND_START;
 import static com.ssafy.omg.domain.game.entity.RoundStatus.STOCK_FLUCTUATION;
+import static com.ssafy.omg.domain.player.entity.PlayerStatus.COMPLETED;
 import static com.ssafy.omg.domain.player.entity.PlayerStatus.NOT_STARTED;
 import static org.hibernate.query.sqm.tree.SqmNode.log;
 
@@ -51,6 +77,37 @@ public class GameServiceImpl implements GameService {
                 .map(Arena::getGame)
                 .filter(game -> game != null && game.getGameStatus() == GameStatus.IN_GAME)
                 .collect(Collectors.toList());
+    }
+
+    /**
+     * 거래소에서 응답으로 보낼 DTO 생성 메서드
+     *
+     * @param roomId
+     * @param sender
+     * @return
+     * @throws BaseException
+     */
+    @Override
+    public IndividualMessageDto getIndividualMessage(String roomId, String sender) throws BaseException {
+
+        Arena arena = gameRepository.findArenaByRoomId(roomId)
+                .orElseThrow(() -> new BaseException(ARENA_NOT_FOUND));
+        Game game = arena.getGame();
+        Player player = findPlayer(arena, sender);
+
+        return IndividualMessageDto.builder()
+                .hasLoan(player.getHasLoan())
+                .loanPrincipal(player.getLoanPrincipal())
+                .loanInterest(player.getLoanInterest())
+                .totalDebt(player.getTotalDebt())
+                .cash(player.getCash())
+                .stock(player.getStock())
+                .goldOwned(player.getGoldOwned())
+                .carryingStocks(player.getCarryingStocks())
+                .carryingGolds(player.getCarryingGolds())
+                .action(player.getAction())
+                .state(player.getState())
+                .build();
     }
 
     /**
@@ -322,6 +379,10 @@ public class GameServiceImpl implements GameService {
         int currentGoldPrice = game.getGoldPrice();
         int totalCost = currentGoldPrice * goldBuyCount;
 
+        if (player.getState() == COMPLETED) {
+            throw new BaseException(PLAYER_STATE_ERROR);
+        }
+
         if (player.getCash() < totalCost) {
             throw new MessageException(roomId, userNickname, OUT_OF_CASH);
         }
@@ -377,6 +438,7 @@ public class GameServiceImpl implements GameService {
         player.setCash(currentMyCash - currentGoldPrice * goldBuyCount);
         player.setGoldOwned(currentMyGold + goldBuyCount);
         player.setState(PlayerStatus.COMPLETED);
+        player.setCarryingGolds(goldBuyCount);
 
         // 변경된 정보를 반영
         List<Player> players = game.getPlayers();

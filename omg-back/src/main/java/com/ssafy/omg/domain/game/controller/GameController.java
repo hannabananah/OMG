@@ -8,6 +8,7 @@ import com.ssafy.omg.domain.game.GameRepository;
 import com.ssafy.omg.domain.game.service.GameBroadcastService;
 import com.ssafy.omg.domain.game.service.GameService;
 import com.ssafy.omg.domain.socket.dto.StompPayload;
+import jdk.jfr.Description;
 import lombok.RequiredArgsConstructor;
 import org.springframework.messaging.simp.SimpMessageSendingOperations;
 import org.springframework.web.bind.annotation.*;
@@ -19,6 +20,7 @@ import static com.ssafy.omg.config.baseresponse.MessageResponseStatus.OUT_OF_CAS
 @RestController
 @RequestMapping("/games")
 @RequiredArgsConstructor
+@Description("Postman 테스트용 RestAPI입니다")
 public class GameController {
     private final GameService gameService;
     private final GameBroadcastService gameBroadcastService;
