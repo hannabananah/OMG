@@ -24,8 +24,8 @@ public class Player {
     private boolean characterMovement; // 줍기 행동 유무
     private double[] position = new double[3];         // 플레이어 좌표(x, y, z)
     private double[] direction = new double[3];        // 플레이어 방향
-    private int[] carryingStocks;      // 플레이어별 집에 가지고 갈 주식
-    private int carryingGolds;       // 플레이어별 집에 가지고 갈 금괴
+    private int[] carryingStocks = new int[6];// 플레이어별 집에 가지고 갈 주식
+    private int carryingGolds;
 
     // 거래소 관련
     private int hasLoan;               // 대출 유무

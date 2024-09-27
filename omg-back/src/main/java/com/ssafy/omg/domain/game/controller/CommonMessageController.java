@@ -2,8 +2,10 @@ package com.ssafy.omg.domain.game.controller;
 
 import com.ssafy.omg.config.MessageController;
 import com.ssafy.omg.config.baseresponse.BaseException;
+import com.ssafy.omg.config.baseresponse.MessageException;
 import com.ssafy.omg.domain.arena.entity.Arena;
 import com.ssafy.omg.domain.game.GameRepository;
+import com.ssafy.omg.domain.game.dto.StockRequest;
 import com.ssafy.omg.domain.game.dto.GameEventDto;
 import com.ssafy.omg.domain.game.dto.PlayerMoveRequest;
 import com.ssafy.omg.domain.game.dto.UserActionDTO;
@@ -131,6 +133,10 @@ public class CommonMessageController {
 
     // 주식 매수
     // TODO 주식 관련 메서드는 synchronized
+    @MessageMapping("/buy-stock")
+    public void buyStock(@Payload StompPayload<StockRequest> message) throws BaseException, MessageException {
+        gameService.buyStock(message);
+    }
 
     // 금괴 매입
 
