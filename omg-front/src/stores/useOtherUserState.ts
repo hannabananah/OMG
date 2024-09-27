@@ -25,10 +25,10 @@ interface OtherUserState {
 export const useOtherUserStore = create<OtherUserState>(set => ({
   otherUsers: [],
   setOtherUsers: users => set({ otherUsers: users }),
-  updateUserPosition: (id, position) =>
+  updateUserPosition: (id, position, direction) =>
     set(state => ({
       otherUsers: state.otherUsers.map(user =>
-        user.id === id ? { ...user, position } : user,
+        user.id === id ? { ...user, position, direction } : user,
       ),
     })),
 }));
