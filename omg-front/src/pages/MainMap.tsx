@@ -1,47 +1,76 @@
-import { Suspense, useMemo } from 'react';
+import { Suspense, useContext, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 
-// 상태 저장소 가져오기
-import Elf from '@/components/character/Elf';
-import GingerBread from '@/components/character/GingerBread';
-import Santa from '@/components/character/Santa';
-import Snowman from '@/components/character/Snowman';
+import Character from '@/components/character/Character';
+import MainAlert from '@/components/common/MainAlert';
 import Map from '@/components/main-map/Map';
-import useCharacterStore from '@/stores/useCharacter';
+import { SocketContext } from '@/utils/SocketContext';
 import {
   KeyboardControls,
-  type KeyboardControlsEntry,
   OrbitControls,
   PerspectiveCamera,
 } from '@react-three/drei';
 import { Canvas } from '@react-three/fiber';
 import { Physics } from '@react-three/rapier';
 
-export enum Controls {
-  forward = 'forward',
-  back = 'back',
-  left = 'left',
-  right = 'right',
-  pickup = 'pickup',
-}
-
-const characterComponents = [Elf, GingerBread, Santa, Snowman]; // 캐릭터 컴포넌트 배열
+const CharacterInfo = {
+  santa: {
+    url: '/models/santa/santa.gltf',
+    scale: [2, 2, 2],
+  },
+  elf: {
+    url: '/models/elf/elf.gltf',
+    scale: [1, 1, 1],
+  },
+  snowman: {
+    url: '/models/snowman/snowman.gltf',
+    scale: [1, 1, 1],
+  },
+  gingerbread: {
+    url: '/models/gingerbread/gingerbread.gltf',
+    scale: [1, 1, 1],
+  },
+};
 
 export default function MainMap() {
-  const { players } = useCharacterStore();
+  const { socket, online, initGameSetting } = useContext(SocketContext);
 
-  const keyboardMap = useMemo<KeyboardControlsEntry<Controls>[]>(
-    () => [
-      { name: Controls.forward, keys: ['ArrowUp', 'KeyW'] },
-      { name: Controls.back, keys: ['ArrowDown', 'KeyS'] },
-      { name: Controls.left, keys: ['ArrowLeft', 'KeyA'] },
-      { name: Controls.right, keys: ['ArrowRight', 'KeyD'] },
-      { name: Controls.pickup, keys: ['Space'] },
-    ],
-    [],
-  );
+  useEffect(() => {
+    if (socket && online) {
+      initGameSetting();
+    }
+  });
+
+  const Controls = {
+    forward: 'forward',
+    back: 'back',
+    left: 'left',
+    right: 'right',
+    pickup: 'pickup',
+  };
+
+  const keyboardMap = [
+    { name: Controls.forward, keys: ['ArrowUp'] },
+    { name: Controls.back, keys: ['ArrowDown'] },
+    { name: Controls.left, keys: ['ArrowLeft'] },
+    { name: Controls.right, keys: ['ArrowRight'] },
+    { name: Controls.pickup, keys: ['Space'] },
+  ];
+
+  const navigate = useNavigate();
+
+  const goToStockMarket = () => {
+    navigate('/stockmarket');
+  };
 
   return (
-    <main className='relative w-full h-screen p-1'>
+    <main className='relative w-full h-screen overflow-hidden'>
+      <div
+        className='absolute z-10 transform -translate-x-1/2 bottom-10 left-1/2 w-[70%]'
+        onClick={goToStockMarket}
+      >
+        <MainAlert text='클릭하면 임시 주식방으로' />
+      </div>
       <KeyboardControls map={keyboardMap}>
         <Canvas>
           <Suspense>
@@ -51,13 +80,22 @@ export default function MainMap() {
               <directionalLight />
               <Map />
               <PerspectiveCamera />
-
-              {Object.keys(players).map(nickname => {
-                const player = players[nickname];
-                const PlayerCharacter =
-                  characterComponents[player.characterType];
-                return <PlayerCharacter key={nickname} />;
-              })}
+              <Character
+                characterURL={CharacterInfo['santa'].url}
+                characterScale={CharacterInfo['santa'].scale}
+              />
+              {/* <Character
+                characterURL={CharacterInfo['elf'].url}
+                characterScale={CharacterInfo['elf'].scale}
+              />
+              <Character
+                characterURL={CharacterInfo['snowman'].url}
+                characterScale={CharacterInfo['snowman'].scale}
+              />
+              <Character
+                characterURL={CharacterInfo['gingerbread'].url}
+                characterScale={CharacterInfo['gingerbread'].scale}
+              /> */}
             </Physics>
           </Suspense>
         </Canvas>
