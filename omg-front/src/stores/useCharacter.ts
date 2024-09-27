@@ -7,15 +7,18 @@ interface Props {
   onMovementChange: (movementState: 'idle' | 'walking' | 'running') => void;
   onRotationChange: (rotation: number) => void;
   onPositionChange: (position: THREE.Vector3) => void;
+
+  characterURL: string;
+  isOwnCharacter: boolean;
 }
 
 export const useCharacter = ({
   onMovementChange,
   onRotationChange,
-  onPositionChange,
+  characterURL,
+  isOwnCharacter,
 }: Props) => {
-  const { scene, animations } = useGLTF('/models/gingerbread/gingerbread.gltf');
-
+  const { scene, animations } = useGLTF(characterURL);
   const mixer = useRef<THREE.AnimationMixer | null>(null);
   const [action, setAction] = useState<THREE.AnimationAction | null>(null);
   const [movementState, setMovementState] = useState<
@@ -27,7 +30,7 @@ export const useCharacter = ({
   useEffect(() => {
     if (animations.length > 0 && scene) {
       mixer.current = new THREE.AnimationMixer(scene);
-      const idleAction = mixer.current.clipAction(animations[0]); // 대기
+      const idleAction = mixer.current.clipAction(animations[0]);
       idleAction.play();
       setAction(idleAction);
     }
@@ -47,6 +50,8 @@ export const useCharacter = ({
   };
 
   const handleKeyDown = (event: KeyboardEvent) => {
+    if (!isOwnCharacter) return;
+
     if (event.key === 'ArrowUp') {
       if (!isMoving) {
         setAnimationState('walking');

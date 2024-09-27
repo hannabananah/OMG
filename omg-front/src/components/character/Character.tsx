@@ -10,6 +10,7 @@ interface Props {
   direction?: number[];
   characterURL: string;
   characterScale: number[];
+  isOwnCharacter?: boolean;
 }
 
 export default function Character({
@@ -17,6 +18,7 @@ export default function Character({
   direction,
   characterURL,
   characterScale,
+  isOwnCharacter = false,
 }: Props) {
   const { movePlayer, allRendered } = useContext(SocketContext);
   const [characterPosition, setCharacterPosition] = useState(
@@ -30,27 +32,32 @@ export default function Character({
     onMovementChange: state => (movementStateRef.current = state),
     onRotationChange: setRotation,
     onPositionChange: setCharacterPosition,
+    isOwnCharacter,
   });
 
   useFrame((_, delta) => {
     mixer.current?.update(delta);
     if (scene) {
       scene.rotation.y = rotation;
-      if (
-        movementStateRef.current === 'walking' ||
-        movementStateRef.current === 'running'
-      ) {
-        const moveSpeed = movementStateRef.current === 'walking' ? 0.05 : 0.1;
-        const forwardDirection = new THREE.Vector3(
-          Math.sin(rotation),
-          0,
-          Math.cos(rotation),
-        );
-        const newPosition = characterPosition
-          .clone()
-          .add(forwardDirection.multiplyScalar(moveSpeed));
-        setCharacterPosition(newPosition);
-        scene.position.copy(newPosition);
+      if (isOwnCharacter) {
+        if (
+          movementStateRef.current === 'walking' ||
+          movementStateRef.current === 'running'
+        ) {
+          const moveSpeed = movementStateRef.current === 'walking' ? 0.05 : 0.1;
+          const forwardDirection = new THREE.Vector3(
+            Math.sin(rotation),
+            0,
+            Math.cos(rotation),
+          );
+          const newPosition = characterPosition
+            .clone()
+            .add(forwardDirection.multiplyScalar(moveSpeed));
+          setCharacterPosition(newPosition);
+          scene.position.copy(newPosition);
+        }
+      } else if (position && Array.isArray(position) && position.length === 3) {
+        scene.position.set(...(position as [number, number, number]));
       }
     }
   });
@@ -59,9 +66,12 @@ export default function Character({
     if (scene && allRendered) {
       const positionArray = scene.position.toArray();
       const directionArray = [Math.sin(rotation), 0, Math.cos(rotation)];
-      movePlayer(positionArray, directionArray);
+
+      if (isOwnCharacter) {
+        movePlayer(positionArray, directionArray);
+      }
     }
-  }, [scene, characterPosition, rotation, allRendered]);
+  }, [scene, characterPosition, rotation, allRendered, isOwnCharacter]);
 
   return (
     <primitive

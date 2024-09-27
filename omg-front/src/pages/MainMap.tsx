@@ -106,13 +106,14 @@ export default function MainMap() {
               <directionalLight />
               <Map />
               <PerspectiveCamera />
-              {/* 자신의 캐릭터를 렌더링 */}
+              {/* 본인 캐릭터 */}
               <Character
                 characterURL={selectedCharacter.url}
                 characterScale={selectedCharacter.scale}
+                isOwnCharacter={true}
               />
 
-              {/* 다른 유저들의 캐릭터를 렌더링 */}
+              {/* 다른 유저들 캐릭터 */}
               {otherCharacters.map(userCharacter => (
                 <Character
                   key={userCharacter.id}
@@ -120,6 +121,7 @@ export default function MainMap() {
                   characterScale={userCharacter.scale}
                   position={userCharacter.position}
                   direction={userCharacter.direction}
+                  isOwnCharacter={false}
                 />
               ))}
             </Physics>
