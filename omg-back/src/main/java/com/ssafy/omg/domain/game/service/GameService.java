@@ -1,6 +1,7 @@
 package com.ssafy.omg.domain.game.service;
 
 import com.ssafy.omg.config.baseresponse.BaseException;
+import com.ssafy.omg.config.baseresponse.MessageException;
 import com.ssafy.omg.domain.arena.entity.Arena;
 import com.ssafy.omg.domain.game.dto.PlayerMoveRequest;
 import com.ssafy.omg.domain.game.dto.UserActionRequest;
@@ -23,6 +24,12 @@ public interface GameService {
 
     // 경제 이벤트 발생(조회) 및 금리 변동 (2~10라운드)
     GameEvent createGameEventandInterestChange(String roomId) throws BaseException;
+
+    // 매입한 금괴 개수를 플레이어 자산 및 금괴 매입 트랙( + 추가개수)에 반영
+    void purchaseGold(String roomId, String userNickname, int goldButCount) throws BaseException, MessageException;
+
+    // 주가 변동 가능 여부
+    boolean isStockFluctuationAble(String roomId) throws BaseException;
 
     void takeLoan(UserActionRequest userActionRequest) throws BaseException;
 

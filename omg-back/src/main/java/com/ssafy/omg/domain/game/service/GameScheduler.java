@@ -55,6 +55,9 @@ public class GameScheduler {
     private void updateRoundStatus(Game game) throws BaseException {
 
         switch (game.getRoundStatus()) {
+            case TUTORIAL:
+                handleTutorial(game);
+                break;
             case ROUND_START:
                 handleRoundStart(game);
                 break;
@@ -95,6 +98,14 @@ public class GameScheduler {
             game.setPauseTime(game.getPauseTime() - 1);
         }
         log.debug("게임 {}의 현재 시간 : {}초", game.getGameId(), game.getTime());  // 로그 추가
+    }
+
+    private void handleTutorial(Game game) {
+        if (game.getTime() == 0) {
+            game.setRoundStatus(ROUND_START);
+            game.setTime(3);
+            log.debug("상태를 ROUND_START로 변경. 새 시간: {}", game.getTime());
+        }
     }
 
     private void handleRoundStart(Game game) throws BaseException {
