@@ -8,7 +8,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-//import static com.ssafy.omg.config.baseresponse.BaseResponseStatus.INVALID_STOCK_STATE;
+import static com.ssafy.omg.config.baseresponse.BaseResponseStatus.INVALID_STOCK_STATE;
 
 @Getter
 @Setter
@@ -20,13 +20,13 @@ public class StockInfo {
     @Size()
     private int[] state = new int[2]; // 현재 주식의 가격을 stockStandard(주가 기준표) 2차원 배열의 위치값으로 표현
 
-    public void addCnt() {
-        this.cnt += 1;
+    public void addCnt(int amount) {
+        this.cnt += amount;
     }
 
     public void decreaseState() throws BaseException {
         if (this.state[0] == 12 && this.state[1] == 0) {
-//            throw new BaseException(INVALID_STOCK_STATE);
+            throw new BaseException(INVALID_STOCK_STATE);
         } else {
             if (this.state[1] == 0) {
                 this.state[0] += 1;
@@ -38,7 +38,7 @@ public class StockInfo {
 
     public void increaseState() throws BaseException {
         if (this.state[0] == 0 && this.state[1] == 6) {
-//            throw new BaseException(INVALID_STOCK_STATE);
+            throw new BaseException(INVALID_STOCK_STATE);
         } else {
             if (this.state[1] == 6) {
                 this.state[0] -= 1;
