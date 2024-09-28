@@ -25,10 +25,10 @@ export default function Lobby() {
   };
 
   useEffect(() => {
-    if (createRoomMutation.isSuccess) {
-      setRoomCode(createRoomMutation.data?.result || '');
+    if (createRoomMutation.isSuccess && createRoomMutation.data) {
+      setRoomCode(createRoomMutation.data.result || '');
     }
-  }, [createRoomMutation.isSuccess, createRoomMutation.data]);
+  }, [createRoomMutation]);
 
   const handleCopyToClipboard = useCallback(() => {
     if (roomCode.length === 10) {
