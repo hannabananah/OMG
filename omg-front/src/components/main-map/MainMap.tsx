@@ -47,8 +47,14 @@ const CharacterInfo = {
 
 export default function MainMap() {
   const { characterType } = useUser();
-  const { socket, online, initGameSetting, allRendered, purchaseGold } =
-    useContext(SocketContext);
+  const {
+    socket,
+    online,
+    initGameSetting,
+    allRendered,
+    purchaseGold,
+    takeLoan,
+  } = useContext(SocketContext);
   const { otherUsers } = useOtherUserStore();
   const { gameMessage } = useSocketMessage();
 
@@ -118,8 +124,16 @@ export default function MainMap() {
     purchaseGold(goldPurchaseCount);
   };
 
+  // TODO: 삭제해야됨
+  const handleClickTakeLoan = () => {
+    const loanAmount = Number(prompt('대출할 액수를 입력하세요.'));
+    console.log('대출 신청 버튼 클릭', loanAmount);
+    takeLoan(loanAmount);
+  };
+
   useEffect(() => {
     if (gameMessage && (gameMessage as GameMessage).state) {
+      console.log('gameMessage==>', gameMessage);
       const { state } = gameMessage as GameMessage;
       if (state === 'COMPLETED') {
         alert('거래가 성공적으로 완료되었습니다!');
@@ -155,6 +169,12 @@ export default function MainMap() {
           text='임시 금괴매입 버튼'
           type='mainmap'
           onClick={handleClickPurchaseGold}
+        />
+        {/* TODO: 삭제해야됨, 임시 대출신청 버튼 */}
+        <Button
+          text='임시 대출신청 버튼'
+          type='mainmap'
+          onClick={handleClickTakeLoan}
         />
       </section>
 
