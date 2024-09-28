@@ -11,9 +11,9 @@ export default function Reels({ onClick, disabled }: ReelsProps) {
   const { scene } = useGLTF('/models/reels/reels.gltf');
 
   const position = {
-    x: 3,
-    y: -0.4,
-    z: -1.3,
+    x: 2,
+    y: 0,
+    z: -0.7,
   };
 
   const ref = useFloatingObject(position.y);

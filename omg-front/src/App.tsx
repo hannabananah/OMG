@@ -21,7 +21,7 @@ const Waiting = loadable(() => import('@/pages/Waiting'), {
 const Game = loadable(() => import('@/pages/Game'), {
   fallback: <div>게임화면 로딩중</div>,
 });
-const MainMap = loadable(() => import('@/pages/MainMap'), {
+const MainMap = loadable(() => import('@/components/main-map/MainMap'), {
   fallback: <div>메인 맵 로딩중</div>,
 });
 const StockMarket = loadable(() => import('@/pages/StockMarket'), {

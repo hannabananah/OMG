@@ -14,9 +14,9 @@ export default function SocksWithCane({
   const { scene } = useGLTF('/models/socks-with-cane/socks-with-cane.gltf');
 
   const position = {
-    x: 2,
-    y: 1.2,
-    z: -2.3,
+    x: 2.5,
+    y: 0,
+    z: 1.4,
   };
 
   const ref = useFloatingObject(position.y);

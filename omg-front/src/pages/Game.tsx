@@ -1,6 +1,6 @@
 import { useContext, useEffect } from 'react';
 
-import MainMap from '@/pages/MainMap';
+import MainMap from '@/components/main-map/MainMap';
 import { SocketContext } from '@/utils/SocketContext';
 
 export default function Game() {
