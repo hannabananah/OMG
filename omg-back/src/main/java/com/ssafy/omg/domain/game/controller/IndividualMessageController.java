@@ -54,4 +54,27 @@ public class IndividualMessageController {
         }
     }
 
+    @MessageMapping("/take-loan")
+    public BaseResponse<?> takeLoan(@Payload StompPayload<Integer> userActionPayload) throws BaseException, MessageException {
+        String roomId = userActionPayload.getRoomId();
+        String userNickname = userActionPayload.getSender();
+        int takeLoanAmount = userActionPayload.getData();
+
+        StompPayload<IndividualMessageDto> response = null;
+        try {
+            gameService.takeLoan(roomId, userNickname, takeLoanAmount);
+            IndividualMessageDto individualMessage = gameService.getIndividualMessage(roomId, userNickname);
+            response = new StompPayload<>("SUCCESS", roomId, userNickname, individualMessage);
+            messagingTemplate.convertAndSend("/sub/" + roomId + "/game", response);
+            return new BaseResponse<>(response);
+        } catch (MessageException e) {
+            IndividualMessageDto individualMessage = gameService.getIndividualMessage(roomId, userNickname);
+            response = new StompPayload<>(e.getStatus().name(), roomId, userNickname, individualMessage);            messagingTemplate.convertAndSend("/sub/" + roomId + "/game", response);
+            log.debug(e.getStatus().getMessage());
+            return new BaseResponse<>(e.getStatus());
+        } catch (BaseException e) {
+            return new BaseResponse<>(e.getStatus());
+        }
+    }
+
 }
