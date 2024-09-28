@@ -2,7 +2,11 @@ import { Suspense, useContext, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 import Character from '@/components/character/Character';
+import Button from '@/components/common/Button';
+import ExitButton from '@/components/common/ExitButton';
 import MainAlert from '@/components/common/MainAlert';
+import Round from '@/components/common/Round';
+import Timer from '@/components/common/Timer';
 import Map from '@/components/main-map/Map';
 import { useOtherUserStore } from '@/stores/useOtherUserState';
 import useUser from '@/stores/useUser';
@@ -14,6 +18,8 @@ import {
 } from '@react-three/drei';
 import { Canvas } from '@react-three/fiber';
 import { Physics } from '@react-three/rapier';
+
+import ChatButton from '../common/ChatButton';
 
 const CharacterInfo = {
   santa: {
@@ -89,14 +95,54 @@ export default function MainMap() {
     navigate('/stockmarket');
   };
 
+  const openMainSettingsModal = () => {
+    alert('메인 판 모달 띄워주기');
+  };
+
+  const openPersonalSettingsModal = () => {
+    alert('개인 판 모달 띄워주기');
+  };
+
+  const openPersonalMissionModal = () => {
+    alert('게임 미션 모달 띄워주기');
+  };
+
   return (
     <main className='relative w-full h-screen overflow-hidden'>
+      {/* Round & Timer & Chat 고정 위치 렌더링 */}
+      <section className='absolute z-10 flex flex-col items-end gap-4 top-10 right-10'>
+        <Round presentRound={1} />
+        <Timer />
+      </section>
+
+      {/* 모달 모음 */}
+      <section className='absolute z-10 flex flex-col items-start gap-4 left-10 top-10'>
+        <Button text='메인 판' type='mainmap' onClick={openMainSettingsModal} />
+        <Button
+          text='개인 판'
+          type='mainmap'
+          onClick={openPersonalSettingsModal}
+        />
+        <Button
+          text='게임 미션'
+          type='mainmap'
+          onClick={openPersonalMissionModal}
+        />
+      </section>
+
+      {/* MainAlert 고정 위치 렌더링 */}
       <div
-        className='absolute z-10 transform -translate-x-1/2 bottom-10 left-1/2 w-[70%]'
+        className='absolute z-20 transform -translate-x-1/2 bottom-14 left-1/2 w-[60%]'
         onClick={goToStockMarket}
       >
         <MainAlert text='클릭하면 임시 주식방으로' />
       </div>
+
+      {/* 채팅 및 종료 버튼 고정 렌더링 */}
+      <section className='absolute bottom-0 left-0 z-10 flex items-center justify-between w-full text-white py-14 px-14 text-omg-40b'>
+        <ChatButton />
+        <ExitButton />
+      </section>
       <KeyboardControls map={keyboardMap}>
         <Canvas>
           <Suspense>

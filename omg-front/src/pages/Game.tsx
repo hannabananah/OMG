@@ -2,7 +2,7 @@ import { Suspense, lazy } from 'react';
 
 import Loading from '@/components/common/Loading';
 
-const MainMap = lazy(() => import('@/pages/MainMap'));
+const MainMap = lazy(() => import('@/components/main-map/MainMap'));
 
 export default function Game() {
   return (

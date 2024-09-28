@@ -6,7 +6,6 @@ import Cane from '@/components/stock-market/Cane';
 import Reels from '@/components/stock-market/Reels';
 import Socks from '@/components/stock-market/Socks';
 import SocksWithCane from '@/components/stock-market/SocksWithCane';
-import Tree from '@/components/stock-market/Tree';
 import { OrbitControls } from '@react-three/drei';
 import { Canvas } from '@react-three/fiber';
 
@@ -42,13 +41,13 @@ interface BasketRange extends Basket {
 }
 
 export default function StockMarket() {
-  const maxTradeCount = 6; // 최대 거래 가능 횟수
+  const maxTradeCount = 60; // 최대 거래 가능 횟수
   const myMoney = 100; // 총 현금
 
   // 바구니 크기
   const basketSize: Basket = {
-    width: 400,
-    height: 200,
+    width: 500,
+    height: 150,
   };
 
   const treeItems: TreeItem[] = [
@@ -152,7 +151,7 @@ export default function StockMarket() {
   return (
     <main className='relative w-full h-screen bg-center bg-cover '>
       <div
-        className='absolute inset-0 bg-center bg-cover opacity-50'
+        className='absolute inset-0 bg-center bg-cover'
         style={{
           backgroundImage: 'url("/assets/stock-market.jpg")',
         }}
@@ -172,7 +171,6 @@ export default function StockMarket() {
         <directionalLight position={[5, 5, 5]} intensity={7} />
         {/* 추가 조명 (포인트 라이트) */}
         <pointLight position={[0, 10, 0]} intensity={3} />
-        <Tree />
         <Snowing />
         <SocksWithCane
           onClick={() => handleSelect('socksWithCane')}
@@ -186,7 +184,7 @@ export default function StockMarket() {
 
       {/* 바구니에 랜덤하게 배치된 아이템들 */}
       <div
-        className='absolute bottom-[150px] left-[200px] bg-white border-4 border-black'
+        className='absolute -translate-x-1/2 bg-white border-4 border-black bottom-4 left-1/2'
         style={{
           width: `${basketSize.width}px`,
           height: `${basketSize.height}px`,
