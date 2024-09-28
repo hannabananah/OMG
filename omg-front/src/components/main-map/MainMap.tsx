@@ -9,6 +9,7 @@ import Round from '@/components/common/Round';
 import Timer from '@/components/common/Timer';
 import Map from '@/components/main-map/Map';
 import { useOtherUserStore } from '@/stores/useOtherUserState';
+import { useSocketMessage } from '@/stores/useSocketMessage';
 import useUser from '@/stores/useUser';
 import { SocketContext } from '@/utils/SocketContext';
 import {
@@ -20,6 +21,10 @@ import { Canvas } from '@react-three/fiber';
 import { Physics } from '@react-three/rapier';
 
 import ChatButton from '../common/ChatButton';
+
+interface GameMessage {
+  state: 'COMPLETED' | 'NOT_STARTED' | 'IN_PROGRESS';
+}
 
 const CharacterInfo = {
   santa: {
@@ -42,11 +47,10 @@ const CharacterInfo = {
 
 export default function MainMap() {
   const { characterType } = useUser();
-  const { socket, online, initGameSetting, allRendered } =
+  const { socket, online, initGameSetting, allRendered, purchaseGold } =
     useContext(SocketContext);
   const { otherUsers } = useOtherUserStore();
-
-  console.log('otherUsers', otherUsers);
+  const { gameMessage } = useSocketMessage();
 
   useEffect(() => {
     if (socket && online && allRendered) {
@@ -107,6 +111,24 @@ export default function MainMap() {
     alert('게임 미션 모달 띄워주기');
   };
 
+  // TODO: 삭제해야됨
+  const handleClickPurchaseGold = () => {
+    const goldPurchaseCount = Number(prompt('금괴 매입 수량을 입력하세요.'));
+    console.log('금괴 매입 버튼 클릭', goldPurchaseCount);
+    purchaseGold(goldPurchaseCount);
+  };
+
+  useEffect(() => {
+    if (gameMessage && (gameMessage as GameMessage).state) {
+      const { state } = gameMessage as GameMessage;
+      if (state === 'COMPLETED') {
+        alert('거래가 성공적으로 완료되었습니다!');
+      } else if (state === 'NOT_STARTED') {
+        alert('돈이 부족하여 거래에 실패했습니다.');
+      }
+    }
+  }, [gameMessage]);
+
   return (
     <main className='relative w-full h-screen overflow-hidden'>
       {/* Round & Timer & Chat 고정 위치 렌더링 */}
@@ -127,6 +149,12 @@ export default function MainMap() {
           text='게임 미션'
           type='mainmap'
           onClick={openPersonalMissionModal}
+        />
+        {/* TODO: 삭제해야됨, 임시 금괴매입 버튼 */}
+        <Button
+          text='임시 금괴매입 버튼'
+          type='mainmap'
+          onClick={handleClickPurchaseGold}
         />
       </section>
 
