@@ -27,6 +27,7 @@ interface SocketContextType {
   initGameSetting: () => void;
   allRendered: boolean;
   purchaseGold: (goldPurchaseCount: number) => void;
+  takeLoan: (loanAmount: number) => void;
 }
 
 const defaultContextValue: SocketContextType = {
@@ -49,6 +50,7 @@ const defaultContextValue: SocketContextType = {
   initGameSetting: () => {},
   allRendered: false,
   purchaseGold: () => {},
+  takeLoan: () => {},
 };
 
 export const SocketContext =
@@ -228,7 +230,6 @@ export default function SocketProvider({ children }: SocketProviderProps) {
             const otherPlayersData = parsedMessage.data.filter(
               (player: Player) => player.nickname !== nickname,
             );
-
             if (otherPlayersData.length > 0) {
               const updatedOtherUsers = otherPlayersData.map(
                 (player: Player) => {
@@ -244,10 +245,10 @@ export default function SocketProvider({ children }: SocketProviderProps) {
                   };
                 },
               );
-
               useOtherUserStore.getState().setOtherUsers(updatedOtherUsers);
             }
             break;
+
           case 'SUCCESS':
             const ownUserSuccess = parsedMessage.sender;
             if (ownUserSuccess === nickname) {
@@ -265,6 +266,24 @@ export default function SocketProvider({ children }: SocketProviderProps) {
               console.log('돈이 부족합니다.');
             }
             break;
+
+          case 'AMOUNT_OUT_OF_RANGE':
+            const ownUserOut = parsedMessage.sender;
+            if (ownUserOut === nickname) {
+              const deniedData = parsedMessage.data;
+              setGameMessage(deniedData);
+              console.log('가능한 액수를 초과했습니다.');
+            }
+            break;
+          case 'LOAN_ALREADY_TAKEN':
+            const ownUserAlready = parsedMessage.sender;
+            if (ownUserAlready === nickname) {
+              const deniedData = parsedMessage.data;
+              setGameMessage(deniedData);
+              console.log('이미 대출을 받았습니다.');
+            }
+            break;
+
           case 'GAME_EVENT':
             break;
         }
@@ -428,6 +447,21 @@ export default function SocketProvider({ children }: SocketProviderProps) {
     });
   };
 
+  // 대출 신청
+  const takeLoan = (loanAmount: number) => {
+    if (!isSocketConnected()) return;
+    const messagePayload = {
+      type: 'TAKE_LOAN',
+      roomId,
+      sender: nickname,
+      data: loanAmount,
+    };
+    socket.publish({
+      destination: '/pub/take-loan',
+      body: JSON.stringify(messagePayload),
+    });
+  };
+
   const contextValue = useMemo(
     () => ({
       socket,
@@ -449,6 +483,7 @@ export default function SocketProvider({ children }: SocketProviderProps) {
       initGameSetting,
       allRendered,
       purchaseGold,
+      takeLoan,
     }),
     [
       socket,
@@ -460,6 +495,7 @@ export default function SocketProvider({ children }: SocketProviderProps) {
       allRendered,
       gameMessage,
       purchaseGold,
+      takeLoan,
     ],
   );
 
