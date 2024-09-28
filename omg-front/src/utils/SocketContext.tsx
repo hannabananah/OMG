@@ -26,6 +26,7 @@ interface SocketContextType {
   movePlayer: (position: number[], direction: number[]) => void;
   initGameSetting: () => void;
   allRendered: boolean;
+  purchaseGold: (goldPurchaseCount: number) => void;
 }
 
 const defaultContextValue: SocketContextType = {
@@ -47,6 +48,7 @@ const defaultContextValue: SocketContextType = {
   movePlayer: () => {},
   initGameSetting: () => {},
   allRendered: false,
+  purchaseGold: () => {},
 };
 
 export const SocketContext =
@@ -195,7 +197,6 @@ export default function SocketProvider({ children }: SocketProviderProps) {
           case 'GAME_INITIALIZED':
             const initPlayerData = parsedMessage.data.game.players;
             setGameMessage(initPlayerData);
-            console.log('게임 초기 정보 data: ', initPlayerData);
             setPlayers(initPlayerData);
 
             useOtherUserStore.getState().setOtherUsers(
@@ -245,6 +246,23 @@ export default function SocketProvider({ children }: SocketProviderProps) {
               );
 
               useOtherUserStore.getState().setOtherUsers(updatedOtherUsers);
+            }
+            break;
+          case 'SUCCESS':
+            const ownUserSuccess = parsedMessage.sender;
+            if (ownUserSuccess === nickname) {
+              const transactionData = parsedMessage.data;
+              setGameMessage(transactionData);
+              console.log('거래 성공');
+            }
+            break;
+
+          case 'OUT_OF_CASH':
+            const ownUserFailed = parsedMessage.sender;
+            if (ownUserFailed === nickname) {
+              const deniedData = parsedMessage.data;
+              setGameMessage(deniedData);
+              console.log('돈이 부족합니다.');
             }
             break;
           case 'GAME_EVENT':
@@ -395,6 +413,21 @@ export default function SocketProvider({ children }: SocketProviderProps) {
     });
   };
 
+  // 금괴 매입
+  const purchaseGold = (goldPurchaseCount: number) => {
+    if (!isSocketConnected()) return;
+    const messagePayload = {
+      type: 'PURCHASE_GOLD',
+      roomId,
+      sender: nickname,
+      data: goldPurchaseCount,
+    };
+    socket.publish({
+      destination: '/pub/gold',
+      body: JSON.stringify(messagePayload),
+    });
+  };
+
   const contextValue = useMemo(
     () => ({
       socket,
@@ -415,6 +448,7 @@ export default function SocketProvider({ children }: SocketProviderProps) {
       movePlayer,
       initGameSetting,
       allRendered,
+      purchaseGold,
     }),
     [
       socket,
@@ -425,6 +459,7 @@ export default function SocketProvider({ children }: SocketProviderProps) {
       movePlayer,
       allRendered,
       gameMessage,
+      purchaseGold,
     ],
   );
 
