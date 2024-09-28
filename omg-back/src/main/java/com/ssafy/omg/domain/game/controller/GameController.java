@@ -30,7 +30,7 @@ public class GameController {
     @PostMapping("/initialize")
     public BaseResponse<Arena> initializeGame(@RequestParam String roomId, @RequestBody List<String> players) throws BaseException {
         Arena arena = gameService.initializeGame(roomId, players);
-//        gameBroadcastService.startBroadcast(roomId);
+    //    gameBroadcastService.startBroadcast(roomId);
         return new BaseResponse<>(arena);
     }
 

@@ -1,80 +1,102 @@
-import { Suspense, useMemo } from 'react';
+import { Suspense, useContext, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 
-// import Elf from '@/components/character/Elf';
-// import Mickey from '@/components/character/Mickey';
-import GingerBread from '@/components/character/GingerBread';
-// import Santa from '@/components/character/Santa';
-// import Snowman from '@/components/character/Snowman';
+import Character from '@/components/character/Character';
 import MainAlert from '@/components/common/MainAlert';
 import Map from '@/components/main-map/Map';
+import { useOtherUserStore } from '@/stores/useOtherUserState';
+import useUser from '@/stores/useUser';
+import { SocketContext } from '@/utils/SocketContext';
 import {
   KeyboardControls,
-  type KeyboardControlsEntry,
   OrbitControls,
   PerspectiveCamera,
 } from '@react-three/drei';
 import { Canvas } from '@react-three/fiber';
 import { Physics } from '@react-three/rapier';
 
-// import { useChatFocusStore, useUserStore, useWorldStore } from '../../store';
-// 사용자 및 세계 상태를 관리하는 스토어 훅
-// import { socket as socketInstance } from '../../lib/socket';
-// 소켓 인스턴스 가져옴
-// import useSocket from '../../hooks/useSocket';
-// 소켓 연결을 위한 커스텀 훅 가져옴
-
-// Scene 컴포넌트 정의
-// const Scene = () => {
-//   const socket = useSocket(socketInstance);  소켓 인스턴스 사용
-//   const { world } = useWorldStore();  월드 스토어에서 world 상태 가져옴 (캐릭터 정보 포함)
-//   const { id } = useUserStore();  사용자 ID 가져옴
-//   const { focus } = useChatFocusStore();  채팅 포커스 상태 가져옴
-//   const [sub] = useKeyboardControls<Controls>();  키보드 입력 상태 구독
-
-export enum Controls {
-  forward = 'forward', // 전진
-  back = 'back', // 후진
-  left = 'left', // 왼쪽
-  right = 'right', // 오른쪽
-  pickup = 'pickup', // 줍기
-}
+const CharacterInfo = {
+  santa: {
+    url: '/models/santa/santa.gltf',
+    scale: [2, 2, 2],
+  },
+  elf: {
+    url: '/models/elf/elf.gltf',
+    scale: [1, 1, 1],
+  },
+  snowman: {
+    url: '/models/snowman/snowman.gltf',
+    scale: [1, 1, 1],
+  },
+  gingerbread: {
+    url: '/models/gingerbread/gingerbread.gltf',
+    scale: [1, 1, 1],
+  },
+};
 
 export default function MainMap() {
-  // 키보드 이동
-  const keyboardMap = useMemo<KeyboardControlsEntry<Controls>[]>(
-    () => [
-      { name: Controls.forward, keys: ['ArrowUp', 'KeyW'] }, // 전진: 위쪽 화살표 또는 W 키
-      { name: Controls.back, keys: ['ArrowDown', 'KeyS'] }, // 후진: 아래쪽 화살표 또는 S 키
-      { name: Controls.left, keys: ['ArrowLeft', 'KeyA'] }, // 왼쪽으로 이동: 왼쪽 화살표 또는 A 키
-      { name: Controls.right, keys: ['ArrowRight', 'KeyD'] }, // 오른쪽으로 이동: 오른쪽 화살표 또는 D 키
-      { name: Controls.pickup, keys: ['Space'] },
-    ],
-    [],
-    // 빈 배열을 두어 초기 한 번만 이 값을 계산하고, 이후에는 메모이제이션된 값을 사용
-  );
+  const { characterType } = useUser();
+  const { socket, online, initGameSetting, allRendered } =
+    useContext(SocketContext);
+  const { otherUsers } = useOtherUserStore();
 
-  // 카메라 시점 이동
-  // const { camera } = useThree();
+  console.log('otherUsers', otherUsers);
+
+  useEffect(() => {
+    if (socket && online && allRendered) {
+      initGameSetting();
+    }
+  }),
+    [initGameSetting];
+
+  const characterKeys = Object.keys(CharacterInfo) as Array<
+    keyof typeof CharacterInfo
+  >;
+
+  const selectedCharacterKey = characterKeys[characterType] || 'santa';
+  const selectedCharacter = CharacterInfo[selectedCharacterKey];
+
+  const otherCharacters = otherUsers.map(user => {
+    const userCharacterKey = characterKeys[user.characterType] || 'santa';
+
+    return {
+      id: user.id,
+      ...CharacterInfo[userCharacterKey],
+      position: user.position,
+      direction: user.direction,
+    };
+  });
+
+  const Controls = {
+    forward: 'forward',
+    back: 'back',
+    left: 'left',
+    right: 'right',
+    pickup: 'pickup',
+  };
+
+  const keyboardMap = [
+    { name: Controls.forward, keys: ['ArrowUp'] },
+    { name: Controls.back, keys: ['ArrowDown'] },
+    { name: Controls.left, keys: ['ArrowLeft'] },
+    { name: Controls.right, keys: ['ArrowRight'] },
+    { name: Controls.pickup, keys: ['Space'] },
+  ];
 
   const navigate = useNavigate();
 
-  // 주식 방으로 페이지 이동
   const goToStockMarket = () => {
     navigate('/stockmarket');
   };
 
   return (
-    <main className='relative w-full h-screen'>
-      {/* MainAlert 컴포넌트 고정된 위치로 렌더링 */}
+    <main className='relative w-full h-screen overflow-hidden'>
       <div
         className='absolute z-10 transform -translate-x-1/2 bottom-10 left-1/2 w-[70%]'
         onClick={goToStockMarket}
       >
         <MainAlert text='클릭하면 임시 주식방으로' />
-        {/* <MainAlert text='메인 판 세팅을 진행합니다.' /> */}
       </div>
-
       <KeyboardControls map={keyboardMap}>
         <Canvas>
           <Suspense>
@@ -84,21 +106,24 @@ export default function MainMap() {
               <directionalLight />
               <Map />
               <PerspectiveCamera />
-              {/* {world.map((character) => ( world에 있는 캐릭터 리스트를 매핑하여 각각 아바타를 렌더링
-          <Suspense key={character.id} fallback={null}> 캐릭터가 로드될 때까지 Suspense 
-            <Avatar
-              id={character.id} 캐릭터 ID
-              url={character.avatar} 아바타 이미지 URL
-              nickname={character.nickname} 캐릭터 닉네임
-              position={character.position} 캐릭터 위치
-              socket={socket}  소켓 연결
-            />
-          </Suspense>
-        ))} */}
-              <GingerBread />
-              {/* <Santa /> */}
-              {/* <Snowman /> */}
-              {/* <Elf /> */}
+              {/* 본인 캐릭터 */}
+              <Character
+                characterURL={selectedCharacter.url}
+                characterScale={selectedCharacter.scale}
+                isOwnCharacter={true}
+              />
+
+              {/* 다른 유저들 캐릭터 */}
+              {otherCharacters.map(userCharacter => (
+                <Character
+                  key={userCharacter.id}
+                  characterURL={userCharacter.url}
+                  characterScale={userCharacter.scale}
+                  position={userCharacter.position}
+                  direction={userCharacter.direction}
+                  isOwnCharacter={false}
+                />
+              ))}
             </Physics>
           </Suspense>
         </Canvas>
