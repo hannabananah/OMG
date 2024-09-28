@@ -30,7 +30,6 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
-import static com.ssafy.omg.config.baseresponse.BaseResponseStatus.AMOUNT_OUT_OF_RANGE;
 import static com.ssafy.omg.config.baseresponse.BaseResponseStatus.ARENA_NOT_FOUND;
 import static com.ssafy.omg.config.baseresponse.BaseResponseStatus.EVENT_NOT_FOUND;
 import static com.ssafy.omg.config.baseresponse.BaseResponseStatus.EXCEEDS_DIFF_RANGE;
@@ -41,12 +40,13 @@ import static com.ssafy.omg.config.baseresponse.BaseResponseStatus.INVALID_BLACK
 import static com.ssafy.omg.config.baseresponse.BaseResponseStatus.INVALID_ROUND;
 import static com.ssafy.omg.config.baseresponse.BaseResponseStatus.INVALID_SELL_STOCKS;
 import static com.ssafy.omg.config.baseresponse.BaseResponseStatus.INVALID_STOCK_LEVEL;
-import static com.ssafy.omg.config.baseresponse.BaseResponseStatus.LOAN_ALREADY_TAKEN;
 import static com.ssafy.omg.config.baseresponse.BaseResponseStatus.NO_POSSIBLE_INDICES;
 import static com.ssafy.omg.config.baseresponse.BaseResponseStatus.PLAYER_NOT_FOUND;
 import static com.ssafy.omg.config.baseresponse.BaseResponseStatus.PLAYER_STATE_ERROR;
 import static com.ssafy.omg.config.baseresponse.BaseResponseStatus.REQUEST_ERROR;
 import static com.ssafy.omg.config.baseresponse.MessageResponseStatus.OUT_OF_CASH;
+import static com.ssafy.omg.config.baseresponse.MessageResponseStatus.AMOUNT_OUT_OF_RANGE;
+import static com.ssafy.omg.config.baseresponse.MessageResponseStatus.LOAN_ALREADY_TAKEN;
 import static com.ssafy.omg.domain.game.entity.RoundStatus.ROUND_START;
 import static com.ssafy.omg.domain.game.entity.RoundStatus.STOCK_FLUCTUATION;
 import static com.ssafy.omg.domain.player.entity.PlayerStatus.COMPLETED;
@@ -520,7 +520,7 @@ public class GameServiceImpl implements GameService {
      * @return 대출 금액 범위
      * @throws BaseException 1. 이미 대출을 받은 적이 있는 경우 2. 유효하지 않은 주가수준인 경우
      */
-    public int preLoan(String roomId, String sender) throws BaseException {
+    public int preLoan(String roomId, String sender) throws BaseException, MessageException {
 
         // 입력값 오류
         validateRequest(roomId, sender);
@@ -530,7 +530,7 @@ public class GameServiceImpl implements GameService {
 
         // 이미 대출을 받은 적이 있는 경우
         if (player.getHasLoan() == 1) {
-            throw new BaseException(LOAN_ALREADY_TAKEN);
+            throw new MessageException(roomId, sender, LOAN_ALREADY_TAKEN);
         }
 
         int stockPriceLevel = arena.getGame().getCurrentStockPriceLevel();
@@ -551,21 +551,17 @@ public class GameServiceImpl implements GameService {
     /**
      * [takeLoan] 대출 후 자산반영, 메세지 전송
      *
-     * @param userActionPayload
      * @throws BaseException 요청 금액이 대출 한도를 넘어가는 경우
      */
     @Override
-    public void takeLoan(StompPayload<Integer> userActionPayload) throws BaseException {
-        String roomId = userActionPayload.getRoomId();
-        String sender = userActionPayload.getSender();
-        int amount = userActionPayload.getData();
+    public void takeLoan(String roomId, String sender, int amount) throws BaseException, MessageException {
 
         validateRequest(roomId, sender);
         int range = preLoan(roomId, sender);
 
         // 요청 금액이 대출 한도를 이내인지 검사
         if (amount < LOAN_RANGE[range][0] || LOAN_RANGE[range][1] < amount) {
-            throw new BaseException(AMOUNT_OUT_OF_RANGE);
+            throw new MessageException(roomId, sender, AMOUNT_OUT_OF_RANGE);
         }
 
         // 대출금을 자산에 반영
