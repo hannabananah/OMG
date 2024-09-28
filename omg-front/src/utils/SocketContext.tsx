@@ -179,17 +179,7 @@ export default function SocketProvider({ children }: SocketProviderProps) {
       },
       { id: subRoomId },
     );
-
-    const messagePayload = {
-      roomId,
-      sender: nickname,
-      message: 'ENTER_ROOM',
-    };
-
-    socket.publish({
-      destination: '/pub/room',
-      body: JSON.stringify(messagePayload),
-    });
+    enterRoom();
   };
 
   // 게임방 구독
@@ -369,6 +359,20 @@ export default function SocketProvider({ children }: SocketProviderProps) {
 
     socket.publish({
       destination: '/pub/game-initialize',
+      body: JSON.stringify(messagePayload),
+    });
+  };
+
+  // 대기방 입장
+  const enterRoom = () => {
+    const messagePayload = {
+      roomId,
+      sender: nickname,
+      message: 'ENTER_ROOM',
+    };
+
+    socket.publish({
+      destination: '/pub/room',
       body: JSON.stringify(messagePayload),
     });
   };
