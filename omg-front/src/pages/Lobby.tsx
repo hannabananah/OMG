@@ -3,7 +3,10 @@ import { FaCopy } from 'react-icons/fa';
 import { useNavigate } from 'react-router-dom';
 
 import ExitButton from '@/components/common/ExitButton';
-import { useCreateWaitingRoom } from '@/hooks/useWaitingRoom';
+import {
+  useCreateWaitingRoom,
+  useHasWaitingRoom,
+} from '@/hooks/useWaitingRoom';
 import useUser from '@/stores/useUser';
 
 export default function Lobby() {
@@ -19,6 +22,7 @@ export default function Lobby() {
   }, [setNickname]);
 
   const createRoomMutation = useCreateWaitingRoom();
+  const hasRoomMutation = useHasWaitingRoom();
 
   const handleClickCreateRoom = () => {
     createRoomMutation.mutate(nickname);
@@ -47,8 +51,23 @@ export default function Lobby() {
     setIsCopyEnabled(roomCode.length === 10);
   }, [roomCode]);
 
-  const handleClickEnterRoom = () => {
-    navigate(`/waiting/${roomCode}`);
+  const handleClickEnterRoom = async () => {
+    if (!roomCode.trim()) {
+      alert('코드를 입력해주세요.');
+      return;
+    }
+
+    try {
+      const res = await hasRoomMutation.mutateAsync(roomCode);
+      if (res && res.result) {
+        navigate(`/waiting/${roomCode}`);
+      } else {
+        alert('존재하지 않는 대기방입니다.');
+      }
+    } catch (error) {
+      console.error('대기방 확인 중 오류 발생:', error);
+      alert('대기방 확인 중 오류가 발생했습니다.');
+    }
   };
 
   return (

@@ -1,17 +1,17 @@
 import { END_POINT } from '@/apis/apiConstants';
 import { axiosInstance } from '@/apis/axiosInstance';
 
-export interface CreateRoomResponse {
+export interface BaseResponse {
+  [x: string]: any;
   isSuccess: boolean;
   code: number;
   message: string;
+}
+export interface CreateRoomResponse extends BaseResponse {
   result: string;
 }
 
-export interface EnterRoomResponse {
-  isSuccess: boolean;
-  code: number;
-  message: string;
+export interface EnterRoomResponse extends BaseResponse {
   result: {
     roomId: string;
     sender: string;
@@ -26,6 +26,10 @@ export interface EnterRoomResponse {
       }>;
     };
   };
+}
+
+export interface HasWaitingRoomResponse extends BaseResponse {
+  result: string;
 }
 
 // 대기방 생성
@@ -47,6 +51,16 @@ export const enterWaitingRoom = async (
     roomId,
     sender,
     message: 'ENTER_SUCCESS',
+  });
+  return response.data;
+};
+
+// 대기방 존재 유무
+export const hasWaitingRoom = async (
+  roomId: string,
+): Promise<HasWaitingRoomResponse> => {
+  const response = await axiosInstance.get(`${END_POINT.ROOM}`, {
+    params: { roomId },
   });
   return response.data;
 };
