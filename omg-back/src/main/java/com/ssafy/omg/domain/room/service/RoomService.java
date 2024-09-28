@@ -13,6 +13,9 @@ public interface RoomService {
     // 대기 방 생성
     String createRoom(String userNickname) throws BaseException;
 
+    // 대기 방 존재 여부
+    boolean isRoomExists(String roomId) throws BaseException;
+
     // 대기 방 입장
     CommonRoomResponse enterRoom(CommonRoomRequest request) throws BaseException;
 

@@ -7,10 +7,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.autoconfigure.reactor.ReactorProperties;
 import org.springframework.messaging.simp.SimpMessageSendingOperations;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @Slf4j
 @RestController
@@ -53,6 +50,20 @@ public class RoomController {
 //        log.info("User {} entered room {}", request.getSender(), request.getRoomId());
 //        return new BaseResponse<>(response);
 //    }
+
+    /**
+     * 대기방 존재 여부 체크
+     *
+     * @param roomId 확인할 방 ID
+     * @return 방 존재 여부
+     * @throws BaseException
+     */
+    @GetMapping("")
+    public BaseResponse<Boolean> checkRoomExists(@RequestParam String roomId) throws BaseException {
+        boolean isExists = roomService.isRoomExists(roomId);
+        log.info("대기 방 존재 여부 체크 : {} 방 존재여부 : {}", roomId, isExists);
+        return new BaseResponse<>(isExists);
+    }
 
     /**
      * 대기방 나가기
