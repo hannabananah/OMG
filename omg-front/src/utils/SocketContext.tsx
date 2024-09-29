@@ -28,6 +28,7 @@ interface SocketContextType {
   allRendered: boolean;
   purchaseGold: (goldPurchaseCount: number) => void;
   takeLoan: (loanAmount: number) => void;
+  repayLoan: (repayLoanAmount: number) => void;
 }
 
 const defaultContextValue: SocketContextType = {
@@ -51,6 +52,7 @@ const defaultContextValue: SocketContextType = {
   allRendered: false,
   purchaseGold: () => {},
   takeLoan: () => {},
+  repayLoan: () => {},
 };
 
 export const SocketContext =
@@ -69,6 +71,7 @@ export default function SocketProvider({ children }: SocketProviderProps) {
     setRoomMessage,
     setGameMessage,
     setLoanMessage,
+    setRepayLoanMessage,
     setGoldPurchaseMessage,
   } = useSocketMessage();
   const [socket, setSocket] = useState<Client | null>(null);
@@ -273,6 +276,15 @@ export default function SocketProvider({ children }: SocketProviderProps) {
             }
             break;
 
+          case 'SUCCESS_REPAY_LOAN':
+            if (currentUser === nickname) {
+              setRepayLoanMessage({
+                message: parsedMessage.data.totalDebt,
+                isCompleted: true,
+              });
+            }
+            break;
+
           case 'OUT_OF_CASH':
             if (currentUser === nickname) {
               setGoldPurchaseMessage({
@@ -308,6 +320,25 @@ export default function SocketProvider({ children }: SocketProviderProps) {
               });
             }
             break;
+
+          case 'AMOUNT_EXCEED_DEBT':
+            if (currentUser === nickname) {
+              setRepayLoanMessage({
+                message: '상환금액이 총 부채금액 보다 큽니다.',
+                isCompleted: false,
+              });
+            }
+            break;
+
+          case 'AMOUNT_EXCEED_CASH':
+            if (currentUser === nickname) {
+              setRepayLoanMessage({
+                message: '상환금액이 보유 현금 자산 보다 큽니다.',
+                isCompleted: false,
+              });
+            }
+            break;
+
           case 'GAME_EVENT':
             break;
         }
@@ -486,6 +517,21 @@ export default function SocketProvider({ children }: SocketProviderProps) {
     });
   };
 
+  // 대출 상환
+  const repayLoan = (repayLoanAmount: number) => {
+    if (!isSocketConnected()) return;
+    const messagePayload = {
+      type: 'REPAY_LOAN',
+      roomId,
+      sender: nickname,
+      data: repayLoanAmount,
+    };
+    socket.publish({
+      destination: '/pub/repay-loan',
+      body: JSON.stringify(messagePayload),
+    });
+  };
+
   const contextValue = useMemo(
     () => ({
       socket,
@@ -508,6 +554,7 @@ export default function SocketProvider({ children }: SocketProviderProps) {
       allRendered,
       purchaseGold,
       takeLoan,
+      repayLoan,
     }),
     [
       socket,
@@ -520,6 +567,7 @@ export default function SocketProvider({ children }: SocketProviderProps) {
       gameMessage,
       purchaseGold,
       takeLoan,
+      repayLoan,
     ],
   );
 
