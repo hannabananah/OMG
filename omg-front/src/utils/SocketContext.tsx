@@ -64,7 +64,13 @@ export default function SocketProvider({ children }: SocketProviderProps) {
   const { roomId } = useParams<{ roomId: string }>();
   const { nickname, setCharacterType, setPlayerIndex } = useUser();
   const base_url = import.meta.env.VITE_APP_SOCKET_URL;
-  const { gameMessage, setRoomMessage, setGameMessage } = useSocketMessage();
+  const {
+    gameMessage,
+    setRoomMessage,
+    setGameMessage,
+    setLoanMessage,
+    setGoldPurchaseMessage,
+  } = useSocketMessage();
   const [socket, setSocket] = useState<Client | null>(null);
   const [online, setOnline] = useState(false);
   const [player, setPlayer] = useState<string[]>([]);
@@ -194,7 +200,7 @@ export default function SocketProvider({ children }: SocketProviderProps) {
       message => {
         const parsedMessage = JSON.parse(message.body);
         console.log('게임방 구독', parsedMessage);
-
+        const currentUser = parsedMessage.sender;
         switch (parsedMessage.type) {
           case 'GAME_INITIALIZED':
             const initPlayerData = parsedMessage.data.game.players;
@@ -216,12 +222,12 @@ export default function SocketProvider({ children }: SocketProviderProps) {
             if (currentUserIndex !== -1) {
               setPlayerIndex(currentUserIndex);
             }
-            const currentUser = initPlayerData.find(
+            const currentUserNickname = initPlayerData.find(
               (player: Player) => player.nickname === nickname,
             );
 
-            if (currentUser) {
-              setCharacterType(currentUser.characterType);
+            if (currentUserNickname) {
+              setCharacterType(currentUserNickname.characterType);
             }
             break;
 
@@ -249,41 +255,59 @@ export default function SocketProvider({ children }: SocketProviderProps) {
             }
             break;
 
-          case 'SUCCESS':
-            const ownUserSuccess = parsedMessage.sender;
-            if (ownUserSuccess === nickname) {
-              const transactionData = parsedMessage.data;
-              setGameMessage(transactionData);
-              console.log('거래 성공');
+          case 'SUCCESS_PURCHASE_GOLD':
+            if (currentUser === nickname) {
+              setGoldPurchaseMessage({
+                message: parsedMessage.data.goldOwned,
+                isCompleted: true,
+              });
+            }
+            break;
+
+          case 'SUCCESS_TAKE_LOAN':
+            if (currentUser === nickname) {
+              setLoanMessage({
+                message: parsedMessage.data.loanPrincipal,
+                isCompleted: true,
+              });
             }
             break;
 
           case 'OUT_OF_CASH':
-            const ownUserFailed = parsedMessage.sender;
-            if (ownUserFailed === nickname) {
-              const deniedData = parsedMessage.data;
-              setGameMessage(deniedData);
-              console.log('돈이 부족합니다.');
+            if (currentUser === nickname) {
+              setGoldPurchaseMessage({
+                message: '돈이 부족합니다.',
+                isCompleted: false,
+              });
+            }
+            break;
+
+          case 'GOLD_ALREADY_PURCHASED':
+            if (currentUser === nickname) {
+              setGoldPurchaseMessage({
+                message: '이미 한 라운드 내에서 금괴를 구매했습니다.',
+                isCompleted: false,
+              });
             }
             break;
 
           case 'AMOUNT_OUT_OF_RANGE':
-            const ownUserOut = parsedMessage.sender;
-            if (ownUserOut === nickname) {
-              const deniedData = parsedMessage.data;
-              setGameMessage(deniedData);
-              console.log('가능한 액수를 초과했습니다.');
-            }
-            break;
-          case 'LOAN_ALREADY_TAKEN':
-            const ownUserAlready = parsedMessage.sender;
-            if (ownUserAlready === nickname) {
-              const deniedData = parsedMessage.data;
-              setGameMessage(deniedData);
-              console.log('이미 대출을 받았습니다.');
+            if (currentUser === nickname) {
+              setLoanMessage({
+                message: '가능한 대출한도를 넘었습니다.',
+                isCompleted: false,
+              });
             }
             break;
 
+          case 'LOAN_ALREADY_TAKEN':
+            if (currentUser === nickname) {
+              setLoanMessage({
+                message: '이미 대출을 받았습니다.',
+                isCompleted: false,
+              });
+            }
+            break;
           case 'GAME_EVENT':
             break;
         }

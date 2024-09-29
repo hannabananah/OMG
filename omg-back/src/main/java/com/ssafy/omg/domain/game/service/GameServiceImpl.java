@@ -18,6 +18,7 @@ import com.ssafy.omg.domain.player.entity.PlayerStatus;
 import com.ssafy.omg.domain.socket.dto.StompPayload;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.messaging.Message;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -47,6 +48,8 @@ import static com.ssafy.omg.config.baseresponse.BaseResponseStatus.REQUEST_ERROR
 import static com.ssafy.omg.config.baseresponse.MessageResponseStatus.OUT_OF_CASH;
 import static com.ssafy.omg.config.baseresponse.MessageResponseStatus.AMOUNT_OUT_OF_RANGE;
 import static com.ssafy.omg.config.baseresponse.MessageResponseStatus.LOAN_ALREADY_TAKEN;
+import static com.ssafy.omg.config.baseresponse.MessageResponseStatus.AMOUNT_EXCEED_DEBT;
+import static com.ssafy.omg.config.baseresponse.MessageResponseStatus.AMOUNT_EXCEED_CASH;
 import static com.ssafy.omg.domain.game.entity.RoundStatus.ROUND_START;
 import static com.ssafy.omg.domain.game.entity.RoundStatus.STOCK_FLUCTUATION;
 import static com.ssafy.omg.domain.player.entity.PlayerStatus.COMPLETED;
@@ -559,14 +562,15 @@ public class GameServiceImpl implements GameService {
         validateRequest(roomId, sender);
         int range = preLoan(roomId, sender);
 
+        // 대출금을 자산에 반영
+        Arena arena = gameRepository.findArenaByRoomId(roomId).orElseThrow(() -> new BaseException(ARENA_NOT_FOUND));
+        Player player = findPlayer(arena, sender);
+
         // 요청 금액이 대출 한도를 이내인지 검사
         if (amount < LOAN_RANGE[range][0] || LOAN_RANGE[range][1] < amount) {
             throw new MessageException(roomId, sender, AMOUNT_OUT_OF_RANGE);
         }
 
-        // 대출금을 자산에 반영
-        Arena arena = gameRepository.findArenaByRoomId(roomId).orElseThrow(() -> new BaseException(ARENA_NOT_FOUND));
-        Player player = findPlayer(arena, sender);
         int interest = (int) (amount * (arena.getGame().getCurrentInterestRate() / 100.0));
 
         player.setHasLoan(1);
@@ -583,20 +587,25 @@ public class GameServiceImpl implements GameService {
     /**
      * [repayLoan] 상환 후 자산 반영, 메세지 전송
      *
-     * @param userActionPayload
      * @throws BaseException 상환 금액이 유효하지 않은 값일 때
      */
     @Override
-    public void repayLoan(StompPayload<Integer> userActionPayload) throws BaseException {
-        String roomId = userActionPayload.getRoomId();
-        String sender = userActionPayload.getSender();
-        int amount = userActionPayload.getData();
+    public void repayLoan(String roomId, String sender, int amount) throws BaseException, MessageException {
 
         validateRequest(roomId, sender);
 
         Arena arena = gameRepository.findArenaByRoomId(roomId).orElseThrow(() -> new BaseException(ARENA_NOT_FOUND));
-        ;
         Player player = findPlayer(arena, sender);
+
+        int totalDebt = player.getTotalDebt();
+        int cash = player.getCash();
+
+        if (amount > totalDebt) {
+            throw new MessageException(roomId, sender, AMOUNT_EXCEED_DEBT);
+        }
+        if (amount > cash) {
+            throw new MessageException(roomId, sender, AMOUNT_EXCEED_CASH);
+        }
 
         // 상환 후 자산에 반영(갚아야 할 금액 차감, 현금 차감)
         player.repayLoan(amount);

@@ -16,7 +16,11 @@ public enum MessageResponseStatus {
     INSUFFICIENT_CASH(501, "주식을 지불할 현금이 부족합니다."),
 
     // Gold
-    INVALID_GOLD_VALUE(3201, "유효하지 않은 금괴 매입수입니다.");
+    INVALID_GOLD_VALUE(3201, "유효하지 않은 금괴 매입수입니다."),
+
+    // RepayLoan
+    AMOUNT_EXCEED_DEBT(3108, "상환 금액이 총 부채보다 많습니다."),
+    AMOUNT_EXCEED_CASH(3109, "상환 금액이 보유 자산보다 많습니다.");
 
     private final int code;
     private final String message;

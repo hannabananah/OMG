@@ -22,10 +22,6 @@ import { Physics } from '@react-three/rapier';
 
 import ChatButton from '../common/ChatButton';
 
-interface GameMessage {
-  state: 'COMPLETED' | 'NOT_STARTED' | 'IN_PROGRESS';
-}
-
 const CharacterInfo = {
   santa: {
     url: '/models/santa/santa.gltf',
@@ -56,14 +52,35 @@ export default function MainMap() {
     takeLoan,
   } = useContext(SocketContext);
   const { otherUsers } = useOtherUserStore();
-  const { gameMessage } = useSocketMessage();
+  const { goldPurchaseMessage, loanMessage } = useSocketMessage();
 
   useEffect(() => {
     if (socket && online && allRendered) {
       initGameSetting();
     }
-  }),
-    [initGameSetting];
+  }, [initGameSetting, allRendered, socket, online]);
+
+  useEffect(() => {
+    if (!goldPurchaseMessage.message) return;
+
+    if (goldPurchaseMessage.isCompleted) {
+      alert(
+        `금괴를 성공적으로 구매했습니다! 현재 소유 금괴 수량: ${goldPurchaseMessage.message}`,
+      );
+    } else if (!goldPurchaseMessage.isCompleted) {
+      alert(goldPurchaseMessage.message);
+    }
+  }, [goldPurchaseMessage]);
+
+  useEffect(() => {
+    if (!loanMessage.message) return;
+
+    if (loanMessage.isCompleted) {
+      alert(`대출 신청이 완료되었습니다! 대출액: ${loanMessage.message}`);
+    } else if (!goldPurchaseMessage.isCompleted) {
+      alert(loanMessage.message);
+    }
+  }, [loanMessage]);
 
   const characterKeys = Object.keys(CharacterInfo) as Array<
     keyof typeof CharacterInfo
@@ -120,28 +137,13 @@ export default function MainMap() {
   // TODO: 삭제해야됨
   const handleClickPurchaseGold = () => {
     const goldPurchaseCount = Number(prompt('금괴 매입 수량을 입력하세요.'));
-    console.log('금괴 매입 버튼 클릭', goldPurchaseCount);
     purchaseGold(goldPurchaseCount);
   };
 
-  // TODO: 삭제해야됨
   const handleClickTakeLoan = () => {
     const loanAmount = Number(prompt('대출할 액수를 입력하세요.'));
-    console.log('대출 신청 버튼 클릭', loanAmount);
     takeLoan(loanAmount);
   };
-
-  useEffect(() => {
-    if (gameMessage && (gameMessage as GameMessage).state) {
-      console.log('gameMessage==>', gameMessage);
-      const { state } = gameMessage as GameMessage;
-      if (state === 'COMPLETED') {
-        alert('거래가 성공적으로 완료되었습니다!');
-      } else if (state === 'NOT_STARTED') {
-        alert('돈이 부족하여 거래에 실패했습니다.');
-      }
-    }
-  }, [gameMessage]);
 
   return (
     <main className='relative w-full h-screen overflow-hidden'>
