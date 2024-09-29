@@ -1,9 +1,6 @@
-interface ChatMessageProps {
-  sender: string;
-  content: string;
-}
+import type { ChatMessage } from '@/types';
 
-export default function ChatMessage({ sender, content }: ChatMessageProps) {
+export default function ChatMessage({ sender, content }: ChatMessage) {
   return (
     <p className='text-lime-600'>
       <strong>{sender}</strong>: {content}

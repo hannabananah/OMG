@@ -11,6 +11,9 @@ export default {
       'omg-24': '1.71rem', // 24px
       'omg-28': '2rem', // 28px
       'omg-30': '2.14rem', // 30px
+
+      'omg-24b': '1.71rem', // 24px
+      'omg-28b': '2rem', // 28px
       'omg-30b': '2.14rem',
       'omg-40b': '2.86rem', // 40px
       'omg-50b': '3.57rem', // 50px

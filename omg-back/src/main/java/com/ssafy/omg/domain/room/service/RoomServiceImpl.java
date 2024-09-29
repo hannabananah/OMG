@@ -83,6 +83,23 @@ public class RoomServiceImpl implements RoomService {
     }
 
     /**
+     * 대기 방 존재 여부
+     *
+     * @param roomId
+     * @return
+     * @throws BaseException
+     */
+    @Override
+    public boolean isRoomExists(String roomId) throws BaseException {
+        String roomKey = ROOM_PREFIX + roomId;
+        System.out.println("찾을 방 아이디 : " + roomId);
+
+        // 대기방 존재 여부 반환
+        Arena arena = redisTemplate.opsForValue().get(roomKey);
+        return arena != null && arena.getRoom() != null;
+    }
+
+    /**
      * 대기 방 입장
      * 방이 빈 경우 room 생성
      * room에 접속자 nickname 없는 경우 추가

@@ -51,7 +51,7 @@ public class CommonMessageController {
         String roomId = gameInitializationPayload.getRoomId();
         List<String> players = gameRepository.findinRoomPlayerList(roomId);
         Arena arena = gameService.initializeGame(roomId, players);
-//        gameBroadcastService.startBroadcast(roomId);
+       gameBroadcastService.startBroadcast(roomId);
 
         StompPayload<Arena> response = new StompPayload<>("GAME_INITIALIZED", roomId, "GAME_MANAGER", arena);
         messagingTemplate.convertAndSend("/sub/" + roomId + "/game", response);
@@ -128,26 +128,8 @@ public class CommonMessageController {
         gameService.movePlayer(message);
     }
 
-    // 주식 매도
-    // TODO 주식 관련 메서드는 synchronized
-
-    // 주식 매수
-    // TODO 주식 관련 메서드는 synchronized
     @MessageMapping("/buy-stock")
     public void buyStock(@Payload StompPayload<StockRequest> message) throws BaseException, MessageException {
         gameService.buyStock(message);
-    }
-
-    // 금괴 매입
-
-    /**
-     * UserActionRequest의 입력유효성 검사
-     *
-     * @param message
-     * @throws BaseException data가 null인 경우 체크
-     */
-    private void validateUserAction(StompPayload<UserActionDTO> message) throws BaseException {
-        Optional.ofNullable(message.getData())
-                .orElseThrow(() -> new BaseException(REQUEST_ERROR));
     }
 }

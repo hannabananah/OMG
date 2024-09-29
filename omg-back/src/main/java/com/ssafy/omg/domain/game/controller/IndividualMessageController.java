@@ -17,6 +17,7 @@ import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.messaging.simp.SimpMessageSendingOperations;
 import org.springframework.web.bind.annotation.CrossOrigin;
 
+import static com.ssafy.omg.config.baseresponse.BaseResponseStatus.PLAYER_STATE_ERROR;
 import static com.ssafy.omg.config.baseresponse.MessageResponseStatus.OUT_OF_CASH;
 
 @Slf4j
@@ -40,7 +41,7 @@ public class IndividualMessageController {
         try {
             gameService.purchaseGold(roomId, userNickname, purchasedGoldCnt);
             IndividualMessageDto individualMessage = gameService.getIndividualMessage(roomId, userNickname);
-            response = new StompPayload<>("SUCCESS", roomId, userNickname, individualMessage);
+            response = new StompPayload<>("SUCCESS_PURCHASE_GOLD", roomId, userNickname, individualMessage);
             messagingTemplate.convertAndSend("/sub/" + roomId + "/game", response);
             return new BaseResponse<>(response);
         } catch (MessageException e) {
@@ -50,8 +51,58 @@ public class IndividualMessageController {
             log.debug("현재 자산이 부족합니다!");
             return new BaseResponse<>(OUT_OF_CASH);
         } catch (BaseException e) {
+            IndividualMessageDto individualMessage = gameService.getIndividualMessage(roomId, userNickname);
+            response = new StompPayload<>("GOLD_ALREADY_PURCHASED", roomId, userNickname, individualMessage);
+            messagingTemplate.convertAndSend("/sub/" + roomId + "/game", response);
+            return new BaseResponse<>(PLAYER_STATE_ERROR);
+        }
+    }
+
+    @MessageMapping("/take-loan")
+    public BaseResponse<?> takeLoan(@Payload StompPayload<Integer> userActionPayload) throws BaseException, MessageException {
+        String roomId = userActionPayload.getRoomId();
+        String userNickname = userActionPayload.getSender();
+        int takeLoanAmount = userActionPayload.getData();
+
+        StompPayload<IndividualMessageDto> response = null;
+        try {
+            gameService.takeLoan(roomId, userNickname, takeLoanAmount);
+            IndividualMessageDto individualMessage = gameService.getIndividualMessage(roomId, userNickname);
+            response = new StompPayload<>("SUCCESS_TAKE_LOAN", roomId, userNickname, individualMessage);
+            messagingTemplate.convertAndSend("/sub/" + roomId + "/game", response);
+            return new BaseResponse<>(response);
+        } catch (MessageException e) {
+            IndividualMessageDto individualMessage = gameService.getIndividualMessage(roomId, userNickname);
+            response = new StompPayload<>(e.getStatus().name(), roomId, userNickname, individualMessage);
+            messagingTemplate.convertAndSend("/sub/" + roomId + "/game", response);
+            log.debug(e.getStatus().getMessage());
+            return new BaseResponse<>(e.getStatus());
+        } catch (BaseException e) {
             return new BaseResponse<>(e.getStatus());
         }
     }
 
+    @MessageMapping("/repay-loan")
+    public BaseResponse<?> repayLoan(@Payload StompPayload<Integer> userActionPayload) throws BaseException, MessageException {
+        String roomId = userActionPayload.getRoomId();
+        String userNickname = userActionPayload.getSender();
+        int repayLoanAmount = userActionPayload.getData();
+
+        StompPayload<IndividualMessageDto> response = null;
+        try {
+            gameService.repayLoan(roomId, userNickname, repayLoanAmount);
+            IndividualMessageDto individualMessage = gameService.getIndividualMessage(roomId, userNickname);
+            response = new StompPayload<>("SUCCESS_REPAY_LOAN", roomId, userNickname, individualMessage);
+            messagingTemplate.convertAndSend("/sub/" + roomId + "/game", response);
+            return new BaseResponse<>(response);
+        } catch (MessageException e) {
+            IndividualMessageDto individualMessage = gameService.getIndividualMessage(roomId, userNickname);
+            response = new StompPayload<>(e.getStatus().name(), roomId, userNickname, individualMessage);
+            messagingTemplate.convertAndSend("/sub/" + roomId + "/game", response);
+            log.debug(e.getStatus().getMessage());
+            return new BaseResponse<>(e.getStatus());
+        } catch (BaseException e) {
+            return new BaseResponse<>(e.getStatus());
+        }
+    }
 }

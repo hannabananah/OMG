@@ -29,14 +29,14 @@ public interface GameService {
     // 경제 이벤트 발생(조회) 및 금리 변동 (2~10라운드)
     GameEvent createGameEventandInterestChange(String roomId) throws BaseException;
 
-    void takeLoan(StompPayload<Integer> userActionPayload) throws BaseException;
+    void takeLoan(String roomId, String userNickname, int amount) throws BaseException, MessageException;
     // 매입한 금괴 개수를 플레이어 자산 및 금괴 매입 트랙( + 추가개수)에 반영
     void purchaseGold(String roomId, String userNickname, int goldButCount) throws BaseException, MessageException;
 
     // 주가 변동 가능 여부
     boolean isStockFluctuationAble(String roomId) throws BaseException;
 
-    void repayLoan(StompPayload<Integer> userActionPayload) throws BaseException;
+    void repayLoan(String roomId, String userNickname, int amount) throws BaseException, MessageException;
 
     void sellStock(StompPayload<int[]> userActionPayload) throws BaseException;
 

@@ -11,9 +11,9 @@ export default function Candy({ onClick, disabled }: CandyProps) {
   const { scene } = useGLTF('/models/candy/candy.gltf');
 
   const position = {
-    x: 3,
-    y: -1,
-    z: -2.5,
+    x: 2.5,
+    y: 0,
+    z: -1.4,
   };
 
   const ref = useFloatingObject(position.y);

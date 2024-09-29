@@ -11,9 +11,9 @@ export default function Cane({ onClick, disabled }: CaneProps) {
   const { scene } = useGLTF('/models/cane/cane.gltf');
 
   const position = {
-    x: 3,
-    y: 0.8,
-    z: -1.3,
+    x: 2,
+    y: 0,
+    z: 0.7,
   };
 
   const ref = useFloatingObject(position.y);

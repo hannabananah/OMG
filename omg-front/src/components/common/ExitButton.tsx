@@ -11,7 +11,7 @@ export default function ExitButton({ showText = false }) {
   return (
     <button onClick={handleClick} className='flex items-center space-x-2'>
       <FaPowerOff />
-      {showText && <span className='text-omg-sm'>대기방 나가기</span>}
+      {showText && <span className='text-omg-30'>대기방 나가기</span>}
     </button>
   );
 }

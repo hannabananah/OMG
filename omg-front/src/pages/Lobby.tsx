@@ -2,18 +2,17 @@ import { useCallback, useEffect, useState } from 'react';
 import { FaCopy } from 'react-icons/fa';
 import { useNavigate } from 'react-router-dom';
 
-import { handleApiError } from '@/apis/errorHandler';
-import { createWaitingRooms } from '@/apis/room/roomAPI';
 import ExitButton from '@/components/common/ExitButton';
+import {
+  useCreateWaitingRoom,
+  useHasWaitingRoom,
+} from '@/hooks/useWaitingRoom';
 import useUser from '@/stores/useUser';
-import { AxiosError } from 'axios';
 
 export default function Lobby() {
   const { nickname, setNickname } = useUser();
   const [roomCode, setRoomCode] = useState<string>('');
   const navigate = useNavigate();
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
   const [isCopyEnabled, setIsCopyEnabled] = useState(false);
 
   // TODO: 임시 이름 설정
@@ -22,20 +21,18 @@ export default function Lobby() {
     setNickname(uniqueNickname);
   }, [setNickname]);
 
-  const handleClickCreateRoom = async () => {
-    setLoading(true);
-    setError(null);
-    try {
-      const response = await createWaitingRooms(nickname);
-      setRoomCode(response);
-    } catch (err) {
-      const handledError = handleApiError(err as AxiosError);
-      setError(handledError.message);
-      console.error(err);
-    } finally {
-      setLoading(false);
-    }
+  const createRoomMutation = useCreateWaitingRoom();
+  const hasRoomMutation = useHasWaitingRoom();
+
+  const handleClickCreateRoom = () => {
+    createRoomMutation.mutate(nickname);
   };
+
+  useEffect(() => {
+    if (createRoomMutation.isSuccess && createRoomMutation.data) {
+      setRoomCode(createRoomMutation.data.result || '');
+    }
+  }, [createRoomMutation]);
 
   const handleCopyToClipboard = useCallback(() => {
     if (roomCode.length === 10) {
@@ -55,12 +52,21 @@ export default function Lobby() {
   }, [roomCode]);
 
   const handleClickEnterRoom = async () => {
+    if (!roomCode.trim()) {
+      alert('코드를 입력해주세요.');
+      return;
+    }
+
     try {
-      navigate(`/waiting/${roomCode}`);
-    } catch (err) {
-      const handledError = handleApiError(err as AxiosError);
-      setError(handledError.message || '대기방 입장에 실패했습니다.');
-      console.error(err);
+      const res = await hasRoomMutation.mutateAsync(roomCode);
+      if (res && res.result) {
+        navigate(`/waiting/${roomCode}`);
+      } else {
+        alert('존재하지 않는 대기방입니다.');
+      }
+    } catch (error) {
+      console.error('대기방 확인 중 오류 발생:', error);
+      alert('대기방 확인 중 오류가 발생했습니다.');
     }
   };
 
@@ -76,14 +82,14 @@ export default function Lobby() {
             <button
               onClick={handleClickCreateRoom}
               className='w-full p-2 text-omg-40b'
-              disabled={loading}
+              disabled={createRoomMutation.isPending}
             >
-              {loading ? '생성 중...' : '방 생성하기'}
+              {createRoomMutation.isPending ? '방 생성중...' : '방 생성하기'}
             </button>
-            {error ? (
-              <p className='text-center text-red text-omg-14'>{error}</p>
-            ) : (
-              <p className='min-h-[1.5rem]'></p>
+            {createRoomMutation.isError && (
+              <p className='text-center text-red text-omg-14'>
+                {createRoomMutation.error.message}
+              </p>
             )}
           </div>
           <div className='flex items-center justify-center w-full gap-5'>

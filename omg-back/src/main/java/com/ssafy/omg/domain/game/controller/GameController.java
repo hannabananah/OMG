@@ -5,18 +5,22 @@ import com.ssafy.omg.config.baseresponse.BaseResponse;
 import com.ssafy.omg.config.baseresponse.MessageException;
 import com.ssafy.omg.domain.arena.entity.Arena;
 import com.ssafy.omg.domain.game.GameRepository;
+import com.ssafy.omg.domain.game.dto.IndividualMessageDto;
 import com.ssafy.omg.domain.game.service.GameBroadcastService;
 import com.ssafy.omg.domain.game.service.GameService;
 import com.ssafy.omg.domain.socket.dto.StompPayload;
 import jdk.jfr.Description;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.messaging.simp.SimpMessageSendingOperations;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
+import static com.ssafy.omg.config.baseresponse.MessageResponseStatus.AMOUNT_OUT_OF_RANGE;
 import static com.ssafy.omg.config.baseresponse.MessageResponseStatus.OUT_OF_CASH;
 
+@Slf4j
 @RestController
 @RequestMapping("/games")
 @RequiredArgsConstructor
@@ -30,7 +34,7 @@ public class GameController {
     @PostMapping("/initialize")
     public BaseResponse<Arena> initializeGame(@RequestParam String roomId, @RequestBody List<String> players) throws BaseException {
         Arena arena = gameService.initializeGame(roomId, players);
-//        gameBroadcastService.startBroadcast(roomId);
+    //    gameBroadcastService.startBroadcast(roomId);
         return new BaseResponse<>(arena);
     }
 
@@ -65,15 +69,54 @@ public class GameController {
 
     // 대출
     @PostMapping("/take-loan")
-    public BaseResponse<?> takeLoan(@RequestBody StompPayload<Integer> data) throws BaseException {
-        gameService.takeLoan(data);
-        return new BaseResponse<>("대출이 성공적으로 처리되었습니다.");
+    public StompPayload<?> takeLoan(@RequestBody StompPayload<Integer> userActionPayload) throws BaseException {
+        String roomId = userActionPayload.getRoomId();
+        String userNickname = userActionPayload.getSender();
+        int takeLoanAmount = userActionPayload.getData();
+
+        StompPayload<IndividualMessageDto> response = null;
+        try {
+            gameService.takeLoan(roomId, userNickname, takeLoanAmount);
+            IndividualMessageDto individualMessage = gameService.getIndividualMessage(roomId, userNickname);
+            response = new StompPayload<>("SUCCESS", roomId, userNickname, individualMessage);
+            messagingTemplate.convertAndSend("/sub/" + roomId + "/game", response);
+            return response;
+        } catch (MessageException e) {
+            IndividualMessageDto individualMessage = gameService.getIndividualMessage(roomId, userNickname);
+            response = new StompPayload<>("FAIL", roomId, userNickname, individualMessage);
+            messagingTemplate.convertAndSend("/sub/" + roomId + "/game", response);
+            log.debug(String.valueOf(e.getStatus()));
+            log.debug("@@@@@@@@");
+            return response;
+        } catch (BaseException e) {
+            return response;
+        }
     }
 
     @PostMapping("/repay-loan")
-    public BaseResponse<?> repayLoan(@RequestBody StompPayload<Integer> data) throws BaseException {
-        gameService.repayLoan(data);
-        return new BaseResponse<>("상환이 성공적으로 처리되었습니다.");
+    public StompPayload<?> repayLoan(@RequestBody StompPayload<Integer> userActionPayload) throws BaseException {
+        String roomId = userActionPayload.getRoomId();
+        String userNickname = userActionPayload.getSender();
+        int repayLoanAmount = userActionPayload.getData();
+        System.out.println("!!!!!!!repayLoan!!!!!!!");
+
+        StompPayload<IndividualMessageDto> response = null;
+        try {
+            gameService.repayLoan(roomId, userNickname, repayLoanAmount);
+            IndividualMessageDto individualMessage = gameService.getIndividualMessage(roomId, userNickname);
+            response = new StompPayload<>("SUCCESS", roomId, userNickname, individualMessage);
+            messagingTemplate.convertAndSend("/sub/" + roomId + "/game", response);
+            return response;
+        } catch (MessageException e) {
+            System.out.println("MessageException");
+            IndividualMessageDto individualMessage = gameService.getIndividualMessage(roomId, userNickname);
+            response = new StompPayload<>("FAIL", roomId, userNickname, individualMessage);
+            log.debug(e.getStatus().getMessage());
+            return response;
+        } catch (BaseException e) {
+            System.out.println("BaseException");
+            return response;
+        }
     }
 
     @PostMapping("/sell-stock")

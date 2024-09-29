@@ -50,6 +50,8 @@ button:disabled {
 
 @layer utilities {
   /* 'b'가 붙은 텍스트 크기에는 'OKDDUNG' 폰트 적용 */
+  .text-omg-24b,
+  .text-omg-28b,
   .text-omg-30b,
   .text-omg-40b,
   .text-omg-50b,

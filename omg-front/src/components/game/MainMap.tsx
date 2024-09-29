@@ -1,3 +1,4 @@
+<<<<<<< HEAD:omg-front/src/components/game/MainMap.tsx
 import { Suspense, useMemo } from 'react';
 
 import GingerBread from '@/components/character/GingerBread';

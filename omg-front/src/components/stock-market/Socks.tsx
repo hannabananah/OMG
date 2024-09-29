@@ -13,7 +13,7 @@ export default function Socks({ onClick, disabled }: SocksProps) {
   const position = {
     x: 2,
     y: 0,
-    z: -2.3,
+    z: 0,
   };
 
   const ref = useFloatingObject(position.y);
