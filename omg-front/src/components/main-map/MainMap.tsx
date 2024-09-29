@@ -50,9 +50,11 @@ export default function MainMap() {
     allRendered,
     purchaseGold,
     takeLoan,
+    repayLoan,
   } = useContext(SocketContext);
   const { otherUsers } = useOtherUserStore();
-  const { goldPurchaseMessage, loanMessage } = useSocketMessage();
+  const { goldPurchaseMessage, loanMessage, repayLoanMessage } =
+    useSocketMessage();
 
   useEffect(() => {
     if (socket && online && allRendered) {
@@ -77,10 +79,26 @@ export default function MainMap() {
 
     if (loanMessage.isCompleted) {
       alert(`대출 신청이 완료되었습니다! 대출액: ${loanMessage.message}`);
-    } else if (!goldPurchaseMessage.isCompleted) {
+    } else if (!loanMessage.isCompleted) {
       alert(loanMessage.message);
     }
   }, [loanMessage]);
+
+  useEffect(() => {
+    if (repayLoanMessage.message === null) return;
+
+    if (repayLoanMessage.isCompleted) {
+      if (repayLoanMessage.message == '0') {
+        alert('대출금을 모두 상환했습니다!');
+      } else {
+        alert(
+          `대출 상환이 완료되었습니다! 남은 대출액: ${repayLoanMessage.message}`,
+        );
+      }
+    } else if (!repayLoanMessage.isCompleted) {
+      alert(repayLoanMessage.message);
+    }
+  }, [repayLoanMessage]);
 
   const characterKeys = Object.keys(CharacterInfo) as Array<
     keyof typeof CharacterInfo
@@ -136,13 +154,36 @@ export default function MainMap() {
 
   // TODO: 삭제해야됨
   const handleClickPurchaseGold = () => {
-    const goldPurchaseCount = Number(prompt('금괴 매입 수량을 입력하세요.'));
+    const goldPurchaseCount = Number(
+      prompt('금괴 매입 수량을 입력하세요.').trim(),
+    );
+    if (goldPurchaseCount == 0) {
+      alert('매입 수량을 다시 입력해주세요.');
+      return;
+    }
+
     purchaseGold(goldPurchaseCount);
   };
 
   const handleClickTakeLoan = () => {
-    const loanAmount = Number(prompt('대출할 액수를 입력하세요.'));
+    const loanAmount = Number(prompt('대출할 액수를 입력하세요.').trim());
+    if (loanAmount == 0) {
+      alert('대출할 액수를 다시 입력해주세요.');
+      return;
+    }
+
     takeLoan(loanAmount);
+  };
+
+  const handleClickRepayLoan = () => {
+    const repayLoanAmount = Number(
+      prompt('상환할 대출 액수를 입력하세요.').trim(),
+    );
+    if (repayLoanAmount == 0) {
+      alert('상환액을 다시 입력해주세요.');
+      return;
+    }
+    repayLoan(repayLoanAmount);
   };
 
   return (
@@ -177,6 +218,12 @@ export default function MainMap() {
           text='임시 대출신청 버튼'
           type='mainmap'
           onClick={handleClickTakeLoan}
+        />
+        {/* TODO: 삭제해야됨, 임시 대출상환 버튼 */}
+        <Button
+          text='임시 대출상환 버튼'
+          type='mainmap'
+          onClick={handleClickRepayLoan}
         />
       </section>
 
