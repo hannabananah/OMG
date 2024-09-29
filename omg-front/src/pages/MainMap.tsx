@@ -7,7 +7,7 @@ import GingerBread from '@/components/character/GingerBread';
 // import Santa from '@/components/character/Santa';
 // import Snowman from '@/components/character/Snowman';
 import MainAlert from '@/components/common/MainAlert';
-import Map from '@/components/game/Map';
+import Map from '@/components/main-map/Map';
 import {
   KeyboardControls,
   type KeyboardControlsEntry,
