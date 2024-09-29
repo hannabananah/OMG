@@ -574,6 +574,7 @@ public class GameServiceImpl implements GameService {
         player.setLoanInterest(interest);
         player.setTotalDebt(amount);
         player.setCash(player.getCash() + amount);
+        player.setState(COMPLETED);
 
         gameRepository.saveArena(roomId, arena);
     }

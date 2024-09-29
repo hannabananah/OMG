@@ -69,7 +69,7 @@ public class IndividualMessageController {
             return new BaseResponse<>(response);
         } catch (MessageException e) {
             IndividualMessageDto individualMessage = gameService.getIndividualMessage(roomId, userNickname);
-            response = new StompPayload<>(e.getStatus().name(), roomId, userNickname, individualMessage);            messagingTemplate.convertAndSend("/sub/" + roomId + "/game", response);
+            response = new StompPayload<>("FAIL", roomId, userNickname, individualMessage);            messagingTemplate.convertAndSend("/sub/" + roomId + "/game", response);
             log.debug(e.getStatus().getMessage());
             return new BaseResponse<>(e.getStatus());
         } catch (BaseException e) {
