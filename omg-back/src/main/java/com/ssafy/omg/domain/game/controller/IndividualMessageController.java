@@ -41,7 +41,7 @@ public class IndividualMessageController {
         try {
             gameService.purchaseGold(roomId, userNickname, purchasedGoldCnt);
             IndividualMessageDto individualMessage = gameService.getIndividualMessage(roomId, userNickname);
-            response = new StompPayload<>("SUCCESS", roomId, userNickname, individualMessage);
+            response = new StompPayload<>("SUCCESS_PURCHASE_GOLD", roomId, userNickname, individualMessage);
             messagingTemplate.convertAndSend("/sub/" + roomId + "/game", response);
             return new BaseResponse<>(response);
         } catch (MessageException e) {
@@ -68,12 +68,12 @@ public class IndividualMessageController {
         try {
             gameService.takeLoan(roomId, userNickname, takeLoanAmount);
             IndividualMessageDto individualMessage = gameService.getIndividualMessage(roomId, userNickname);
-            response = new StompPayload<>("SUCCESS", roomId, userNickname, individualMessage);
+            response = new StompPayload<>("SUCCESS_TAKE_LOAN", roomId, userNickname, individualMessage);
             messagingTemplate.convertAndSend("/sub/" + roomId + "/game", response);
             return new BaseResponse<>(response);
         } catch (MessageException e) {
             IndividualMessageDto individualMessage = gameService.getIndividualMessage(roomId, userNickname);
-            response = new StompPayload<>("FAIL", roomId, userNickname, individualMessage);
+            response = new StompPayload<>(e.getStatus().name(), roomId, userNickname, individualMessage);
             messagingTemplate.convertAndSend("/sub/" + roomId + "/game", response);
             log.debug(e.getStatus().getMessage());
             return new BaseResponse<>(e.getStatus());
@@ -92,12 +92,13 @@ public class IndividualMessageController {
         try {
             gameService.repayLoan(roomId, userNickname, repayLoanAmount);
             IndividualMessageDto individualMessage = gameService.getIndividualMessage(roomId, userNickname);
-            response = new StompPayload<>("SUCCESS", roomId, userNickname, individualMessage);
+            response = new StompPayload<>("SUCCESS_REPAY_LOAN", roomId, userNickname, individualMessage);
             messagingTemplate.convertAndSend("/sub/" + roomId + "/game", response);
             return new BaseResponse<>(response);
         } catch (MessageException e) {
             IndividualMessageDto individualMessage = gameService.getIndividualMessage(roomId, userNickname);
-            response = new StompPayload<>("FAIL", roomId, userNickname, individualMessage);
+            response = new StompPayload<>(e.getStatus().name(), roomId, userNickname, individualMessage);
+            messagingTemplate.convertAndSend("/sub/" + roomId + "/game", response);
             log.debug(e.getStatus().getMessage());
             return new BaseResponse<>(e.getStatus());
         } catch (BaseException e) {
