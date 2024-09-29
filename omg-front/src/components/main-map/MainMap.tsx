@@ -20,6 +20,7 @@ import {
 import { Canvas } from '@react-three/fiber';
 import { Physics } from '@react-three/rapier';
 
+import IntroCamera from '../camera/IntroCamera';
 import ChatButton from '../common/ChatButton';
 
 const CharacterInfo = {
@@ -244,6 +245,8 @@ export default function MainMap() {
         <Canvas>
           <Suspense>
             <OrbitControls />
+            <axesHelper args={[800]} />
+            <IntroCamera />
             <Physics>
               <ambientLight />
               <directionalLight />
