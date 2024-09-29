@@ -1,10 +1,6 @@
 package com.ssafy.omg.domain.player.entity;
 
-import com.ssafy.omg.config.baseresponse.BaseException;
 import lombok.*;
-
-import static com.ssafy.omg.config.baseresponse.BaseResponseStatus.AMOUNT_EXCEED_CASH;
-import static com.ssafy.omg.config.baseresponse.BaseResponseStatus.AMOUNT_EXCEED_DEBT;
 
 /**
  * 플레이어 정보
@@ -44,14 +40,7 @@ public class Player {
         this.cash += amount;
     }
 
-    public void repayLoan(int amount) throws BaseException {
-        if (amount > this.totalDebt) {
-            throw new BaseException(AMOUNT_EXCEED_DEBT);
-        }
-        if (amount > this.cash) {
-            throw new BaseException(AMOUNT_EXCEED_CASH);
-        }
-
+    public void repayLoan(int amount) {
         this.totalDebt -= amount;
         this.cash -= amount;
     }
