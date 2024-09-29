@@ -4,10 +4,15 @@ interface SocketMessageState {
   roomMessage: unknown;
   gameMessage: unknown;
   loanMessage?: { message: string; isCompleted: boolean };
+  repayLoanMessage?: { message: string; isCompleted: boolean };
   goldPurchaseMessage?: { message: string; isCompleted: boolean };
   setRoomMessage: (newRoomMessage: unknown) => void;
   setGameMessage: (newGameMessage: unknown) => void;
   setLoanMessage: (newLoanMessage: {
+    message: string;
+    isCompleted: boolean;
+  }) => void;
+  setRepayLoanMessage: (newRepayLoanMessage: {
     message: string;
     isCompleted: boolean;
   }) => void;
@@ -37,6 +42,13 @@ export const useSocketMessage = create<SocketMessageState>(set => ({
     set(state => ({
       ...state,
       loanMessage: newLoanMessage,
+    }));
+  },
+  repayLoanMessage: { message: null, isCompleted: false },
+  setRepayLoanMessage: newRepayLoanMessage => {
+    set(state => ({
+      ...state,
+      repayLoanMessage: newRepayLoanMessage,
     }));
   },
   goldPurchaseMessage: { message: null, isCompleted: false },
