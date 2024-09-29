@@ -25,8 +25,8 @@ export default function Character({
 }: Props) {
   const { movePlayer, allRendered } = useContext(SocketContext);
   const [characterPosition, setCharacterPosition] = useState(
-    new THREE.Vector3(0, 0.3, 0),
-  );
+    new THREE.Vector3(0, -7.8, 10),
+  ); // 캐릭터 기본 위치
   const [rotation, setRotation] = useState(0);
   const movementStateRef = useRef<'idle' | 'walking' | 'running'>('idle');
 
