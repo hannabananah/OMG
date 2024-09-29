@@ -287,6 +287,16 @@ export default function SocketProvider({ children }: SocketProviderProps) {
             }
             break;
 
+          case 'GOLD_ALREADY_PURCHASED':
+            const ownUserGoldAlready = parsedMessage.sender;
+            if (ownUserGoldAlready === nickname) {
+              setGoldPurchaseMessage({
+                message: '이미 한 라운드 내에서 금괴를 구매했습니다.',
+                isCompleted: false,
+              });
+            }
+            break;
+
           case 'AMOUNT_OUT_OF_RANGE':
             const ownUserOut = parsedMessage.sender;
             if (ownUserOut === nickname) {
