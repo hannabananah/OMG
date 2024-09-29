@@ -17,6 +17,7 @@ import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.messaging.simp.SimpMessageSendingOperations;
 import org.springframework.web.bind.annotation.CrossOrigin;
 
+import static com.ssafy.omg.config.baseresponse.BaseResponseStatus.PLAYER_STATE_ERROR;
 import static com.ssafy.omg.config.baseresponse.MessageResponseStatus.OUT_OF_CASH;
 
 @Slf4j
@@ -50,7 +51,10 @@ public class IndividualMessageController {
             log.debug("현재 자산이 부족합니다!");
             return new BaseResponse<>(OUT_OF_CASH);
         } catch (BaseException e) {
-            return new BaseResponse<>(e.getStatus());
+            IndividualMessageDto individualMessage = gameService.getIndividualMessage(roomId, userNickname);
+            response = new StompPayload<>("GOLD_ALREADY_PURCHASED", roomId, userNickname, individualMessage);
+            messagingTemplate.convertAndSend("/sub/" + roomId + "/game", response);
+            return new BaseResponse<>(PLAYER_STATE_ERROR);
         }
     }
 
