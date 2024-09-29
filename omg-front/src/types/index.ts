@@ -20,3 +20,10 @@ export interface ChatMessage {
   sender: string;
   content: string;
 }
+
+export type selectedStockItem =
+  | 'socks-with-cane'
+  | 'cane'
+  | 'socks'
+  | 'reels'
+  | 'candy';
