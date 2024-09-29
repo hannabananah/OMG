@@ -27,6 +27,7 @@ interface SocketContextType {
   initGameSetting: () => void;
   allRendered: boolean;
   purchaseGold: (goldPurchaseCount: number) => void;
+  takeLoan: (loanAmount: number) => void;
 }
 
 const defaultContextValue: SocketContextType = {
@@ -49,6 +50,7 @@ const defaultContextValue: SocketContextType = {
   initGameSetting: () => {},
   allRendered: false,
   purchaseGold: () => {},
+  takeLoan: () => {},
 };
 
 export const SocketContext =
@@ -62,7 +64,13 @@ export default function SocketProvider({ children }: SocketProviderProps) {
   const { roomId } = useParams<{ roomId: string }>();
   const { nickname, setCharacterType, setPlayerIndex } = useUser();
   const base_url = import.meta.env.VITE_APP_SOCKET_URL;
-  const { gameMessage, setRoomMessage, setGameMessage } = useSocketMessage();
+  const {
+    gameMessage,
+    setRoomMessage,
+    setGameMessage,
+    setLoanMessage,
+    setGoldPurchaseMessage,
+  } = useSocketMessage();
   const [socket, setSocket] = useState<Client | null>(null);
   const [online, setOnline] = useState(false);
   const [player, setPlayer] = useState<string[]>([]);
@@ -250,21 +258,55 @@ export default function SocketProvider({ children }: SocketProviderProps) {
             break;
           case 'SUCCESS':
             const ownUserSuccess = parsedMessage.sender;
-            if (ownUserSuccess === nickname) {
-              const transactionData = parsedMessage.data;
-              setGameMessage(transactionData);
-              console.log('거래 성공');
+            if (
+              ownUserSuccess === nickname &&
+              parsedMessage.data.state === 'COMPLETED'
+            ) {
+              setGoldPurchaseMessage({
+                message: parsedMessage.data.goldOwned,
+                isCompleted: true,
+              });
+            } else if (
+              ownUserSuccess === nickname &&
+              parsedMessage.data.state !== 'COMPLETED'
+            ) {
+              setLoanMessage({
+                message: parsedMessage.data.hasLoan,
+                isCompleted: true,
+              });
             }
             break;
 
           case 'OUT_OF_CASH':
             const ownUserFailed = parsedMessage.sender;
             if (ownUserFailed === nickname) {
-              const deniedData = parsedMessage.data;
-              setGameMessage(deniedData);
-              console.log('돈이 부족합니다.');
+              setGoldPurchaseMessage({
+                message: '돈이 부족합니다.',
+                isCompleted: false,
+              });
             }
             break;
+
+          case 'AMOUNT_OUT_OF_RANGE':
+            const ownUserOut = parsedMessage.sender;
+            if (ownUserOut === nickname) {
+              setLoanMessage({
+                message: '가능한 대출한도를 넘었습니다.',
+                isCompleted: false,
+              });
+            }
+            break;
+
+          case 'LOAN_ALREADY_TAKEN':
+            const ownUserAlready = parsedMessage.sender;
+            if (ownUserAlready === nickname) {
+              setLoanMessage({
+                message: '이미 대출을 받았습니다.',
+                isCompleted: false,
+              });
+            }
+            break;
+
           case 'GAME_EVENT':
             break;
         }
@@ -428,6 +470,21 @@ export default function SocketProvider({ children }: SocketProviderProps) {
     });
   };
 
+  // 대출 신청
+  const takeLoan = (loanAmount: number) => {
+    if (!isSocketConnected()) return;
+    const messagePayload = {
+      type: 'TAKE_LOAN',
+      roomId,
+      sender: nickname,
+      data: loanAmount,
+    };
+    socket.publish({
+      destination: '/pub/take-loan',
+      body: JSON.stringify(messagePayload),
+    });
+  };
+
   const contextValue = useMemo(
     () => ({
       socket,
@@ -449,6 +506,7 @@ export default function SocketProvider({ children }: SocketProviderProps) {
       initGameSetting,
       allRendered,
       purchaseGold,
+      takeLoan,
     }),
     [
       socket,
@@ -460,6 +518,7 @@ export default function SocketProvider({ children }: SocketProviderProps) {
       allRendered,
       gameMessage,
       purchaseGold,
+      takeLoan,
     ],
   );
 
