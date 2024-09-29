@@ -36,7 +36,7 @@ public interface GameService {
     // 주가 변동 가능 여부
     boolean isStockFluctuationAble(String roomId) throws BaseException;
 
-    void repayLoan(StompPayload<Integer> userActionPayload) throws BaseException;
+    void repayLoan(String roomId, String userNickname, int amount) throws BaseException, MessageException;
 
     void sellStock(StompPayload<int[]> userActionPayload) throws BaseException;
 
