@@ -76,9 +76,9 @@ export default function MainMap() {
     if (!loanMessage.message) return;
 
     if (loanMessage.isCompleted) {
-      alert(`대출 신청이 완료되었습니다! 대출액: ${loanMessage}`);
+      alert(`대출 신청이 완료되었습니다! 대출액: ${loanMessage.message}`);
     } else if (!goldPurchaseMessage.isCompleted) {
-      alert(loanMessage);
+      alert(loanMessage.message);
     }
   }, [loanMessage]);
 
@@ -174,7 +174,7 @@ export default function MainMap() {
         />
         {/* TODO: 삭제해야됨, 임시 대출신청 버튼 */}
         <Button
-          text='임시 금괴매입 버튼'
+          text='임시 대출신청 버튼'
           type='mainmap'
           onClick={handleClickTakeLoan}
         />

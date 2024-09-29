@@ -200,7 +200,7 @@ export default function SocketProvider({ children }: SocketProviderProps) {
       message => {
         const parsedMessage = JSON.parse(message.body);
         console.log('게임방 구독', parsedMessage);
-
+        const currentUser = parsedMessage.sender;
         switch (parsedMessage.type) {
           case 'GAME_INITIALIZED':
             const initPlayerData = parsedMessage.data.game.players;
@@ -222,12 +222,12 @@ export default function SocketProvider({ children }: SocketProviderProps) {
             if (currentUserIndex !== -1) {
               setPlayerIndex(currentUserIndex);
             }
-            const currentUser = initPlayerData.find(
+            const currentUserNickname = initPlayerData.find(
               (player: Player) => player.nickname === nickname,
             );
 
-            if (currentUser) {
-              setCharacterType(currentUser.characterType);
+            if (currentUserNickname) {
+              setCharacterType(currentUserNickname.characterType);
             }
             break;
 
@@ -236,7 +236,6 @@ export default function SocketProvider({ children }: SocketProviderProps) {
             const otherPlayersData = parsedMessage.data.filter(
               (player: Player) => player.nickname !== nickname,
             );
-
             if (otherPlayersData.length > 0) {
               const updatedOtherUsers = otherPlayersData.map(
                 (player: Player) => {
@@ -252,34 +251,30 @@ export default function SocketProvider({ children }: SocketProviderProps) {
                   };
                 },
               );
-
               useOtherUserStore.getState().setOtherUsers(updatedOtherUsers);
             }
             break;
-          case 'SUCCESS':
-            const ownUserSuccess = parsedMessage.sender;
-            if (
-              ownUserSuccess === nickname &&
-              parsedMessage.data.state === 'COMPLETED'
-            ) {
+
+          case 'SUCCESS_PURCHASE_GOLD':
+            if (currentUser === nickname) {
               setGoldPurchaseMessage({
                 message: parsedMessage.data.goldOwned,
                 isCompleted: true,
               });
-            } else if (
-              ownUserSuccess === nickname &&
-              parsedMessage.data.state !== 'COMPLETED'
-            ) {
+            }
+            break;
+
+          case 'SUCCESS_TAKE_LOAN':
+            if (currentUser === nickname) {
               setLoanMessage({
-                message: parsedMessage.data.hasLoan,
+                message: parsedMessage.data.loanPrincipal,
                 isCompleted: true,
               });
             }
             break;
 
           case 'OUT_OF_CASH':
-            const ownUserFailed = parsedMessage.sender;
-            if (ownUserFailed === nickname) {
+            if (currentUser === nickname) {
               setGoldPurchaseMessage({
                 message: '돈이 부족합니다.',
                 isCompleted: false,
@@ -288,8 +283,7 @@ export default function SocketProvider({ children }: SocketProviderProps) {
             break;
 
           case 'GOLD_ALREADY_PURCHASED':
-            const ownUserGoldAlready = parsedMessage.sender;
-            if (ownUserGoldAlready === nickname) {
+            if (currentUser === nickname) {
               setGoldPurchaseMessage({
                 message: '이미 한 라운드 내에서 금괴를 구매했습니다.',
                 isCompleted: false,
@@ -298,8 +292,7 @@ export default function SocketProvider({ children }: SocketProviderProps) {
             break;
 
           case 'AMOUNT_OUT_OF_RANGE':
-            const ownUserOut = parsedMessage.sender;
-            if (ownUserOut === nickname) {
+            if (currentUser === nickname) {
               setLoanMessage({
                 message: '가능한 대출한도를 넘었습니다.',
                 isCompleted: false,
@@ -308,15 +301,13 @@ export default function SocketProvider({ children }: SocketProviderProps) {
             break;
 
           case 'LOAN_ALREADY_TAKEN':
-            const ownUserAlready = parsedMessage.sender;
-            if (ownUserAlready === nickname) {
+            if (currentUser === nickname) {
               setLoanMessage({
                 message: '이미 대출을 받았습니다.',
                 isCompleted: false,
               });
             }
             break;
-
           case 'GAME_EVENT':
             break;
         }
