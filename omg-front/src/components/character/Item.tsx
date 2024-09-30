@@ -1,5 +1,5 @@
 import { useFloatingObject } from '@/hooks/useFloatingObject';
-import { selectedStockItem } from '@/types';
+import { StockItem } from '@/types';
 import { useGLTF } from '@react-three/drei';
 import * as THREE from 'three';
 
@@ -7,7 +7,7 @@ interface ItemProps {
   disabled: boolean;
   characterPosition: THREE.Vector3;
   index: number;
-  itemName: selectedStockItem;
+  itemName: StockItem;
 }
 
 export default function Item({

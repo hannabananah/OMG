@@ -1,8 +1,33 @@
+import { useEffect, useRef } from 'react';
+
 import { useGLTF } from '@react-three/drei';
 import { RigidBody } from '@react-three/rapier';
+import { AnimationMixer } from 'three';
 
 export default function Map() {
-  const { scene } = useGLTF('/models/map/scene.gltf');
+  const { scene, animations } = useGLTF('/models/map/scene.gltf');
+  const mixer = useRef(null);
+
+  useEffect(() => {
+    if (animations && animations.length > 0) {
+      mixer.current = new AnimationMixer(scene);
+      const action = mixer.current.clipAction(animations[0]);
+      action.play();
+
+      const animate = () => {
+        mixer.current.update(0.01); // 애니메이션을 업데이트할 시간 (기본은 0.01)
+        requestAnimationFrame(animate);
+      };
+
+      animate();
+    }
+
+    return () => {
+      if (mixer.current) {
+        mixer.current.stopAllAction();
+      }
+    };
+  }, [animations, scene]);
 
   return (
     <RigidBody type='fixed'>
@@ -15,5 +40,5 @@ export default function Map() {
   );
 }
 
-// 성능 최적화 위해서 미리 불러오기
+// 성능 최적화를 위해 미리 불러오기
 useGLTF.preload('/models/map/scene.gltf');

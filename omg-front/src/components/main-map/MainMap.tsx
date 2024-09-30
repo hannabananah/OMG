@@ -201,7 +201,7 @@ export default function MainMap() {
 
   return (
     <main className='relative w-full h-screen overflow-hidden'>
-      {/* Round & Timer & Chat 고정 위치 렌더링 */}
+      {/* Round & Timer 고정 위치 렌더링 */}
       <section className='absolute z-10 flex flex-col items-end gap-4 top-10 right-10'>
         <Round presentRound={1} />
         <Timer />
@@ -255,7 +255,7 @@ export default function MainMap() {
 
       {/* 채팅 및 종료 버튼 고정 렌더링 */}
       <section className='absolute bottom-0 left-0 z-10 flex items-center justify-between w-full text-white py-14 px-14 text-omg-40b'>
-        <ChatButton />
+        <ChatButton isWhite={true} />
         <ExitButton />
       </section>
       <KeyboardControls map={keyboardMap}>

@@ -1,7 +1,7 @@
 import { useContext, useEffect, useRef, useState } from 'react';
 
 import { useCharacter } from '@/stores/useCharacter';
-import { selectedStockItem } from '@/types';
+import { StockItem } from '@/types';
 import { SocketContext } from '@/utils/SocketContext';
 import { useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
@@ -84,7 +84,7 @@ export default function Character({
   }, [scene, characterPosition, rotation, allRendered, isOwnCharacter]);
 
   // 아이템 배열 데이터 (예시)
-  const items: { itemName: selectedStockItem; count: number }[] = [
+  const items: { itemName: StockItem; count: number }[] = [
     { itemName: 'socks-with-cane', count: 1 },
     { itemName: 'cane', count: 1 },
     { itemName: 'socks', count: 1 },

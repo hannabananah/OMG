@@ -21,7 +21,7 @@ export interface ChatMessage {
   content: string;
 }
 
-export type selectedStockItem =
+export type StockItem =
   | 'socks-with-cane'
   | 'cane'
   | 'socks'
