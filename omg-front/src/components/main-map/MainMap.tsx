@@ -27,11 +27,11 @@ import IntroCamera from '../camera/IntroCamera';
 import ChatButton from '../common/ChatButton';
 
 const stockTypes = [
-  { name: '주식 종류1', id: 0 },
-  { name: '주식 종류2', id: 1 },
-  { name: '주식 종류3', id: 2 },
-  { name: '주식 종류4', id: 3 },
-  { name: '주식 종류5', id: 4 },
+  { name: '주식 종류1', id: 1 },
+  { name: '주식 종류2', id: 2 },
+  { name: '주식 종류3', id: 3 },
+  { name: '주식 종류4', id: 4 },
+  { name: '주식 종류5', id: 5 },
 ];
 
 const CharacterInfo = {
@@ -63,6 +63,7 @@ export default function MainMap() {
     purchaseGold,
     takeLoan,
     repayLoan,
+    sellStock,
   } = useContext(SocketContext);
   const { carryingData, setCarryingData } = useGameStore();
   const { otherUsers } = useOtherUserStore();
@@ -139,7 +140,6 @@ export default function MainMap() {
       }
       return newCarryingData;
     });
-    alert(`주식 종류 ${stockId}을(를) 선택했습니다.`);
   };
 
   const characterKeys = Object.keys(CharacterInfo) as Array<
@@ -228,6 +228,10 @@ export default function MainMap() {
     repayLoan(repayLoanAmount);
   };
 
+  const handleClickSellStock = () => {
+    sellStock(carryingData);
+  };
+
   return (
     <main className='relative w-full h-screen overflow-hidden'>
       {/* 주식 매도 수량 선택(집에서) */}
@@ -249,10 +253,7 @@ export default function MainMap() {
           type='buy-stock'
           onClick={() => alert('구매하기 클릭됨')}
         />
-        <ChoiceTransaction
-          type='sell-stock'
-          onClick={() => alert('판매하기 클릭됨')}
-        />
+        <ChoiceTransaction type='sell-stock' onClick={handleClickSellStock} />
       </div>
       {/* Round & Timer & Chat 고정 위치 렌더링 */}
       <section className='absolute z-10 flex flex-col items-end gap-4 top-10 right-10'>

@@ -351,6 +351,13 @@ export default function SocketProvider({ children }: SocketProviderProps) {
               setEventMessage(parsedMessage.data);
             }
             break;
+
+          case 'SUCCESS_SELL_STOCK':
+            if (currentUser === nickname) {
+              setGameData(parsedMessage.data);
+              console.log('매도 성공', parsedMessage.data);
+            }
+            break;
         }
       },
       { id: subGameId },
@@ -549,8 +556,9 @@ export default function SocketProvider({ children }: SocketProviderProps) {
       type: 'SELL_STOCK',
       roomId,
       sender: nickname,
-      data: stocks,
+      data: { stocks },
     };
+
     socket.publish({
       destination: '/pub/sell-stock',
       body: JSON.stringify(messagePayload),

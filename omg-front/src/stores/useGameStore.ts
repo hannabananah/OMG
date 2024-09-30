@@ -35,7 +35,7 @@ interface GameStore {
 
 export const useGameStore = create<GameStore>(set => ({
   gameData: null,
-  carryingData: [0, 0, 0, 0, 0],
+  carryingData: [0, 0, 0, 0, 0, 0],
   setGameData: (data: GameData) => set({ gameData: data }),
   setCarryingData: (data: number[] | ((prevData: number[]) => number[])) => {
     if (typeof data === 'function') {
