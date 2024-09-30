@@ -73,6 +73,7 @@ export default function SocketProvider({ children }: SocketProviderProps) {
     setLoanMessage,
     setRepayLoanMessage,
     setGoldPurchaseMessage,
+    setEventMessage,
   } = useSocketMessage();
   const [socket, setSocket] = useState<Client | null>(null);
   const [online, setOnline] = useState(false);
@@ -202,7 +203,6 @@ export default function SocketProvider({ children }: SocketProviderProps) {
       gameTopic,
       message => {
         const parsedMessage = JSON.parse(message.body);
-        console.log('게임방 구독', parsedMessage);
         const currentUser = parsedMessage.sender;
         switch (parsedMessage.type) {
           case 'GAME_INITIALIZED':
@@ -339,7 +339,10 @@ export default function SocketProvider({ children }: SocketProviderProps) {
             }
             break;
 
-          case 'GAME_EVENT':
+          case 'GAME_NOTIFICATION':
+            if (parsedMessage.data.roundStatus === 'ECONOMIC_EVENT') {
+              setEventMessage(parsedMessage.data);
+            }
             break;
         }
       },
