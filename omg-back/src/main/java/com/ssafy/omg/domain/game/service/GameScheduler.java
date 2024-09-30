@@ -2,23 +2,26 @@ package com.ssafy.omg.domain.game.service;
 
 import com.ssafy.omg.config.baseresponse.BaseException;
 import com.ssafy.omg.domain.arena.entity.Arena;
+import com.ssafy.omg.domain.game.dto.StockFluctuationResponse;
 import com.ssafy.omg.domain.game.entity.Game;
 import com.ssafy.omg.domain.game.entity.GameStatus;
 import com.ssafy.omg.domain.game.entity.RoundStatus;
+import com.ssafy.omg.domain.game.entity.StockState;
 import com.ssafy.omg.domain.socket.dto.StompPayload;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.messaging.simp.SimpMessageSendingOperations;
-import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
-import java.util.List;
-
 import static com.ssafy.omg.config.baseresponse.BaseResponseStatus.INVALID_ROUND_STATUS;
-import static com.ssafy.omg.config.baseresponse.BaseResponseStatus.ROUND_STATUS_ERROR;
-import static com.ssafy.omg.domain.game.entity.RoundStatus.*;
+import static com.ssafy.omg.domain.game.entity.RoundStatus.ECONOMIC_EVENT;
+import static com.ssafy.omg.domain.game.entity.RoundStatus.PREPARING_NEXT_ROUND;
+import static com.ssafy.omg.domain.game.entity.RoundStatus.ROUND_END;
+import static com.ssafy.omg.domain.game.entity.RoundStatus.ROUND_IN_PROGRESS;
+import static com.ssafy.omg.domain.game.entity.RoundStatus.ROUND_START;
+import static com.ssafy.omg.domain.game.entity.RoundStatus.STOCK_FLUCTUATION;
 
 @Slf4j
 @Component
@@ -31,6 +34,7 @@ public class GameScheduler {
     private final GameService gameService;
     private final SimpMessageSendingOperations messagingTemplate;
     private static final int MAX_ROUNDS = 10;
+    private static StockState stockState;
 /* 
     @Scheduled(fixedRate = 1000)  // 1초마다 실행
     public void updateGameState() throws BaseException {
@@ -148,8 +152,12 @@ public class GameScheduler {
         if (!game.isPaused()) {
             game.setPaused(true);
             game.setPauseTime(5);
-            // TODO: 주가변동 gameService 메서드 여기 넣어야함
             notifyPlayers(game.getGameId(), "주가가 변동되었습니다! 5초 후 게임이 재개됩니다.");
+
+            // 거래 가능한 주식 개수 메세지로 전송
+            StockFluctuationResponse response = new StockFluctuationResponse(stockState.getStockLevelCards()[game.getCurrentStockPriceLevel()][0]);
+            StompPayload<StockFluctuationResponse> payload = new StompPayload<>("STOCK_FLUCTUATION", game.getGameId(), "GAME_MANAGER", response);
+            messagingTemplate.convertAndSend("/sub/" + game.getGameId() + "/game", payload);
         } else {
             if (game.getPauseTime() > 0) {
                 game.setPauseTime(game.getPauseTime() - 1);
