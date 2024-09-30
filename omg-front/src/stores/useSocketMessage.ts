@@ -1,11 +1,19 @@
 import { create } from 'zustand';
 
+interface EventMessage {
+  roundStatus: string;
+  title: string;
+  content: string;
+  value: number;
+}
+
 interface SocketMessageState {
   roomMessage: unknown;
   gameMessage: unknown;
   loanMessage?: { message: string; isCompleted: boolean };
   repayLoanMessage?: { message: string; isCompleted: boolean };
   goldPurchaseMessage?: { message: string; isCompleted: boolean };
+  eventMessage: EventMessage;
   setRoomMessage: (newRoomMessage: unknown) => void;
   setGameMessage: (newGameMessage: unknown) => void;
   setLoanMessage: (newLoanMessage: {
@@ -20,6 +28,7 @@ interface SocketMessageState {
     message: string;
     isCompleted: boolean;
   }) => void;
+  setEventMessage: (newEventMessage: EventMessage) => void;
 }
 
 export const useSocketMessage = create<SocketMessageState>(set => ({
@@ -56,6 +65,18 @@ export const useSocketMessage = create<SocketMessageState>(set => ({
     set(state => ({
       ...state,
       goldPurchaseMessage: newGoldPurchaseMessage,
+    }));
+  },
+  eventMessage: {
+    roundStatus: '',
+    title: '',
+    content: '',
+    value: 0,
+  },
+  setEventMessage: newEventMessage => {
+    set(state => ({
+      ...state,
+      eventMessage: newEventMessage,
     }));
   },
 }));
