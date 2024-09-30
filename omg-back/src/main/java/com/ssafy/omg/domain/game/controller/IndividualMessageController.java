@@ -6,6 +6,7 @@ import com.ssafy.omg.config.baseresponse.BaseResponse;
 import com.ssafy.omg.config.baseresponse.MessageException;
 import com.ssafy.omg.domain.game.GameRepository;
 import com.ssafy.omg.domain.game.dto.IndividualMessageDto;
+import com.ssafy.omg.domain.game.dto.StockRequest;
 import com.ssafy.omg.domain.game.service.GameBroadcastService;
 import com.ssafy.omg.domain.game.service.GameService;
 import com.ssafy.omg.domain.socket.dto.StompPayload;
@@ -59,7 +60,7 @@ public class IndividualMessageController {
     }
 
     @MessageMapping("/take-loan")
-    public BaseResponse<?> takeLoan(@Payload StompPayload<Integer> userActionPayload) throws BaseException, MessageException {
+    public BaseResponse<?> takeLoan(@Payload StompPayload<Integer> userActionPayload) throws BaseException {
         String roomId = userActionPayload.getRoomId();
         String userNickname = userActionPayload.getSender();
         int takeLoanAmount = userActionPayload.getData();
@@ -83,7 +84,7 @@ public class IndividualMessageController {
     }
 
     @MessageMapping("/repay-loan")
-    public BaseResponse<?> repayLoan(@Payload StompPayload<Integer> userActionPayload) throws BaseException, MessageException {
+    public BaseResponse<?> repayLoan(@Payload StompPayload<Integer> userActionPayload) throws BaseException {
         String roomId = userActionPayload.getRoomId();
         String userNickname = userActionPayload.getSender();
         int repayLoanAmount = userActionPayload.getData();
@@ -105,4 +106,44 @@ public class IndividualMessageController {
             return new BaseResponse<>(e.getStatus());
         }
     }
+
+    @MessageMapping("/sell-stock")
+    public BaseResponse<?> sellStock(@Payload StompPayload<StockRequest> userActionPayload) {
+        String roomId = userActionPayload.getRoomId();
+        String userNickname = userActionPayload.getSender();
+        int[] sellStockAmount = userActionPayload.getData().stocks();
+
+        StompPayload<IndividualMessageDto> response = null;
+        try {
+            gameService.sellStock(roomId, userNickname, sellStockAmount);
+            IndividualMessageDto individualMessage = gameService.getIndividualMessage(roomId,userNickname);
+            response = new StompPayload<>("SUCCESS_SELL_STOCK", roomId, userNickname, individualMessage);
+            messagingTemplate.convertAndSend("/sub/" + roomId + "/game", response);
+            return new BaseResponse<>(response);
+        }
+//        catch (MessageException e) {
+//            IndividualMessageDto individualMessage = gameService.getIndividualMessage(roomId, userNickname);
+//            response = new StompPayload<>(e.getStatus().name(), roomId, userNickname, individualMessage);
+//            messagingTemplate.convertAndSend("/sub/" + roomId + "/game", response);
+//            log.debug(e.getStatus().getMessage());
+//            return new BaseResponse<>(e.getStatus());
+//        }
+        catch (BaseException e) {
+            return new BaseResponse<>(e.getStatus());
+        }
+    }
+
+    @MessageMapping("/buy-stock")
+    public void purchaseStock(@Payload StompPayload<StockRequest> payload) throws BaseException, MessageException {
+        gameService.buyStock(payload);
+        String roomId = payload.getRoomId();
+        String userNickname = payload.getSender();
+        StompPayload<IndividualMessageDto> response = null;
+
+        gameService.buyStock(payload);
+        IndividualMessageDto individualMessage = gameService.getIndividualMessage(roomId, userNickname);
+        response = new StompPayload<>("SUCCESS_BUY_STOCK", roomId, userNickname, individualMessage);
+        messagingTemplate.convertAndSend("/sub/" + roomId + "/game", response);
+    }
+
 }

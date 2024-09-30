@@ -6,12 +6,14 @@ import com.ssafy.omg.config.baseresponse.MessageException;
 import com.ssafy.omg.domain.arena.entity.Arena;
 import com.ssafy.omg.domain.game.GameRepository;
 import com.ssafy.omg.domain.game.dto.IndividualMessageDto;
+import com.ssafy.omg.domain.game.dto.StockRequest;
 import com.ssafy.omg.domain.game.service.GameBroadcastService;
 import com.ssafy.omg.domain.game.service.GameService;
 import com.ssafy.omg.domain.socket.dto.StompPayload;
 import jdk.jfr.Description;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.messaging.simp.SimpMessageSendingOperations;
 import org.springframework.web.bind.annotation.*;
 
@@ -120,8 +122,30 @@ public class GameController {
     }
 
     @PostMapping("/sell-stock")
-    public BaseResponse<?> sellStock(@RequestBody StompPayload<int[]> data) throws BaseException {
-        gameService.sellStock(data);
-        return new BaseResponse<>("주식 매도가 성공적으로 처리되었습니다.");
+    public StompPayload<?> sellStock(@RequestBody StompPayload<StockRequest> userActionPayload) throws BaseException, MessageException {
+        String roomId = userActionPayload.getRoomId();
+        String userNickname = userActionPayload.getSender();
+        int[] sellStockAmount = userActionPayload.getData().stocks();
+
+        StompPayload<IndividualMessageDto> response = null;
+        try {
+            gameService.sellStock(roomId, userNickname, sellStockAmount);
+            IndividualMessageDto individualMessage = gameService.getIndividualMessage(roomId,userNickname);
+            response = new StompPayload<>("SUCCESS_SELL_STOCK", roomId, userNickname, individualMessage);
+            messagingTemplate.convertAndSend("/sub/" + roomId + "/game", response);
+            return response;
+        }
+//        catch (MessageException e) {
+//            IndividualMessageDto individualMessage = gameService.getIndividualMessage(roomId, userNickname);
+//            response = new StompPayload<>(e.getStatus().name(), roomId, userNickname, individualMessage);
+//            messagingTemplate.convertAndSend("/sub/" + roomId + "/game", response);
+//            log.debug(e.getStatus().getMessage());
+//            return response;
+//        }
+        catch (BaseException e) {
+            IndividualMessageDto individualMessage = gameService.getIndividualMessage(roomId, userNickname);
+            response = new StompPayload<>(e.getStatus().name(), roomId, userNickname, individualMessage);
+            return response;
+        }
     }
 }

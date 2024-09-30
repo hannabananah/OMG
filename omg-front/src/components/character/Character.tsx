@@ -1,9 +1,12 @@
 import { useContext, useEffect, useRef, useState } from 'react';
 
 import { useCharacter } from '@/stores/useCharacter';
+import { selectedStockItem } from '@/types';
 import { SocketContext } from '@/utils/SocketContext';
 import { useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
+
+import Item from './Item';
 
 interface Props {
   position?: number[];
@@ -22,8 +25,8 @@ export default function Character({
 }: Props) {
   const { movePlayer, allRendered } = useContext(SocketContext);
   const [characterPosition, setCharacterPosition] = useState(
-    new THREE.Vector3(0, 0.3, 0),
-  );
+    new THREE.Vector3(0, -7.8, 10),
+  ); // 캐릭터 기본 위치
   const [rotation, setRotation] = useState(0);
   const movementStateRef = useRef<'idle' | 'walking' | 'running'>('idle');
 
@@ -80,11 +83,33 @@ export default function Character({
     }
   }, [scene, characterPosition, rotation, allRendered, isOwnCharacter]);
 
+  // 아이템 배열 데이터 (예시)
+  const items: { itemName: selectedStockItem; count: number }[] = [
+    { itemName: 'socks-with-cane', count: 1 },
+    { itemName: 'cane', count: 1 },
+    { itemName: 'socks', count: 1 },
+    { itemName: 'reels', count: 1 },
+    { itemName: 'candy', count: 1 },
+  ];
+
   return (
-    <primitive
-      object={scene}
-      scale={characterScale}
-      position={characterPosition}
-    />
+    <>
+      <primitive
+        object={scene}
+        scale={characterScale}
+        position={characterPosition}
+      />
+      {items.map((item, itemIndex) =>
+        [...Array(item.count)].map((_, index) => (
+          <Item
+            key={`${item.itemName}-${itemIndex}-${index}`}
+            disabled={true}
+            characterPosition={characterPosition}
+            index={index + itemIndex * 2} // 인덱스를 계산하여 순차적으로 배치
+            itemName={item.itemName}
+          />
+        )),
+      )}
+    </>
   );
 }

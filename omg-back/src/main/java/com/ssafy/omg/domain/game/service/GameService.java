@@ -38,7 +38,7 @@ public interface GameService {
 
     void repayLoan(String roomId, String userNickname, int amount) throws BaseException, MessageException;
 
-    void sellStock(StompPayload<int[]> userActionPayload) throws BaseException;
+    void sellStock(String roomId, String userNickname, int[] amount) throws BaseException;
 
     void movePlayer(StompPayload<PlayerMoveRequest> playerMoveRequest) throws BaseException;
 

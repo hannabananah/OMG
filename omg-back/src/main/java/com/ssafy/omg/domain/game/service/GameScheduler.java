@@ -2,7 +2,10 @@ package com.ssafy.omg.domain.game.service;
 
 import com.ssafy.omg.config.baseresponse.BaseException;
 import com.ssafy.omg.domain.arena.entity.Arena;
+import com.ssafy.omg.domain.game.dto.GameEventDto;
+import com.ssafy.omg.domain.game.dto.GameNotificationDto;
 import com.ssafy.omg.domain.game.entity.Game;
+import com.ssafy.omg.domain.game.entity.GameEvent;
 import com.ssafy.omg.domain.game.entity.GameStatus;
 import com.ssafy.omg.domain.game.entity.RoundStatus;
 import com.ssafy.omg.domain.socket.dto.StompPayload;
@@ -18,7 +21,13 @@ import java.util.List;
 
 import static com.ssafy.omg.config.baseresponse.BaseResponseStatus.INVALID_ROUND_STATUS;
 import static com.ssafy.omg.config.baseresponse.BaseResponseStatus.ROUND_STATUS_ERROR;
-import static com.ssafy.omg.domain.game.entity.RoundStatus.*;
+import static com.ssafy.omg.domain.game.entity.RoundStatus.ECONOMIC_EVENT;
+import static com.ssafy.omg.domain.game.entity.RoundStatus.GAME_FINISHED;
+import static com.ssafy.omg.domain.game.entity.RoundStatus.PREPARING_NEXT_ROUND;
+import static com.ssafy.omg.domain.game.entity.RoundStatus.ROUND_END;
+import static com.ssafy.omg.domain.game.entity.RoundStatus.ROUND_IN_PROGRESS;
+import static com.ssafy.omg.domain.game.entity.RoundStatus.ROUND_START;
+import static com.ssafy.omg.domain.game.entity.RoundStatus.STOCK_FLUCTUATION;
 
 @Slf4j
 @Component
@@ -44,7 +53,7 @@ public class GameScheduler {
             log.info("라운드 진행 상태 업데이트 중 오류가 발생하였습니다.");
             throw new BaseException(ROUND_STATUS_ERROR);
         }
-    } 
+    }
 
     /**
      * 시스템 상에서 자동적으로 라운드 진행 및 라운드 상태 변경
@@ -110,7 +119,7 @@ public class GameScheduler {
 
     private void handleRoundStart(Game game) throws BaseException {
         if (game.getTime() == 2) {
-            notifyPlayers(game.getGameId(), +game.getRound() + "라운드가 시작됩니다!");
+            notifyPlayers(game.getGameId(), ROUND_START, +game.getRound() + "라운드가 시작됩니다!");
         } else if (game.getTime() == 0) {
             game.setRoundStatus(ECONOMIC_EVENT);
             game.setTime(5);
@@ -121,11 +130,29 @@ public class GameScheduler {
     private void handleEconomicEvent(Game game) throws BaseException {
         if (game.getTime() == 4) {
             try {
-                gameService.createGameEventandInterestChange(game.getGameId());
-                // TODO 변동금리
-                notifyPlayers(game.getGameId(), "경제 이벤트가 발생했습니다!");
+                GameEvent gameEvent = gameService.createGameEventandInterestChange(game.getGameId());
+//                notifyPlayers(game.getGameId(), ECONOMIC_EVENT, "경제 이벤트가 발생했습니다!");
+
+                if (gameEvent != null) {
+                    GameEventDto eventDto = new GameEventDto(
+                            ECONOMIC_EVENT,
+                            gameEvent.getTitle(),
+                            gameEvent.getContent(),
+                            gameEvent.getValue()
+                    );
+
+                    StompPayload<GameEventDto> payload = new StompPayload<>(
+                            "GAME_NOTIFICATION",
+                            game.getGameId(),
+                            "GAME_MANAGER",
+                            eventDto
+                    );
+
+                    messagingTemplate.convertAndSend("/sub/" + game.getGameId() + "/game", payload);
+                    log.debug("경제 이벤트 발생!");
+                }
             } catch (Exception e) {
-                log.debug("경제 이벤트 발생에 실패했습니다 : ", e);
+                log.error("경제 이벤트 발생에 실패했습니다 : ", e);
             }
         } else if (game.getTime() == 0) {
             game.setRoundStatus(ROUND_IN_PROGRESS);
@@ -136,7 +163,7 @@ public class GameScheduler {
 
     private void handleRoundInProgress(Game game) throws BaseException {
         if (game.getTime() == 29 || game.getTime() == 9) {
-            notifyPlayers(game.getGameId(), game.getTime() + " 초 남았습니다!");
+            notifyPlayers(game.getGameId(), ROUND_IN_PROGRESS, game.getTime() + " 초 남았습니다!");
         } else if (game.getTime() == 0) {
             game.setRoundStatus(ROUND_END);
             game.setTime(3);
@@ -149,7 +176,7 @@ public class GameScheduler {
             game.setPaused(true);
             game.setPauseTime(5);
             // TODO: 주가변동 gameService 메서드 여기 넣어야함
-            notifyPlayers(game.getGameId(), "주가가 변동되었습니다! 5초 후 게임이 재개됩니다.");
+            notifyPlayers(game.getGameId(), STOCK_FLUCTUATION, "주가가 변동되었습니다! 5초 후 게임이 재개됩니다.");
         } else {
             if (game.getPauseTime() > 0) {
                 game.setPauseTime(game.getPauseTime() - 1);
@@ -167,7 +194,7 @@ public class GameScheduler {
         log.debug("handleRoundEnd 진입. 현재 시간: {}", game.getTime());
 
         if (game.getTime() == 2) {
-            notifyPlayers(game.getGameId(), game.getRound() + "라운드가 종료되었습니다!");
+            notifyPlayers(game.getGameId(), ROUND_END, game.getRound() + "라운드가 종료되었습니다!");
         } else if (game.getTime() == 0) {
             game.setRoundStatus(PREPARING_NEXT_ROUND);
             game.setTime(5);
@@ -189,11 +216,12 @@ public class GameScheduler {
                 log.debug("최대 라운드 도달. 게임 종료 처리 시작.");
                 endGame(game);
             } else {
-                notifyPlayers(game.getGameId(), "곧 " + nextRound + " 라운드가 시작됩니다...");
+                notifyPlayers(game.getGameId(), PREPARING_NEXT_ROUND, "곧 " + nextRound + " 라운드가 시작됩니다...");
             }
         } else if (game.getTime() == 0) {
             game.setRoundStatus(ROUND_START);
             game.setTime(3);
+            initializePlayersForNextRound(game);
             log.debug("상태를 ROUND_START로 변경. 새 시간: {}", game.getTime());
         }
 
@@ -201,14 +229,29 @@ public class GameScheduler {
                 game.getTime(), game.getRoundStatus(), game.getRound());
     }
 
-    private void notifyPlayers(String gameId, String message) {
-        StompPayload<String> payload = new StompPayload<>("GAME_NOTIFICATION", gameId, "GAME_MANAGER", message);
+    // 다음 라운드 시작을 위한 변화값들 초기화
+    private void initializePlayersForNextRound(Game game) {
+        game.getPlayers().forEach(player -> {
+            player.setCarryingStocks(new int[6]);
+            player.setCarryingGolds(0);
+            player.setAction(null);
+            player.setState(null);
+        });
+    }
+
+    private void notifyPlayers(String gameId, RoundStatus roundStatus, String message) {
+        GameNotificationDto gameNotificationDto2 = GameNotificationDto.builder()
+                .roundStatus(roundStatus)
+                .message(message)
+                .build();
+
+        StompPayload<GameNotificationDto> payload = new StompPayload<>("GAME_NOTIFICATION", gameId, "GAME_MANAGER", gameNotificationDto2);
         messagingTemplate.convertAndSend("/sub/" + gameId + "/game", payload);
     }
 
     private void endGame(Game game) {
         game.setGameStatus(GameStatus.GAME_FINISHED);
-        notifyPlayers(game.getGameId(), "게임 종료!");
+        notifyPlayers(game.getGameId(), GAME_FINISHED, "게임 종료!");
         // TODO: 게임 종료 후 로직이 필요함, 순위 화면 같은거 계산해서 반환하기 등
     }
 }
