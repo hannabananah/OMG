@@ -132,4 +132,18 @@ public class IndividualMessageController {
             return new BaseResponse<>(e.getStatus());
         }
     }
+
+    @MessageMapping("/buy-stock")
+    public void purchaseStock(@Payload StompPayload<StockRequest> payload) throws BaseException, MessageException {
+        gameService.buyStock(payload);
+        String roomId = payload.getRoomId();
+        String userNickname = payload.getSender();
+        StompPayload<IndividualMessageDto> response = null;
+
+        gameService.buyStock(payload);
+        IndividualMessageDto individualMessage = gameService.getIndividualMessage(roomId, userNickname);
+        response = new StompPayload<>("SUCCESS", roomId, userNickname, individualMessage);
+        messagingTemplate.convertAndSend("/sub/" + roomId + "/game", response);
+    }
+
 }
