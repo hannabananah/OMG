@@ -7,6 +7,7 @@ import ExitButton from '@/components/common/ExitButton';
 import MainAlert from '@/components/common/MainAlert';
 import Round from '@/components/common/Round';
 import Timer from '@/components/common/Timer';
+import EventCard from '@/components/game/EventCard';
 import Map from '@/components/main-map/Map';
 import { useOtherUserStore } from '@/stores/useOtherUserState';
 import { useSocketMessage } from '@/stores/useSocketMessage';
@@ -193,7 +194,10 @@ export default function MainMap() {
         <Round presentRound={1} />
         <Timer />
       </section>
-
+      {/* EventCard 모달 위치 */}
+      <div className='absolute z-30 flex items-center justify-center w-full h-full'>
+        <EventCard />
+      </div>
       {/* 모달 모음 */}
       <section className='absolute z-10 flex flex-col items-start gap-4 left-10 top-10'>
         <Button text='메인 판' type='mainmap' onClick={openMainSettingsModal} />
