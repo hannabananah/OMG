@@ -2,13 +2,10 @@ package com.ssafy.omg.domain.game.controller;
 
 import com.ssafy.omg.config.MessageController;
 import com.ssafy.omg.config.baseresponse.BaseException;
-import com.ssafy.omg.config.baseresponse.MessageException;
 import com.ssafy.omg.domain.arena.entity.Arena;
 import com.ssafy.omg.domain.game.GameRepository;
-import com.ssafy.omg.domain.game.dto.StockRequest;
 import com.ssafy.omg.domain.game.dto.GameEventDto;
 import com.ssafy.omg.domain.game.dto.PlayerMoveRequest;
-import com.ssafy.omg.domain.game.dto.UserActionDTO;
 import com.ssafy.omg.domain.game.entity.Game;
 import com.ssafy.omg.domain.game.entity.GameEvent;
 import com.ssafy.omg.domain.game.entity.GameStatus;
@@ -25,7 +22,6 @@ import org.springframework.messaging.simp.stomp.StompHeaderAccessor;
 import org.springframework.web.bind.annotation.CrossOrigin;
 
 import java.util.List;
-import java.util.Optional;
 
 import static com.ssafy.omg.config.baseresponse.BaseResponseStatus.ARENA_NOT_FOUND;
 import static com.ssafy.omg.config.baseresponse.BaseResponseStatus.REQUEST_ERROR;
@@ -51,7 +47,7 @@ public class CommonMessageController {
         String roomId = gameInitializationPayload.getRoomId();
         List<String> players = gameRepository.findinRoomPlayerList(roomId);
         Arena arena = gameService.initializeGame(roomId, players);
-       gameBroadcastService.startBroadcast(roomId);
+//        gameBroadcastService.startBroadcast(roomId);
 
         StompPayload<Arena> response = new StompPayload<>("GAME_INITIALIZED", roomId, "GAME_MANAGER", arena);
         messagingTemplate.convertAndSend("/sub/" + roomId + "/game", response);
@@ -78,6 +74,9 @@ public class CommonMessageController {
 
     }
 
+    /*
+        GameScheduler 내부로 옮겼습니다
+     */
     @MessageMapping("/game-event")
     public void createGameEvent(@Payload StompPayload<String> gameEventPayload, StompHeaderAccessor accessor) throws BaseException {
         String roomId = gameEventPayload.getRoomId();
@@ -128,8 +127,8 @@ public class CommonMessageController {
         gameService.movePlayer(message);
     }
 
-    @MessageMapping("/buy-stock")
-    public void buyStock(@Payload StompPayload<StockRequest> message) throws BaseException, MessageException {
-        gameService.buyStock(message);
-    }
+//    @MessageMapping("/buy-stock")
+//    public void buyStock(@Payload StompPayload<StockRequest> message) throws BaseException, MessageException {
+//        gameService.buyStock(message);
+//    }
 }
