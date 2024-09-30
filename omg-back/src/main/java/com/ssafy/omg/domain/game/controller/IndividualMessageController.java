@@ -142,7 +142,7 @@ public class IndividualMessageController {
 
         gameService.buyStock(payload);
         IndividualMessageDto individualMessage = gameService.getIndividualMessage(roomId, userNickname);
-        response = new StompPayload<>("SUCCESS", roomId, userNickname, individualMessage);
+        response = new StompPayload<>("SUCCESS_BUY_STOCK", roomId, userNickname, individualMessage);
         messagingTemplate.convertAndSend("/sub/" + roomId + "/game", response);
     }
 
