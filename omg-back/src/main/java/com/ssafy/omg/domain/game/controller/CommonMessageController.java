@@ -48,7 +48,7 @@ public class CommonMessageController {
         String roomId = gameInitializationPayload.getRoomId();
         List<String> players = gameRepository.findinRoomPlayerList(roomId);
         Arena arena = gameService.initializeGame(roomId, players);
-//        gameBroadcastService.startBroadcast(roomId);
+        gameBroadcastService.startBroadcast(roomId);
 
         StompPayload<Arena> response = new StompPayload<>("GAME_INITIALIZED", roomId, "GAME_MANAGER", arena);
         messagingTemplate.convertAndSend("/sub/" + roomId + "/game", response);
