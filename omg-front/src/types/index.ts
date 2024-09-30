@@ -27,3 +27,8 @@ export type selectedStockItem =
   | 'socks'
   | 'reels'
   | 'candy';
+
+export interface MarketStock {
+  cnt: number;
+  state: [number, number];
+}
