@@ -11,14 +11,15 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.messaging.simp.SimpMessageSendingOperations;
-import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
-import java.util.List;
-
 import static com.ssafy.omg.config.baseresponse.BaseResponseStatus.INVALID_ROUND_STATUS;
-import static com.ssafy.omg.config.baseresponse.BaseResponseStatus.ROUND_STATUS_ERROR;
-import static com.ssafy.omg.domain.game.entity.RoundStatus.*;
+import static com.ssafy.omg.domain.game.entity.RoundStatus.ECONOMIC_EVENT;
+import static com.ssafy.omg.domain.game.entity.RoundStatus.PREPARING_NEXT_ROUND;
+import static com.ssafy.omg.domain.game.entity.RoundStatus.ROUND_END;
+import static com.ssafy.omg.domain.game.entity.RoundStatus.ROUND_IN_PROGRESS;
+import static com.ssafy.omg.domain.game.entity.RoundStatus.ROUND_START;
+import static com.ssafy.omg.domain.game.entity.RoundStatus.STOCK_FLUCTUATION;
 
 @Slf4j
 @Component
@@ -194,11 +195,22 @@ public class GameScheduler {
         } else if (game.getTime() == 0) {
             game.setRoundStatus(ROUND_START);
             game.setTime(3);
+            initializePlayersForNextRound(game);
             log.debug("상태를 ROUND_START로 변경. 새 시간: {}", game.getTime());
         }
 
         log.debug("handlePreparingNextRound 종료. 최종 시간: {}, 상태: {}, 현재 라운드: {}",
                 game.getTime(), game.getRoundStatus(), game.getRound());
+    }
+
+    // 다음 라운드 시작을 위한 변화값들 초기화
+    private void initializePlayersForNextRound(Game game) {
+        game.getPlayers().forEach(player -> {
+            player.setCarryingStocks(new int[6]);
+            player.setCarryingGolds(0);
+            player.setAction(null);
+            player.setState(null);
+        });
     }
 
     private void notifyPlayers(String gameId, String message) {
