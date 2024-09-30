@@ -1,6 +1,7 @@
 import { ReactNode, createContext, useEffect, useMemo, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 
+import { useGameStore } from '@/stores/useGameStore';
 import { useOtherUserStore } from '@/stores/useOtherUserState';
 import { useSocketMessage } from '@/stores/useSocketMessage';
 import useUser from '@/stores/useUser';
@@ -29,6 +30,7 @@ interface SocketContextType {
   purchaseGold: (goldPurchaseCount: number) => void;
   takeLoan: (loanAmount: number) => void;
   repayLoan: (repayLoanAmount: number) => void;
+  sellStock: (stocks: number[]) => void;
 }
 
 const defaultContextValue: SocketContextType = {
@@ -53,6 +55,7 @@ const defaultContextValue: SocketContextType = {
   purchaseGold: () => {},
   takeLoan: () => {},
   repayLoan: () => {},
+  sellStock: () => {},
 };
 
 export const SocketContext =
@@ -75,6 +78,7 @@ export default function SocketProvider({ children }: SocketProviderProps) {
     setGoldPurchaseMessage,
     setEventMessage,
   } = useSocketMessage();
+  const { setGameData } = useGameStore();
   const [socket, setSocket] = useState<Client | null>(null);
   const [online, setOnline] = useState(false);
   const [player, setPlayer] = useState<string[]>([]);
@@ -206,10 +210,13 @@ export default function SocketProvider({ children }: SocketProviderProps) {
         const currentUser = parsedMessage.sender;
         switch (parsedMessage.type) {
           case 'GAME_INITIALIZED':
+            const initGameData = parsedMessage.data.game;
+            if (initGameData.gameId === nickname) {
+              setGameData(initGameData);
+            }
             const initPlayerData = parsedMessage.data.game.players;
             setGameMessage(initPlayerData);
             setPlayers(initPlayerData);
-
             useOtherUserStore.getState().setOtherUsers(
               initPlayerData.map((player: Player) => ({
                 id: player.nickname,
@@ -535,6 +542,21 @@ export default function SocketProvider({ children }: SocketProviderProps) {
     });
   };
 
+  // 주식 매도
+  const sellStock = (stocks: number[]) => {
+    if (!isSocketConnected()) return;
+    const messagePayload = {
+      type: 'SELL_STOCK',
+      roomId,
+      sender: nickname,
+      data: stocks,
+    };
+    socket.publish({
+      destination: '/pub/sell-stock',
+      body: JSON.stringify(messagePayload),
+    });
+  };
+
   const contextValue = useMemo(
     () => ({
       socket,
@@ -558,6 +580,7 @@ export default function SocketProvider({ children }: SocketProviderProps) {
       purchaseGold,
       takeLoan,
       repayLoan,
+      sellStock,
     }),
     [
       socket,
@@ -571,6 +594,7 @@ export default function SocketProvider({ children }: SocketProviderProps) {
       purchaseGold,
       takeLoan,
       repayLoan,
+      sellStock,
     ],
   );
 
