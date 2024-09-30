@@ -1,5 +1,6 @@
 package com.ssafy.omg.domain.game.dto;
 
+import com.ssafy.omg.domain.game.entity.RoundStatus;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -10,7 +11,7 @@ import lombok.Setter;
 @AllArgsConstructor
 @NoArgsConstructor
 public class GameEventDto {
-    private String message;
+    private RoundStatus roundStatus;
     private String title;
     private String content;
     private int value;

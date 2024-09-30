@@ -135,7 +135,7 @@ public class GameScheduler {
 
                 if (gameEvent != null) {
                     GameEventDto eventDto = new GameEventDto(
-                            "ECONOMIC_EVENT",
+                            ECONOMIC_EVENT,
                             gameEvent.getTitle(),
                             gameEvent.getContent(),
                             gameEvent.getValue()
