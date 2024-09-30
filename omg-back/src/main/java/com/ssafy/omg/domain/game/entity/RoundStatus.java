@@ -12,7 +12,8 @@ public enum RoundStatus {
     ROUND_IN_PROGRESS(120), // 120초
     STOCK_FLUCTUATION(0),   // 타이머 정지
     ROUND_END(3),           // 3초
-    PREPARING_NEXT_ROUND(5);// 5초
+    PREPARING_NEXT_ROUND(5),// 5초
+    GAME_FINISHED(3);       // 게임종료
 
     private final int duration;
 

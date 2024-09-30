@@ -1,4 +1,4 @@
-import { Suspense, useContext, useEffect } from 'react';
+import { Suspense, useContext, useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 import Character from '@/components/character/Character';
@@ -7,6 +7,7 @@ import ExitButton from '@/components/common/ExitButton';
 import MainAlert from '@/components/common/MainAlert';
 import Round from '@/components/common/Round';
 import Timer from '@/components/common/Timer';
+import EventCard from '@/components/game/EventCard';
 import Map from '@/components/main-map/Map';
 import { useOtherUserStore } from '@/stores/useOtherUserState';
 import { useSocketMessage } from '@/stores/useSocketMessage';
@@ -54,14 +55,25 @@ export default function MainMap() {
     repayLoan,
   } = useContext(SocketContext);
   const { otherUsers } = useOtherUserStore();
-  const { goldPurchaseMessage, loanMessage, repayLoanMessage } =
+  const { goldPurchaseMessage, loanMessage, repayLoanMessage, eventMessage } =
     useSocketMessage();
+  const [isVisible, setIsVisible] = useState(false);
 
   useEffect(() => {
     if (socket && online && allRendered) {
       initGameSetting();
     }
   }, [initGameSetting, allRendered, socket, online]);
+
+  useEffect(() => {
+    if (!eventMessage.title) return;
+    setIsVisible(true);
+
+    const timer = setTimeout(() => {
+      setIsVisible(false);
+    }, 5000);
+    return () => clearTimeout(timer);
+  }, [eventMessage]);
 
   useEffect(() => {
     if (!goldPurchaseMessage.message) return;
@@ -194,7 +206,12 @@ export default function MainMap() {
         <Round presentRound={1} />
         <Timer />
       </section>
-
+      {/* EventCard 모달 위치 */}
+      {isVisible && (
+        <div className='absolute z-30 flex items-center justify-center w-full h-full'>
+          <EventCard />
+        </div>
+      )}
       {/* 모달 모음 */}
       <section className='absolute z-10 flex flex-col items-start gap-4 left-10 top-10'>
         <Button text='메인 판' type='mainmap' onClick={openMainSettingsModal} />
