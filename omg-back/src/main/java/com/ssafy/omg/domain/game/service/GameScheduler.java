@@ -31,7 +31,7 @@ public class GameScheduler {
     private final GameService gameService;
     private final SimpMessageSendingOperations messagingTemplate;
     private static final int MAX_ROUNDS = 10;
-/* 
+
     @Scheduled(fixedRate = 1000)  // 1초마다 실행
     public void updateGameState() throws BaseException {
         try {
@@ -44,7 +44,7 @@ public class GameScheduler {
             log.info("라운드 진행 상태 업데이트 중 오류가 발생하였습니다.");
             throw new BaseException(ROUND_STATUS_ERROR);
         }
-    } */
+    } 
 
     /**
      * 시스템 상에서 자동적으로 라운드 진행 및 라운드 상태 변경
