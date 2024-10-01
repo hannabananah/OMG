@@ -4,9 +4,9 @@ import com.ssafy.omg.config.baseresponse.BaseException;
 import com.ssafy.omg.config.baseresponse.MessageException;
 import com.ssafy.omg.domain.arena.entity.Arena;
 import com.ssafy.omg.domain.game.GameRepository;
-import com.ssafy.omg.domain.game.dto.StockRequest;
 import com.ssafy.omg.domain.game.dto.IndividualMessageDto;
 import com.ssafy.omg.domain.game.dto.PlayerMoveRequest;
+import com.ssafy.omg.domain.game.dto.StockRequest;
 import com.ssafy.omg.domain.game.entity.Game;
 import com.ssafy.omg.domain.game.entity.GameEvent;
 import com.ssafy.omg.domain.game.entity.GameStatus;
@@ -42,16 +42,16 @@ import static com.ssafy.omg.config.baseresponse.BaseResponseStatus.INVALID_STOCK
 import static com.ssafy.omg.config.baseresponse.BaseResponseStatus.PLAYER_NOT_FOUND;
 import static com.ssafy.omg.config.baseresponse.BaseResponseStatus.PLAYER_STATE_ERROR;
 import static com.ssafy.omg.config.baseresponse.BaseResponseStatus.REQUEST_ERROR;
-import static com.ssafy.omg.config.baseresponse.MessageResponseStatus.OUT_OF_CASH;
-import static com.ssafy.omg.config.baseresponse.MessageResponseStatus.AMOUNT_OUT_OF_RANGE;
-import static com.ssafy.omg.config.baseresponse.MessageResponseStatus.LOAN_ALREADY_TAKEN;
-import static com.ssafy.omg.config.baseresponse.MessageResponseStatus.AMOUNT_EXCEED_DEBT;
 import static com.ssafy.omg.config.baseresponse.MessageResponseStatus.AMOUNT_EXCEED_CASH;
+import static com.ssafy.omg.config.baseresponse.MessageResponseStatus.AMOUNT_EXCEED_DEBT;
+import static com.ssafy.omg.config.baseresponse.MessageResponseStatus.AMOUNT_OUT_OF_RANGE;
+import static com.ssafy.omg.config.baseresponse.MessageResponseStatus.INSUFFICIENT_CASH;
+import static com.ssafy.omg.config.baseresponse.MessageResponseStatus.LOAN_ALREADY_TAKEN;
+import static com.ssafy.omg.config.baseresponse.MessageResponseStatus.OUT_OF_CASH;
+import static com.ssafy.omg.config.baseresponse.MessageResponseStatus.STOCK_NOT_AVAILABLE;
 import static com.ssafy.omg.domain.game.entity.RoundStatus.ROUND_START;
 import static com.ssafy.omg.domain.game.entity.RoundStatus.STOCK_FLUCTUATION;
 import static com.ssafy.omg.domain.player.entity.PlayerStatus.COMPLETED;
-import static com.ssafy.omg.config.baseresponse.MessageResponseStatus.INSUFFICIENT_CASH;
-import static com.ssafy.omg.config.baseresponse.MessageResponseStatus.STOCK_NOT_AVAILABLE;
 import static com.ssafy.omg.domain.player.entity.PlayerStatus.NOT_STARTED;
 import static org.hibernate.query.sqm.tree.SqmNode.log;
 
@@ -674,7 +674,7 @@ public class GameServiceImpl implements GameService {
      * @param stockSellTrack
      * @throws BaseException : 하락한 주가의 좌표가 유효하지 않은 주가 기준표의 좌표일 경우
      */
-    public void moveStockFromSellTrackAndCheckDecrease(StockInfo[] marketStocks, int[] stockSellTrack) throws BaseException{
+    public void moveStockFromSellTrackAndCheckDecrease(StockInfo[] marketStocks, int[] stockSellTrack) throws BaseException {
         List<Integer> availableStocks = new ArrayList<>(5);
         for (int i = 1; i < 6; i++) {
             if (stockSellTrack[i] > 0) {

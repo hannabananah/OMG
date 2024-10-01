@@ -2,12 +2,14 @@ package com.ssafy.omg.domain.game.service;
 
 import com.ssafy.omg.config.baseresponse.BaseException;
 import com.ssafy.omg.domain.arena.entity.Arena;
+import com.ssafy.omg.domain.game.dto.StockFluctuationResponse;
 import com.ssafy.omg.domain.game.dto.GameEventDto;
 import com.ssafy.omg.domain.game.dto.GameNotificationDto;
 import com.ssafy.omg.domain.game.entity.Game;
 import com.ssafy.omg.domain.game.entity.GameEvent;
 import com.ssafy.omg.domain.game.entity.GameStatus;
 import com.ssafy.omg.domain.game.entity.RoundStatus;
+import com.ssafy.omg.domain.game.entity.StockState;
 import com.ssafy.omg.domain.socket.dto.StompPayload;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -40,6 +42,8 @@ public class GameScheduler {
     private final GameService gameService;
     private final SimpMessageSendingOperations messagingTemplate;
     private static final int MAX_ROUNDS = 10;
+
+    private static StockState stockState;
 
     @Scheduled(fixedRate = 1000)  // 1초마다 실행
     public void updateGameState() throws BaseException {
@@ -178,8 +182,12 @@ public class GameScheduler {
         if (!game.isPaused()) {
             game.setPaused(true);
             game.setPauseTime(5);
-            // TODO: 주가변동 gameService 메서드 여기 넣어야함
             notifyPlayers(game.getGameId(), STOCK_FLUCTUATION, "주가가 변동되었습니다! 5초 후 게임이 재개됩니다.");
+
+            // 거래 가능한 주식 개수 메세지로 전송
+            StockFluctuationResponse response = new StockFluctuationResponse(stockState.getStockLevelCards()[game.getCurrentStockPriceLevel()][0]);
+            StompPayload<StockFluctuationResponse> payload = new StompPayload<>("STOCK_FLUCTUATION", game.getGameId(), "GAME_MANAGER", response);
+            messagingTemplate.convertAndSend("/sub/" + game.getGameId() + "/game", payload);
         } else {
             if (game.getPauseTime() > 0) {
                 game.setPauseTime(game.getPauseTime() - 1);
