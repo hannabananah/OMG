@@ -20,6 +20,7 @@ public class Player {
     private boolean characterMovement; // 줍기 행동 유무
     private double[] position = new double[3];         // 플레이어 좌표(x, y, z)
     private double[] direction = new double[3];        // 플레이어 방향
+    private boolean actionToggle = false;
     private int[] carryingStocks = new int[6];// 플레이어별 집에 가지고 갈 주식
     private int carryingGolds;
 
@@ -43,5 +44,13 @@ public class Player {
     public void repayLoan(int amount) {
         this.totalDebt -= amount;
         this.cash -= amount;
+    }
+
+    public boolean sendActionToggle() {
+        if(this.actionToggle) {
+            this.actionToggle = false;
+            return true;
+        }
+        return false;
     }
 }
