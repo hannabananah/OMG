@@ -75,10 +75,12 @@ export default function SocketProvider({ children }: SocketProviderProps) {
     gameMessage,
     setRoomMessage,
     setGameMessage,
+    setBuyMessage,
+    setSellMessage,
     setLoanMessage,
     setRepayLoanMessage,
     setGoldPurchaseMessage,
-    setEventMessage,
+    setEventCardMessage,
   } = useSocketMessage();
   const { setGameData } = useGameStore();
   const [socket, setSocket] = useState<Client | null>(null);
@@ -350,26 +352,58 @@ export default function SocketProvider({ children }: SocketProviderProps) {
 
           case 'GAME_NOTIFICATION':
             if (parsedMessage.data.roundStatus === 'ECONOMIC_EVENT') {
-              setEventMessage(parsedMessage.data);
+              setEventCardMessage(parsedMessage.data);
             }
             break;
 
           case 'SUCCESS_BUY_STOCK':
             if (currentUser === nickname) {
               setGameData(parsedMessage.data);
+              setBuyMessage({
+                message: '매수 완료!',
+                isCompleted: true,
+              });
               console.log('매수 성공', parsedMessage.data);
+            }
+            break;
+
+          case 'INSUFFICIENT_CASH':
+            if (currentUser === nickname) {
+              setGameData(parsedMessage.data);
+              setBuyMessage({
+                message: '돈이 부족합니다.',
+                isCompleted: false,
+              });
+              console.log('돈이 부족합니다.', parsedMessage.data);
+            }
+            break;
+
+          case 'STOCK_NOT_AVAILABLE':
+            if (currentUser === nickname) {
+              setGameData(parsedMessage.data);
+              setBuyMessage({
+                message: '다른 사람이 이미 구매해서 개수가 부족합니다.',
+                isCompleted: false,
+              });
+              console.log(
+                '다른 사람이 이미 구매해서 개수가 부족합니다.',
+                parsedMessage.data,
+              );
             }
             break;
 
           case 'SUCCESS_SELL_STOCK':
             if (currentUser === nickname) {
               setGameData(parsedMessage.data);
-              console.log('매도 성공', parsedMessage.data);
+              setSellMessage({
+                message: '매도 성공!',
+                isCompleted: true,
+              });
             }
             break;
 
           case 'STOCK_FLUCTUATION':
-            // setGameData(parsedMessage.data);
+            setGameData(parsedMessage.data);
             console.log('경제상황 발생', parsedMessage.data);
             break;
         }
