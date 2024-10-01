@@ -1,16 +1,22 @@
 export default function MyAssets() {
   const items = [
     {
-      src: '/assets/socks-with-cane.png',
-      alt: 'socks-with-cane',
+      src: '/assets/candy.png',
+      alt: 'candy',
       width: 24,
-      height: 60,
+      height: 48,
       count: 1,
     },
-    { src: '/assets/cane.png', alt: 'cane', width: 18, height: 36, count: 1 },
-    { src: '/assets/socks.png', alt: 'socks', width: 20, height: 40, count: 1 },
-    { src: '/assets/reels.png', alt: 'reels', width: 34, height: 34, count: 1 },
-    { src: '/assets/candy.png', alt: 'candy', width: 24, height: 48, count: 1 },
+    {
+      src: '/assets/cupcake.png',
+      alt: 'cupcake',
+      width: 32,
+      height: 48,
+      count: 1,
+    },
+    { src: '/assets/gift.png', alt: 'gift', width: 36, height: 48, count: 1 },
+    { src: '/assets/hat.png', alt: 'hat', width: 32, height: 36, count: 1 },
+    { src: '/assets/socks.png', alt: 'socks', width: 24, height: 40, count: 1 },
   ];
 
   return (

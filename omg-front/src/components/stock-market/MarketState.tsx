@@ -31,10 +31,10 @@ export default function MarketState() {
 
       <div className='flex items-center gap-6'>
         <p>가격 변동 까지 남은 게이지</p>
-        <div className='relative w-[200px] h-7 bg-white rounded-100 overflow-hidden'>
+        <div className='relative w-[200px] h-8 bg-white2 rounded-100 overflow-hidden'>
           <p className='absolute -translate-x-1/2 left-1/2'>{progress}%</p>
           <div
-            className='h-full transition-all duration-300 bg-green'
+            className='h-full transition-all duration-300 bg-skyblue'
             style={{ width: `${progress}%` }}
           ></div>
         </div>
