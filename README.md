@@ -3,6 +3,22 @@
 <details>
   <summary>6주차</summary>
 
+### 🔖 10/01(화)
+
+- [x] 주식 아이템 3d 에셋 서칭 및 재선정 (candy, cupcake, gift, hat, socks)
+- [x] 주식 아이템 blendar 작업
+- [x] 불필요한 파일들 모두 제거 후 걷어냄
+- [x] 주식 아이템 렌더링 컴포넌트 통합
+- [x] 모달 관리: useModalStore 생성
+- [x] 주식 시장 Modal 생성
+- [x] 주가 차트 작업
+
+  - [x] @nivo/line 라이브러리 설치
+  - [x] 타입 / 데이터 / 훅 분리
+  - [x] back => front 차트용 데이터로 변환
+  - [x] 라운드/최고 가 기준 차트 사이즈 동적 변동
+  - [x] 1ROUND 내 20초 단위로 차트 기록
+
 ### 🔖 09/30(월)
 
 - [x] 5주차 Jira 스프린트 이슈 등록
