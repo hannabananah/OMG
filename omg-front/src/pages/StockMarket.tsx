@@ -1,12 +1,12 @@
 import { useState } from 'react';
 
-import SpeechBubble from '@/components/common/SpeechBubble';
 import BackButton from '@/components/common/BackButton';
 import Button from '@/components/common/Button';
 import ChatButton from '@/components/common/ChatButton';
 import ExitButton from '@/components/common/ExitButton';
 import Round from '@/components/common/Round';
 import Snowing from '@/components/common/Snowing';
+import SpeechBubble from '@/components/common/SpeechBubble';
 import Timer from '@/components/common/Timer';
 import Candy from '@/components/stock-market/Candy';
 import Cane from '@/components/stock-market/Cane';
@@ -44,12 +44,14 @@ interface Basket {
   height: number;
 }
 
+// TODO: 빌드 에러 해결을 위한 임시 주석 처리, 필요한 경우 주석 해제
+/* 
 // 바구니 범위
 interface BasketRange extends Basket {
   itemWidth: number;
   itemHeight: number;
 }
-
+ */
 export default function StockMarket() {
   const maxTradeCount = 5; // 최대 거래 가능 횟수
   const myMoney = 60; // 총 현금

@@ -1,6 +1,10 @@
 import type { MarketStock, Player } from '@/types';
 import { create } from 'zustand';
 
+interface ExtendedGameData extends GameData {
+  tradableStockCnt: number;
+}
+
 interface GameData {
   currentInterestRate: number;
   currentStockPriceLevel: number;
@@ -25,9 +29,9 @@ interface GameData {
 }
 
 interface GameStore {
-  gameData: GameData | null;
+  gameData: ExtendedGameData | null;
   carryingData: number[];
-  setGameData: (data: GameData) => void;
+  setGameData: (data: ExtendedGameData) => void;
   setCarryingData: (
     data: number[] | ((prevData: number[]) => number[]),
   ) => void;
@@ -36,7 +40,7 @@ interface GameStore {
 export const useGameStore = create<GameStore>(set => ({
   gameData: null,
   carryingData: [0, 0, 0, 0, 0, 0],
-  setGameData: (data: GameData) => set({ gameData: data }),
+  setGameData: (data: ExtendedGameData) => set({ gameData: data }),
   setCarryingData: (data: number[] | ((prevData: number[]) => number[])) => {
     if (typeof data === 'function') {
       set(prev => ({ carryingData: data(prev.carryingData) }));
