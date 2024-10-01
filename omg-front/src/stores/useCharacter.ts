@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 
 import { useGLTF } from '@react-three/drei';
 import * as THREE from 'three';
@@ -51,46 +51,70 @@ export const useCharacter = ({
     onMovementChange(state);
   };
 
-  const handleKeyDown = (event: KeyboardEvent) => {
-    if (!isOwnCharacter) return;
-
-    if (event.key === 'ArrowUp') {
-      if (!isMoving) {
-        setAnimationState('walking');
-        setIsMoving(true);
-      }
-    } else if (event.key === 'ArrowLeft') {
-      const turnLeftAction = mixer.current!.clipAction(animations[3]);
-      action?.stop();
-      turnLeftAction.reset().setLoop(THREE.LoopOnce, 1).clampWhenFinished =
-        true;
-      turnLeftAction.play();
-      setAction(turnLeftAction);
-      setRotation(prev => prev + Math.PI / 2);
-      onRotationChange(rotation + Math.PI / 2);
-      setAnimationState('idle');
-    } else if (event.key === 'ArrowRight') {
-      const turnRightAction = mixer.current!.clipAction(animations[4]);
-      action?.stop();
-      turnRightAction.reset().setLoop(THREE.LoopOnce, 1).clampWhenFinished =
-        true;
-      turnRightAction.play();
-      setAction(turnRightAction);
-      setRotation(prev => prev - Math.PI / 2);
-      onRotationChange(rotation - Math.PI / 2);
-      setAnimationState('idle');
-    } else if (event.key === ' ') {
-      const pickUpAction = mixer.current!.clipAction(animations[1]);
-      action?.stop();
-      pickUpAction.reset().setLoop(THREE.LoopOnce, 1).clampWhenFinished = true;
-      pickUpAction.play();
-      setAction(pickUpAction);
-      onActionToggleChange(true);
-      setTimeout(() => {
-        onActionToggleChange(false);
-      }, 0.002);
+  const walkingAnimation = () => {
+    if (!isMoving) {
+      setAnimationState('walking');
+      setIsMoving(true);
     }
   };
+
+  const turnLeftAnimation = () => {
+    const turnLeftAction = mixer.current!.clipAction(animations[3]);
+    action?.stop();
+    turnLeftAction.reset().setLoop(THREE.LoopOnce, 1).clampWhenFinished = true;
+    turnLeftAction.play();
+    setAction(turnLeftAction);
+    setRotation(prev => prev + Math.PI / 2);
+    onRotationChange(rotation + Math.PI / 2);
+    setAnimationState('idle');
+  };
+
+  const turnRightAnimation = () => {
+    const turnRightAction = mixer.current!.clipAction(animations[4]);
+    action?.stop();
+    turnRightAction.reset().setLoop(THREE.LoopOnce, 1).clampWhenFinished = true;
+    turnRightAction.play();
+    setAction(turnRightAction);
+    setRotation(prev => prev - Math.PI / 2);
+    onRotationChange(rotation - Math.PI / 2);
+    setAnimationState('idle');
+  };
+
+  const pickUpAnimation = () => {
+    const pickUpAction = mixer.current!.clipAction(animations[1]);
+    action?.stop();
+    pickUpAction.reset().setLoop(THREE.LoopOnce, 1).clampWhenFinished = true;
+    pickUpAction.play();
+    setAction(pickUpAction);
+    onActionToggleChange(true);
+    setTimeout(() => {
+      onActionToggleChange(false);
+    }, 160);
+  };
+
+  const handleKeyDown = useCallback(
+    (event: KeyboardEvent) => {
+      if (!isOwnCharacter) return;
+
+      switch (event.key) {
+        case 'ArrowUp':
+          walkingAnimation();
+          break;
+        case 'ArrowLeft':
+          turnLeftAnimation();
+          break;
+        case 'ArrowRight':
+          turnRightAnimation();
+          break;
+        case ' ':
+          pickUpAnimation();
+          break;
+        default:
+          break;
+      }
+    },
+    [isOwnCharacter],
+  );
 
   const handleKeyUp = (event: KeyboardEvent) => {
     if (event.key === 'ArrowUp') {
@@ -108,5 +132,5 @@ export const useCharacter = ({
     };
   }, [handleKeyDown, handleKeyUp, movementState, isMoving]);
 
-  return { scene, mixer };
+  return { scene, mixer, pickUpAnimation };
 };
