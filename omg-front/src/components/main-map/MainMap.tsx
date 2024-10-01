@@ -63,12 +63,19 @@ export default function MainMap() {
     purchaseGold,
     takeLoan,
     repayLoan,
+    buyStock,
     sellStock,
   } = useContext(SocketContext);
   const { carryingData, setCarryingData } = useGameStore();
   const { otherUsers } = useOtherUserStore();
-  const { goldPurchaseMessage, loanMessage, repayLoanMessage, eventMessage } =
-    useSocketMessage();
+  const {
+    goldPurchaseMessage,
+    loanMessage,
+    repayLoanMessage,
+    eventCardMessage,
+    buyStockMessage,
+    sellStockMessage,
+  } = useSocketMessage();
 
   const [isVisible, setIsVisible] = useState(false);
 
@@ -79,14 +86,14 @@ export default function MainMap() {
   }, [initGameSetting, allRendered, socket, online]);
 
   useEffect(() => {
-    if (!eventMessage.title) return;
+    if (!eventCardMessage.title) return;
     setIsVisible(true);
 
     const timer = setTimeout(() => {
       setIsVisible(false);
     }, 5000);
     return () => clearTimeout(timer);
-  }, [eventMessage]);
+  }, [eventCardMessage]);
 
   useEffect(() => {
     if (!goldPurchaseMessage.message) return;
@@ -99,6 +106,29 @@ export default function MainMap() {
       alert(goldPurchaseMessage.message);
     }
   }, [goldPurchaseMessage]);
+
+  // 매수
+  useEffect(() => {
+    console.log('buyStockMessage', buyStockMessage);
+    if (!buyStockMessage.message) return;
+
+    if (buyStockMessage.isCompleted) {
+      alert(buyStockMessage.message);
+    } else if (!buyStockMessage.isCompleted) {
+      alert(buyStockMessage.message);
+    }
+  }, [buyStockMessage]);
+
+  // 매도
+  useEffect(() => {
+    if (!sellStockMessage.message) return;
+
+    if (sellStockMessage.isCompleted) {
+      alert(sellStockMessage.message);
+    } else if (!sellStockMessage.isCompleted) {
+      alert(sellStockMessage.message);
+    }
+  }, [sellStockMessage]);
 
   useEffect(() => {
     if (!loanMessage.message) return;
@@ -228,13 +258,19 @@ export default function MainMap() {
     repayLoan(repayLoanAmount);
   };
 
+  const handleClickBuyStock = () => {
+    buyStock(carryingData);
+    setCarryingData([0, 0, 0, 0, 0, 0]);
+  };
+
   const handleClickSellStock = () => {
     sellStock(carryingData);
+    setCarryingData([0, 0, 0, 0, 0, 0]);
   };
 
   return (
     <main className='relative w-full h-screen overflow-hidden'>
-      {/* 주식 매도 수량 선택(집에서) */}
+      {/* 주식 매도/매수 수량 선택(집에서/거래소에서) */}
       <div className='px-10 py-2'>
         {stockTypes.map(stock => (
           <button
@@ -249,13 +285,10 @@ export default function MainMap() {
 
       {/* TODO: 삭제해야됨, 주식 매수 매도 버튼 */}
       <div className='absolute z-30 flex items-center justify-center w-full h-full gap-56'>
-        <ChoiceTransaction
-          type='buy-stock'
-          onClick={() => alert('구매하기 클릭됨')}
-        />
+        <ChoiceTransaction type='buy-stock' onClick={handleClickBuyStock} />
         <ChoiceTransaction type='sell-stock' onClick={handleClickSellStock} />
       </div>
-      
+
       {/* Round & Timer & Chat 고정 위치 렌더링 */}
       <section className='absolute z-10 flex flex-col items-end gap-4 top-10 right-10'>
         <Round presentRound={1} />
