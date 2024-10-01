@@ -11,6 +11,7 @@ import Item from './Item';
 interface Props {
   position?: number[];
   direction?: number[];
+  actionToggle?: boolean;
   characterURL: string;
   characterScale: number[];
   isOwnCharacter?: boolean;
@@ -24,6 +25,7 @@ export default function Character({
   isOwnCharacter = false,
 }: Props) {
   const { movePlayer, allRendered } = useContext(SocketContext);
+  const [actionToggle, setActionToggle] = useState(false);
   const [characterPosition, setCharacterPosition] = useState(
     new THREE.Vector3(0, -7.8, 10),
   ); // 캐릭터 기본 위치
@@ -35,6 +37,10 @@ export default function Character({
     onMovementChange: state => (movementStateRef.current = state),
     onRotationChange: setRotation,
     onPositionChange: setCharacterPosition,
+    onActionToggleChange: actionToggle => {
+      console.log('Action toggled:', actionToggle);
+      setActionToggle(actionToggle);
+    },
     isOwnCharacter,
   });
 
@@ -78,10 +84,17 @@ export default function Character({
       const directionArray = [Math.sin(rotation), 0, Math.cos(rotation)];
 
       if (isOwnCharacter) {
-        movePlayer(positionArray, directionArray);
+        movePlayer(positionArray, directionArray, actionToggle);
       }
     }
-  }, [scene, characterPosition, rotation, allRendered, isOwnCharacter]);
+  }, [
+    scene,
+    characterPosition,
+    rotation,
+    allRendered,
+    isOwnCharacter,
+    actionToggle,
+  ]);
 
   // 아이템 배열 데이터 (예시)
   const items: { itemName: StockItem; count: number }[] = [
@@ -105,7 +118,7 @@ export default function Character({
             key={`${item.itemName}-${itemIndex}-${index}`}
             disabled={true}
             characterPosition={characterPosition}
-            index={index + itemIndex * 2} // 인덱스를 계산하여 순차적으로 배치
+            index={index + itemIndex * 2}
             itemName={item.itemName}
           />
         )),
