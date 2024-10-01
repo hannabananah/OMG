@@ -79,6 +79,8 @@ public class GameBroadcastService {
                 .map(p -> new PlayerStateDto(p.getNickname(), p.getPosition(), p.getDirection(), p.sendActionToggle()))
                 .collect(Collectors.toList());
 
+        gameRepository.saveArena(roomId, arena);
+
         StompResponsePayload<List<PlayerStateDto>> payload = new StompResponsePayload<>("PLAYER_STATE", playerStateDtos);
 
         log.debug("send payload roomId = {}", roomId);
