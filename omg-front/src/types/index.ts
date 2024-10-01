@@ -20,3 +20,15 @@ export interface ChatMessage {
   sender: string;
   content: string;
 }
+
+export type StockItem =
+  | 'socks-with-cane'
+  | 'cane'
+  | 'socks'
+  | 'reels'
+  | 'candy';
+
+export interface MarketStock {
+  cnt: number;
+  state: [number, number];
+}

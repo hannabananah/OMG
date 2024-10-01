@@ -5,6 +5,7 @@ import jakarta.validation.constraints.Size;
 
 public record PlayerMoveRequest (
         double[] position,
-        double[] direction
+        double[] direction,
+        boolean actionToggle
 ) {
 }

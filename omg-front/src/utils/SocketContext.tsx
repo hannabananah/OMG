@@ -1,6 +1,7 @@
 import { ReactNode, createContext, useEffect, useMemo, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 
+import { useGameStore } from '@/stores/useGameStore';
 import { useOtherUserStore } from '@/stores/useOtherUserState';
 import { useSocketMessage } from '@/stores/useSocketMessage';
 import useUser from '@/stores/useUser';
@@ -29,6 +30,8 @@ interface SocketContextType {
   purchaseGold: (goldPurchaseCount: number) => void;
   takeLoan: (loanAmount: number) => void;
   repayLoan: (repayLoanAmount: number) => void;
+  buyStock: (stocks: number[]) => void;
+  sellStock: (stocks: number[]) => void;
 }
 
 const defaultContextValue: SocketContextType = {
@@ -53,6 +56,8 @@ const defaultContextValue: SocketContextType = {
   purchaseGold: () => {},
   takeLoan: () => {},
   repayLoan: () => {},
+  buyStock: () => {},
+  sellStock: () => {},
 };
 
 export const SocketContext =
@@ -70,10 +75,15 @@ export default function SocketProvider({ children }: SocketProviderProps) {
     gameMessage,
     setRoomMessage,
     setGameMessage,
+    setBuyMessage,
+    setSellMessage,
     setLoanMessage,
     setRepayLoanMessage,
     setGoldPurchaseMessage,
+    setEventCardMessage,
+    setGameRoundMessage,
   } = useSocketMessage();
+  const { setGameData } = useGameStore();
   const [socket, setSocket] = useState<Client | null>(null);
   const [online, setOnline] = useState(false);
   const [player, setPlayer] = useState<string[]>([]);
@@ -202,14 +212,16 @@ export default function SocketProvider({ children }: SocketProviderProps) {
       gameTopic,
       message => {
         const parsedMessage = JSON.parse(message.body);
-        console.log('게임방 구독', parsedMessage);
         const currentUser = parsedMessage.sender;
         switch (parsedMessage.type) {
           case 'GAME_INITIALIZED':
+            const initGameData = parsedMessage.data.game;
+            if (initGameData.gameId === nickname) {
+              setGameData(initGameData);
+            }
             const initPlayerData = parsedMessage.data.game.players;
             setGameMessage(initPlayerData);
             setPlayers(initPlayerData);
-
             useOtherUserStore.getState().setOtherUsers(
               initPlayerData.map((player: Player) => ({
                 id: player.nickname,
@@ -339,7 +351,66 @@ export default function SocketProvider({ children }: SocketProviderProps) {
             }
             break;
 
-          case 'GAME_EVENT':
+          case 'GAME_NOTIFICATION':
+            if (parsedMessage.data.roundStatus === 'ECONOMIC_EVENT') {
+              setEventCardMessage(parsedMessage.data);
+            } else {
+              setGameRoundMessage({
+                type: parsedMessage.type,
+                message: parsedMessage.data.message,
+              });
+            }
+            break;
+
+          case 'SUCCESS_BUY_STOCK':
+            if (currentUser === nickname) {
+              setGameData(parsedMessage.data);
+              setBuyMessage({
+                message: '매수 완료!',
+                isCompleted: true,
+              });
+              console.log('매수 성공', parsedMessage.data);
+            }
+            break;
+
+          case 'INSUFFICIENT_CASH':
+            if (currentUser === nickname) {
+              setGameData(parsedMessage.data);
+              setBuyMessage({
+                message: '돈이 부족합니다.',
+                isCompleted: false,
+              });
+              console.log('돈이 부족합니다.', parsedMessage.data);
+            }
+            break;
+
+          case 'STOCK_NOT_AVAILABLE':
+            if (currentUser === nickname) {
+              setGameData(parsedMessage.data);
+              setBuyMessage({
+                message: '다른 사람이 이미 구매해서 개수가 부족합니다.',
+                isCompleted: false,
+              });
+              console.log(
+                '다른 사람이 이미 구매해서 개수가 부족합니다.',
+                parsedMessage.data,
+              );
+            }
+            break;
+
+          case 'SUCCESS_SELL_STOCK':
+            if (currentUser === nickname) {
+              setGameData(parsedMessage.data);
+              setSellMessage({
+                message: '매도 성공!',
+                isCompleted: true,
+              });
+            }
+            break;
+
+          case 'STOCK_FLUCTUATION':
+            setGameData(parsedMessage.data);
+            console.log('경제상황 발생', parsedMessage.data);
             break;
         }
       },
@@ -532,6 +603,37 @@ export default function SocketProvider({ children }: SocketProviderProps) {
     });
   };
 
+  // 주식 매수
+  const buyStock = (stocks: number[]) => {
+    if (!isSocketConnected()) return;
+    const messagePayload = {
+      type: 'BUY_STOCK',
+      roomId,
+      sender: nickname,
+      data: { stocks },
+    };
+    socket.publish({
+      destination: '/pub/buy-stock',
+      body: JSON.stringify(messagePayload),
+    });
+  };
+
+  // 주식 매도
+  const sellStock = (stocks: number[]) => {
+    if (!isSocketConnected()) return;
+    const messagePayload = {
+      type: 'SELL_STOCK',
+      roomId,
+      sender: nickname,
+      data: { stocks },
+    };
+
+    socket.publish({
+      destination: '/pub/sell-stock',
+      body: JSON.stringify(messagePayload),
+    });
+  };
+
   const contextValue = useMemo(
     () => ({
       socket,
@@ -555,6 +657,8 @@ export default function SocketProvider({ children }: SocketProviderProps) {
       purchaseGold,
       takeLoan,
       repayLoan,
+      buyStock,
+      sellStock,
     }),
     [
       socket,
@@ -568,6 +672,8 @@ export default function SocketProvider({ children }: SocketProviderProps) {
       purchaseGold,
       takeLoan,
       repayLoan,
+      buyStock,
+      sellStock,
     ],
   );
 
