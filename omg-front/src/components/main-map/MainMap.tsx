@@ -109,7 +109,6 @@ export default function MainMap() {
 
   // 매수
   useEffect(() => {
-    console.log('buyStockMessage', buyStockMessage);
     if (!buyStockMessage.message) return;
 
     if (buyStockMessage.isCompleted) {
