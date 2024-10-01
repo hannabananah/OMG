@@ -1,4 +1,4 @@
-import { useContext, useEffect, useRef, useState } from 'react';
+import { useContext, useEffect, useMemo, useRef, useState } from 'react';
 
 import { useCharacter } from '@/stores/useCharacter';
 import { StockItem } from '@/types';
@@ -20,29 +20,35 @@ interface Props {
 export default function Character({
   position,
   direction,
+  actionToggle,
   characterURL,
   characterScale,
   isOwnCharacter = false,
 }: Props) {
   const { movePlayer, allRendered } = useContext(SocketContext);
-  const [actionToggle, setActionToggle] = useState(false);
+
+  const [localActionToggle, setLocalActionToggle] = useState(false);
   const [characterPosition, setCharacterPosition] = useState(
     new THREE.Vector3(0, -7.8, 10),
   ); // 캐릭터 기본 위치
   const [rotation, setRotation] = useState(0);
   const movementStateRef = useRef<'idle' | 'walking' | 'running'>('idle');
 
-  const { scene, mixer } = useCharacter({
+  const { scene, mixer, pickUpAnimation } = useCharacter({
     characterURL,
     onMovementChange: state => (movementStateRef.current = state),
     onRotationChange: setRotation,
     onPositionChange: setCharacterPosition,
-    onActionToggleChange: actionToggle => {
-      console.log('Action toggled:', actionToggle);
-      setActionToggle(actionToggle);
-    },
+    onActionToggleChange: setLocalActionToggle,
     isOwnCharacter,
   });
+
+  useEffect(() => {
+    if (!isOwnCharacter && actionToggle) {
+      console.log('다른 유저에게 액션 토글 실행');
+      pickUpAnimation();
+    }
+  }, [actionToggle, isOwnCharacter]);
 
   useFrame((_, delta) => {
     mixer.current?.update(delta);
@@ -84,7 +90,8 @@ export default function Character({
       const directionArray = [Math.sin(rotation), 0, Math.cos(rotation)];
 
       if (isOwnCharacter) {
-        movePlayer(positionArray, directionArray, actionToggle);
+        console.log('localActionToggle', localActionToggle);
+        movePlayer(positionArray, directionArray, localActionToggle);
       }
     }
   }, [
@@ -93,17 +100,29 @@ export default function Character({
     rotation,
     allRendered,
     isOwnCharacter,
-    actionToggle,
+    localActionToggle,
   ]);
 
-  // 아이템 배열 데이터 (예시)
-  const items: { itemName: StockItem; count: number }[] = [
-    { itemName: 'socks-with-cane', count: 1 },
-    { itemName: 'cane', count: 1 },
-    { itemName: 'socks', count: 1 },
-    { itemName: 'reels', count: 1 },
-    { itemName: 'candy', count: 1 },
-  ];
+  const items: { itemName: StockItem; count: number }[] = useMemo(
+    () => [
+      { itemName: 'socks-with-cane', count: 1 },
+      { itemName: 'cane', count: 1 },
+      { itemName: 'socks', count: 1 },
+      { itemName: 'reels', count: 1 },
+      { itemName: 'candy', count: 1 },
+    ],
+    [],
+  );
+
+  useEffect(() => {
+    if (localActionToggle) {
+      console.log('다른 유저, 아이템을 줍기 위한 행동 시작');
+      pickUpAnimation();
+      setTimeout(() => {
+        setLocalActionToggle(false);
+      }, 160);
+    }
+  }, [localActionToggle, pickUpAnimation]);
 
   return (
     <>
