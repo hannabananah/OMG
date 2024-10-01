@@ -2,7 +2,6 @@ import { Suspense, useContext, useEffect, useMemo, useState } from 'react';
 
 import Character from '@/components/character/Character';
 import Button from '@/components/common/Button';
-import ChoiceTransaction from '@/components/common/ChoiceTransaction';
 import ExitButton from '@/components/common/ExitButton';
 import Round from '@/components/common/Round';
 import Timer from '@/components/common/Timer';
@@ -288,7 +287,9 @@ export default function MainMap() {
   };
 
   const openStockMarketModal = () => {
-    openModal('stockMarket');
+    if (!modals.stockMarket) {
+      openModal('stockMarket');
+    }
   };
 
   const handleClickBuyStock = () => {
@@ -320,10 +321,10 @@ export default function MainMap() {
       </div>
 
       {/* TODO: 삭제해야됨, 주식 매수 매도 버튼 */}
-      <div className='absolute z-30 flex items-center justify-center w-full h-full gap-56'>
+      {/* <div className='absolute z-30 flex items-center justify-center w-full h-full gap-56'>
         <ChoiceTransaction type='buy-stock' onClick={handleClickBuyStock} />
         <ChoiceTransaction type='sell-stock' onClick={handleClickSellStock} />
-      </div>
+      </div> */}
 
       {/* Round & Timer & Chat 고정 위치 렌더링 */}
       <section className='absolute z-10 flex flex-col items-end gap-4 top-10 right-10'>

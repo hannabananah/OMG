@@ -1,14 +1,13 @@
 import useModalStore from '@/stores/useModalStore';
 
 import LineChart from './LineChart';
-import MarketState from './MarketState';
 
 export default function StockMarket() {
-  const { closeModal } = useModalStore(); // 모달 상태 및 함수 불러오기
+  const { modals, closeModal } = useModalStore(); // 모달 상태 및 함수 불러오기
 
   // 모달 닫기
   const handleCloseStockMarket = (e: React.MouseEvent<HTMLDivElement>) => {
-    if (e.target === e.currentTarget) {
+    if (e.target === e.currentTarget && modals.stockMarket) {
       closeModal('stockMarket');
     }
   };
@@ -21,7 +20,7 @@ export default function StockMarket() {
       <div className='flex flex-col w-[80%] h-[80%] bg-green rounded-30'>
         {/* 시장 수준 */}
         <section className='flex justify-center w-full px-10 py-10 text-black text-omg-40b'>
-          <MarketState />
+          {/* <MarketState /> */}
         </section>
 
         {/* 주가 추이 & 주식 별 가격 */}
