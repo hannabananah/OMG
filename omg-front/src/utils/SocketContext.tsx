@@ -255,7 +255,6 @@ export default function SocketProvider({ children }: SocketProviderProps) {
               (player: Player) => player.nickname !== nickname,
             );
             if (otherPlayersData.length > 0) {
-              console.log('otherPlayersData--->', otherPlayersData);
               const updatedOtherUsers = otherPlayersData.map(
                 (player: Player) => {
                   const existingUser = useOtherUserStore
@@ -557,7 +556,6 @@ export default function SocketProvider({ children }: SocketProviderProps) {
         actionToggle,
       },
     };
-    console.log('messagePayload=보내는거=>', messagePayload);
     socket.publish({
       destination: '/pub/player-move',
       body: JSON.stringify(messagePayload),
