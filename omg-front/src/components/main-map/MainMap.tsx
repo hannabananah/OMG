@@ -1,4 +1,4 @@
-import { Suspense, useContext, useEffect, useState, useMemo } from 'react';
+import { Suspense, useContext, useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 import Character from '@/components/character/Character';
@@ -15,12 +15,9 @@ import { useOtherUserStore } from '@/stores/useOtherUserState';
 import { useSocketMessage } from '@/stores/useSocketMessage';
 import useUser from '@/stores/useUser';
 import { SocketContext } from '@/utils/SocketContext';
-import {
-  KeyboardControls,
-  OrbitControls,
-} from '@react-three/drei';
+import { KeyboardControls, OrbitControls } from '@react-three/drei';
 import { Canvas } from '@react-three/fiber';
-import { Physics} from '@react-three/rapier';
+import { Physics } from '@react-three/rapier';
 
 import IntroCamera from '../camera/IntroCamera';
 import ChatButton from '../common/ChatButton';
@@ -88,15 +85,16 @@ export default function MainMap() {
   const [isVisible, setIsVisible] = useState(false);
   const [isAlertVisible, setIsAlertVisible] = useState(false);
 
-  const keyboardMap = useMemo(() => 
-    [
-    { name: Controls.forward, keys: ['ArrowUp'] },
-    { name: Controls.back, keys: ['ArrowDown'] },
-    { name: Controls.left, keys: ['ArrowLeft'] },
-    { name: Controls.right, keys: ['ArrowRight'] },
-    { name: Controls.pickup, keys: ['Space'] },
-  ], []
-);
+  const keyboardMap = useMemo(
+    () => [
+      { name: Controls.forward, keys: ['ArrowUp'] },
+      { name: Controls.back, keys: ['ArrowDown'] },
+      { name: Controls.left, keys: ['ArrowLeft'] },
+      { name: Controls.right, keys: ['ArrowRight'] },
+      { name: Controls.pickup, keys: ['Space'] },
+    ],
+    [],
+  );
 
   useEffect(() => {
     if (socket && online && allRendered) {
@@ -236,10 +234,9 @@ export default function MainMap() {
       ...CharacterInfo[userCharacterKey],
       position: user.position,
       direction: user.direction,
+      actionToggle: user.actionToggle,
     };
   });
-
-  
 
   const navigate = useNavigate();
 
@@ -394,7 +391,7 @@ export default function MainMap() {
             <OrbitControls />
             <axesHelper args={[800]} />
             <IntroCamera />
-            <Physics timeStep="vary" colliders={false} debug >
+            <Physics timeStep='vary' colliders={false} debug>
               <ambientLight />
               <directionalLight />
 
@@ -417,6 +414,7 @@ export default function MainMap() {
                   characterScale={userCharacter.scale}
                   position={userCharacter.position}
                   direction={userCharacter.direction}
+                  actionToggle={userCharacter.actionToggle}
                   isOwnCharacter={false}
                 />
               ))}

@@ -6,6 +6,7 @@ interface OtherUserState {
     characterType: number;
     position: number[];
     direction: number[];
+    actionToggle: boolean;
   }>;
   setOtherUsers: (
     users: Array<{
@@ -13,22 +14,24 @@ interface OtherUserState {
       characterType: number;
       position: number[];
       direction: number[];
+      actionToggle: boolean;
     }>,
   ) => void;
   updateUserPosition: (
     id: string,
     position: number[],
     direction: number[],
+    actionToggle: boolean,
   ) => void;
 }
 
 export const useOtherUserStore = create<OtherUserState>(set => ({
   otherUsers: [],
   setOtherUsers: users => set({ otherUsers: users }),
-  updateUserPosition: (id, position, direction) =>
+  updateUserPosition: (id, position, direction, actionToggle) =>
     set(state => ({
       otherUsers: state.otherUsers.map(user =>
-        user.id === id ? { ...user, position, direction } : user,
+        user.id === id ? { ...user, position, direction, actionToggle } : user,
       ),
     })),
 }));

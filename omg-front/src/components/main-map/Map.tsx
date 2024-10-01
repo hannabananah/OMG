@@ -30,15 +30,13 @@ export default function Map() {
   }, [animations, scene]);
 
   return (
-    <RigidBody type='fixed' colliders={"hull"}>
-
+    <RigidBody type='fixed' colliders={'hull'}>
       <primitive
         object={scene}
         scale={[0.05, 0.05, 0.05]}
         position={[0, -8, 0]}
       />
-                    </RigidBody>
-
+    </RigidBody>
   );
 }
 
