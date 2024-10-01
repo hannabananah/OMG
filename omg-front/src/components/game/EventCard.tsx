@@ -8,20 +8,20 @@ const calcX = (y: number, ly: number) =>
   -(y - ly - window.innerHeight / 2) / 20;
 const calcY = (x: number, lx: number) => (x - lx - window.innerWidth / 2) / 20;
 export default function EventCard() {
-  const { eventMessage } = useSocketMessage();
-  const [eventTitle, setEventTitle] = useState('');
-  const [eventContent, setEventContent] = useState('');
-  const [eventValue, setEventValue] = useState(0);
+  const { eventCardMessage } = useSocketMessage();
+  const [eventCardTitle, setEventCardTitle] = useState('');
+  const [eventCardContent, setEventCardContent] = useState('');
+  const [eventCardValue, setEventCardValue] = useState(0);
   const [isPositive, setIsPositive] = useState(false);
 
   useEffect(() => {
-    if (!eventMessage.title) return;
+    if (!eventCardMessage.title) return;
 
-    setEventTitle(eventMessage.title);
-    setEventContent(eventMessage.content);
-    setEventValue(eventMessage.value);
-    setIsPositive(eventMessage.value >= 0);
-  }, [eventMessage]);
+    setEventCardTitle(eventCardMessage.title);
+    setEventCardContent(eventCardMessage.content);
+    setEventCardValue(eventCardMessage.value);
+    setIsPositive(eventCardMessage.value >= 0);
+  }, [eventCardMessage]);
 
   const domTarget = useRef<HTMLDivElement | null>(null);
   const [{ x, y, rotateX, rotateY, scale }, api] = useSpring(() => ({
@@ -74,14 +74,14 @@ export default function EventCard() {
       >
         <div className='flex flex-col items-center h-full justify-evenly'>
           <h2 className='basis-1/6 text-omg-30b font-omg-title'>
-            {eventTitle}
+            {eventCardTitle}
           </h2>
           <span
             className={`${isPositive ? 'text-red' : 'text-blue'} text-omg-18`}
           >
-            {isPositive ? '금리 상승' : '금리 하락'} {eventValue}%
+            {isPositive ? '금리 상승' : '금리 하락'} {eventCardValue}%
           </span>
-          <p className='font-omg-body text-omg-20'>{eventContent}</p>
+          <p className='font-omg-body text-omg-20'>{eventCardContent}</p>
         </div>
       </animated.div>
     </div>
