@@ -1,6 +1,6 @@
 import { useState } from 'react';
 
-import SpeechBubble from '@/components/common/\bSpeechBubble';
+import SpeechBubble from '@/components/common/SpeechBubble';
 import BackButton from '@/components/common/BackButton';
 import Button from '@/components/common/Button';
 import ChatButton from '@/components/common/ChatButton';
