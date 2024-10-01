@@ -26,6 +26,14 @@ import { Physics } from '@react-three/rapier';
 import IntroCamera from '../camera/IntroCamera';
 import ChatButton from '../common/ChatButton';
 
+export const Controls = {
+  forward: 'forward',
+  back: 'back',
+  left: 'left',
+  right: 'right',
+  pickup: 'pickup',
+};
+
 const stockTypes = [
   { name: '주식 종류1', id: 1 },
   { name: '주식 종류2', id: 2 },
@@ -189,14 +197,6 @@ export default function MainMap() {
       actionToggle: user.actionToggle,
     };
   });
-
-  const Controls = {
-    forward: 'forward',
-    back: 'back',
-    left: 'left',
-    right: 'right',
-    pickup: 'pickup',
-  };
 
   const keyboardMap = [
     { name: Controls.forward, keys: ['ArrowUp'] },

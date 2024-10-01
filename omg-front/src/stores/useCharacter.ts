@@ -28,6 +28,9 @@ export const useCharacter = ({
   >('idle');
   const [rotation, setRotation] = useState(0);
   const [isMoving, setIsMoving] = useState(false);
+  const clock = useRef(new THREE.Clock());
+  const runTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const activeKeys = useRef(new Set<string>());
 
   useEffect(() => {
     if (animations.length > 0 && scene) {
@@ -51,33 +54,73 @@ export const useCharacter = ({
     onMovementChange(state);
   };
 
-  const walkingAnimation = () => {
-    if (!isMoving) {
+  const rotateCharacterSmoothly = (newRotation: number) => {
+    const initialRotation = rotation;
+    const duration = 0.05;
+    const updateRotation = () => {
+      const elapsed = clock.current.getElapsedTime();
+      const progress = Math.min(elapsed / duration, 1);
+      const currentRotation =
+        initialRotation + (newRotation - initialRotation) * progress;
+      setRotation(currentRotation);
+      onRotationChange(currentRotation);
+
+      if (progress < 1) {
+        requestAnimationFrame(updateRotation);
+      } else {
+        if (isMoving) {
+          setAnimationState('walking');
+        }
+      }
+    };
+
+    clock.current.start();
+    updateRotation();
+  };
+
+  const handleMovementStart = (
+    direction: 'ArrowUp' | 'ArrowDown' | 'ArrowLeft' | 'ArrowRight',
+  ) => {
+    let newRotation = rotation;
+    if (direction === 'ArrowUp') newRotation = 0;
+    if (direction === 'ArrowDown') newRotation = Math.PI;
+    if (direction === 'ArrowLeft') newRotation = Math.PI / 2;
+    if (direction === 'ArrowRight') newRotation = -Math.PI / 2;
+
+    if (newRotation !== rotation) {
+      rotateCharacterSmoothly(newRotation);
+    } else {
       setAnimationState('walking');
-      setIsMoving(true);
     }
+
+    runTimeoutRef.current = setTimeout(() => {
+      if (isMoving) {
+        setAnimationState('running');
+      }
+    }, 200);
   };
 
-  const turnLeftAnimation = () => {
-    const turnLeftAction = mixer.current!.clipAction(animations[3]);
-    action?.stop();
-    turnLeftAction.reset().setLoop(THREE.LoopOnce, 1).clampWhenFinished = true;
-    turnLeftAction.play();
-    setAction(turnLeftAction);
-    setRotation(prev => prev + Math.PI / 2);
-    onRotationChange(rotation + Math.PI / 2);
-    setAnimationState('idle');
-  };
+  const handleKeyUp = (event: KeyboardEvent) => {
+    if (
+      !['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(event.key)
+    )
+      return;
 
-  const turnRightAnimation = () => {
-    const turnRightAction = mixer.current!.clipAction(animations[4]);
-    action?.stop();
-    turnRightAction.reset().setLoop(THREE.LoopOnce, 1).clampWhenFinished = true;
-    turnRightAction.play();
-    setAction(turnRightAction);
-    setRotation(prev => prev - Math.PI / 2);
-    onRotationChange(rotation - Math.PI / 2);
-    setAnimationState('idle');
+    activeKeys.current.delete(event.key);
+
+    if (activeKeys.current.size > 0) {
+      const remainingKey = [...activeKeys.current][0];
+      handleMovementStart(
+        remainingKey as 'ArrowUp' | 'ArrowDown' | 'ArrowLeft' | 'ArrowRight',
+      );
+    } else {
+      setAnimationState('idle');
+      setIsMoving(false);
+      if (runTimeoutRef.current) {
+        clearTimeout(runTimeoutRef.current);
+        runTimeoutRef.current = null;
+      }
+    }
   };
 
   const pickUpAnimation = () => {
@@ -96,32 +139,24 @@ export const useCharacter = ({
     (event: KeyboardEvent) => {
       if (!isOwnCharacter) return;
 
-      switch (event.key) {
-        case 'ArrowUp':
-          walkingAnimation();
-          break;
-        case 'ArrowLeft':
-          turnLeftAnimation();
-          break;
-        case 'ArrowRight':
-          turnRightAnimation();
-          break;
-        case ' ':
-          pickUpAnimation();
-          break;
-        default:
-          break;
+      if (
+        ['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(event.key)
+      ) {
+        activeKeys.current.add(event.key);
+        if (!isMoving) {
+          handleMovementStart(
+            event.key as 'ArrowUp' | 'ArrowDown' | 'ArrowLeft' | 'ArrowRight',
+          );
+          setIsMoving(true);
+        }
+      }
+
+      if (event.key === ' ') {
+        pickUpAnimation();
       }
     },
-    [isOwnCharacter],
+    [isOwnCharacter, isMoving],
   );
-
-  const handleKeyUp = (event: KeyboardEvent) => {
-    if (event.key === 'ArrowUp') {
-      setAnimationState('idle');
-      setIsMoving(false);
-    }
-  };
 
   useEffect(() => {
     window.addEventListener('keydown', handleKeyDown);
@@ -130,7 +165,7 @@ export const useCharacter = ({
       window.removeEventListener('keydown', handleKeyDown);
       window.removeEventListener('keyup', handleKeyUp);
     };
-  }, [handleKeyDown, handleKeyUp, movementState, isMoving]);
+  }, [handleKeyDown]);
 
   return { scene, mixer, pickUpAnimation };
 };
