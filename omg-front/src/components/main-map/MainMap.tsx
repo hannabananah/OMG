@@ -186,6 +186,7 @@ export default function MainMap() {
       ...CharacterInfo[userCharacterKey],
       position: user.position,
       direction: user.direction,
+      actionToggle: user.actionToggle,
     };
   });
 
@@ -371,6 +372,7 @@ export default function MainMap() {
                   characterScale={userCharacter.scale}
                   position={userCharacter.position}
                   direction={userCharacter.direction}
+                  actionToggle={userCharacter.actionToggle}
                   isOwnCharacter={false}
                 />
               ))}
