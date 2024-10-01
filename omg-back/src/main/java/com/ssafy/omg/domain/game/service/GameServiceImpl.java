@@ -229,10 +229,10 @@ public class GameServiceImpl implements GameService {
 
     private StockInfo[] initializeMarket() {
         StockInfo[] market = new StockInfo[6];
-        market[0] = new StockInfo(0, new int[]{0, 0});
+        market[0] = new StockInfo(0, new int[]{0, 0}, 0);
 
         for (int i = 1; i < 6; i++) {
-            market[i] = new StockInfo(8, new int[]{12, 3});
+            market[i] = new StockInfo(8, new int[]{12, 3}, 0);
         }
 
         return market;
@@ -630,7 +630,7 @@ public class GameServiceImpl implements GameService {
         }
 
         // 1. stocks 유효성 검사 (각 숫자가 0 이상/합산한 개수가 0 초과 주가 수준 거래 가능 토큰 개수 이하)
-        validateStocks(ownedStocks, stocksToSell, currentStockPriceLevel);
+        validateStocks(stocksToSell, currentStockPriceLevel);
 
         // 2. 주식 매도 가격 계산
         int salePrice = 0;  // 주식 매도 대금
@@ -948,18 +948,17 @@ public class GameServiceImpl implements GameService {
     /**
      * 주식 매수/매도 시 거래 요청한 주식의 검사
      *
-     * @param ownedStocks : 플레이어가 보유하고 있는 주식들
      * @param stocksToSell : 플레이어가 파려고 하는 주식들
      * @param stockPriceLevel : 주가 수준
      * @throws BaseException : 아래 두 조건을 만족하지 않는 경우
      *                       - 각 숫자가 0 미만인 동시에 거래 주식 개수가 0 초과 거래가능토큰개수(주가수준 기준) 이하
      *                       - 주식 종류별 내가 보유한 주식 개수 이하
      */
-    private void validateStocks(int[] ownedStocks, int[] stocksToSell, int stockPriceLevel) throws BaseException {
+    private void validateStocks(int[] stocksToSell, int stockPriceLevel) throws BaseException {
         // 각 숫자가 0 이상 && 합산한 개수가 0 초과 주가 수준 거래 가능 토큰 개수 이하 && 내가 보유한 주식 개수 이하
         int stockCnt = 0;
         for (int i = 1; i < 6; i++) {
-            if (stocksToSell[i] < 0 || ownedStocks[i] < stocksToSell[i]) {
+            if (stocksToSell[i] < 0) {
                 throw new BaseException(INVALID_SELL_STOCKS);
             }
             stockCnt += stocksToSell[i];
