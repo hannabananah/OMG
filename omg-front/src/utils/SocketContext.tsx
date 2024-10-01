@@ -24,7 +24,11 @@ interface SocketContextType {
   rendered_complete: () => void;
   gameSubscription: () => void;
   players: Player[];
-  movePlayer: (position: number[], direction: number[]) => void;
+  movePlayer: (
+    position: number[],
+    direction: number[],
+    actionToggle: boolean,
+  ) => void;
   initGameSetting: () => void;
   allRendered: boolean;
   purchaseGold: (goldPurchaseCount: number) => void;
@@ -251,6 +255,7 @@ export default function SocketProvider({ children }: SocketProviderProps) {
               (player: Player) => player.nickname !== nickname,
             );
             if (otherPlayersData.length > 0) {
+              console.log('otherPlayersData--->', otherPlayersData);
               const updatedOtherUsers = otherPlayersData.map(
                 (player: Player) => {
                   const existingUser = useOtherUserStore
@@ -262,6 +267,7 @@ export default function SocketProvider({ children }: SocketProviderProps) {
                     characterType: existingUser?.characterType || 0,
                     position: player.position,
                     direction: player.direction,
+                    actionToggle: player.actionToggle,
                   };
                 },
               );
@@ -535,7 +541,11 @@ export default function SocketProvider({ children }: SocketProviderProps) {
   };
 
   // 캐릭터 이동
-  const movePlayer = (position: number[], direction: number[]) => {
+  const movePlayer = (
+    position: number[],
+    direction: number[],
+    actionToggle: boolean,
+  ) => {
     if (!isSocketConnected()) return;
     const messagePayload = {
       type: 'PLAYER_MOVE',
@@ -544,8 +554,10 @@ export default function SocketProvider({ children }: SocketProviderProps) {
       data: {
         position,
         direction,
+        actionToggle,
       },
     };
+    console.log('messagePayload=보내는거=>', messagePayload);
     socket.publish({
       destination: '/pub/player-move',
       body: JSON.stringify(messagePayload),

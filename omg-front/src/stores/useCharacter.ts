@@ -7,6 +7,7 @@ interface Props {
   onMovementChange: (movementState: 'idle' | 'walking' | 'running') => void;
   onRotationChange: (rotation: number) => void;
   onPositionChange: (position: THREE.Vector3) => void;
+  onActionToggleChange: (actionToggle: boolean) => void;
 
   characterURL: string;
   isOwnCharacter: boolean;
@@ -17,6 +18,7 @@ export const useCharacter = ({
   onRotationChange,
   characterURL,
   isOwnCharacter,
+  onActionToggleChange,
 }: Props) => {
   const { scene, animations } = useGLTF(characterURL);
   const mixer = useRef<THREE.AnimationMixer | null>(null);
@@ -83,6 +85,10 @@ export const useCharacter = ({
       pickUpAction.reset().setLoop(THREE.LoopOnce, 1).clampWhenFinished = true;
       pickUpAction.play();
       setAction(pickUpAction);
+      onActionToggleChange(true);
+      setTimeout(() => {
+        onActionToggleChange(false);
+      }, 0.002);
     }
   };
 
