@@ -3,12 +3,14 @@ import { useNavigate } from 'react-router-dom';
 
 import Character from '@/components/character/Character';
 import Button from '@/components/common/Button';
+import ChoiceTransaction from '@/components/common/ChoiceTransaction';
 import ExitButton from '@/components/common/ExitButton';
 import MainAlert from '@/components/common/MainAlert';
 import Round from '@/components/common/Round';
 import Timer from '@/components/common/Timer';
 import EventCard from '@/components/game/EventCard';
 import Map from '@/components/main-map/Map';
+import { useGameStore } from '@/stores/useGameStore';
 import { useOtherUserStore } from '@/stores/useOtherUserState';
 import { useSocketMessage } from '@/stores/useSocketMessage';
 import useUser from '@/stores/useUser';
@@ -23,6 +25,14 @@ import { Physics } from '@react-three/rapier';
 
 import IntroCamera from '../camera/IntroCamera';
 import ChatButton from '../common/ChatButton';
+
+const stockTypes = [
+  { name: '주식 종류1', id: 1 },
+  { name: '주식 종류2', id: 2 },
+  { name: '주식 종류3', id: 3 },
+  { name: '주식 종류4', id: 4 },
+  { name: '주식 종류5', id: 5 },
+];
 
 const CharacterInfo = {
   santa: {
@@ -53,10 +63,13 @@ export default function MainMap() {
     purchaseGold,
     takeLoan,
     repayLoan,
+    sellStock,
   } = useContext(SocketContext);
+  const { carryingData, setCarryingData } = useGameStore();
   const { otherUsers } = useOtherUserStore();
   const { goldPurchaseMessage, loanMessage, repayLoanMessage, eventMessage } =
     useSocketMessage();
+
   const [isVisible, setIsVisible] = useState(false);
 
   useEffect(() => {
@@ -112,6 +125,22 @@ export default function MainMap() {
       alert(repayLoanMessage.message);
     }
   }, [repayLoanMessage]);
+
+  // TODO: 삭제해야됨, 주식 매도 집에서 들고갈때
+  useEffect(() => {
+    console.log('carryingData has changed:', carryingData);
+  }, [carryingData]);
+
+  // TODO: 삭제해야됨, 주식 매도 집에서 들고갈때
+  const handleClickStock = (stockId: number) => {
+    setCarryingData((prevData: number[]) => {
+      const newCarryingData = [...prevData];
+      if (stockId >= 0 && stockId < newCarryingData.length) {
+        newCarryingData[stockId] += 1;
+      }
+      return newCarryingData;
+    });
+  };
 
   const characterKeys = Object.keys(CharacterInfo) as Array<
     keyof typeof CharacterInfo
@@ -199,14 +228,40 @@ export default function MainMap() {
     repayLoan(repayLoanAmount);
   };
 
+  const handleClickSellStock = () => {
+    sellStock(carryingData);
+  };
+
   return (
     <main className='relative w-full h-screen overflow-hidden'>
-      {/* Round & Timer 고정 위치 렌더링 */}
+      {/* 주식 매도 수량 선택(집에서) */}
+      <div className='px-10 py-2'>
+        {stockTypes.map(stock => (
+          <button
+            key={stock.id}
+            className='mr-5'
+            onClick={() => handleClickStock(stock.id)}
+          >
+            {stock.name}
+          </button>
+        ))}
+      </div>
+
+      {/* TODO: 삭제해야됨, 주식 매수 매도 버튼 */}
+      <div className='absolute z-30 flex items-center justify-center w-full h-full gap-56'>
+        <ChoiceTransaction
+          type='buy-stock'
+          onClick={() => alert('구매하기 클릭됨')}
+        />
+        <ChoiceTransaction type='sell-stock' onClick={handleClickSellStock} />
+      </div>
+      
+      {/* Round & Timer & Chat 고정 위치 렌더링 */}
       <section className='absolute z-10 flex flex-col items-end gap-4 top-10 right-10'>
         <Round presentRound={1} />
         <Timer />
       </section>
-      {/* EventCard 모달 위치 */}
+      {/* TODO: 삭제해야됨, EventCard 모달 위치 */}
       {isVisible && (
         <div className='absolute z-30 flex items-center justify-center w-full h-full'>
           <EventCard />
