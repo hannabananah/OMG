@@ -76,7 +76,7 @@ public class GameBroadcastService {
         }
         // TODO 필요에 따라 데이터 수정
         List<PlayerStateDto> playerStateDtos = game.getPlayers().stream()
-                .map(p -> new PlayerStateDto(p.getNickname(), p.getPosition(), p.getDirection()))
+                .map(p -> new PlayerStateDto(p.getNickname(), p.getPosition(), p.getDirection(), p.sendActionToggle()))
                 .collect(Collectors.toList());
 
         StompResponsePayload<List<PlayerStateDto>> payload = new StompResponsePayload<>("PLAYER_STATE", playerStateDtos);
