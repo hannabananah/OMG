@@ -1,4 +1,4 @@
-import { Suspense, useContext, useEffect, useState } from 'react';
+import { Suspense, useContext, useEffect, useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 import Character from '@/components/character/Character';
@@ -18,13 +18,20 @@ import { SocketContext } from '@/utils/SocketContext';
 import {
   KeyboardControls,
   OrbitControls,
-  PerspectiveCamera,
 } from '@react-three/drei';
 import { Canvas } from '@react-three/fiber';
-import { Physics } from '@react-three/rapier';
+import { Physics} from '@react-three/rapier';
 
 import IntroCamera from '../camera/IntroCamera';
 import ChatButton from '../common/ChatButton';
+
+export const Controls = {
+  forward: 'forward',
+  back: 'back',
+  left: 'left',
+  right: 'right',
+  pickup: 'pickup',
+};
 
 const stockTypes = [
   { name: '주식 종류1', id: 1 },
@@ -37,7 +44,7 @@ const stockTypes = [
 const CharacterInfo = {
   santa: {
     url: '/models/santa/santa.gltf',
-    scale: [2, 2, 2],
+    scale: [2.5, 2.5, 2.5],
   },
   elf: {
     url: '/models/elf/elf.gltf',
@@ -71,6 +78,16 @@ export default function MainMap() {
     useSocketMessage();
 
   const [isVisible, setIsVisible] = useState(false);
+
+  const keyboardMap = useMemo(() => 
+    [
+    { name: Controls.forward, keys: ['ArrowUp'] },
+    { name: Controls.back, keys: ['ArrowDown'] },
+    { name: Controls.left, keys: ['ArrowLeft'] },
+    { name: Controls.right, keys: ['ArrowRight'] },
+    { name: Controls.pickup, keys: ['Space'] },
+  ], []
+);
 
   useEffect(() => {
     if (socket && online && allRendered) {
@@ -160,21 +177,7 @@ export default function MainMap() {
     };
   });
 
-  const Controls = {
-    forward: 'forward',
-    back: 'back',
-    left: 'left',
-    right: 'right',
-    pickup: 'pickup',
-  };
-
-  const keyboardMap = [
-    { name: Controls.forward, keys: ['ArrowUp'] },
-    { name: Controls.back, keys: ['ArrowDown'] },
-    { name: Controls.left, keys: ['ArrowLeft'] },
-    { name: Controls.right, keys: ['ArrowRight'] },
-    { name: Controls.pickup, keys: ['Space'] },
-  ];
+  
 
   const navigate = useNavigate();
 
@@ -319,12 +322,15 @@ export default function MainMap() {
             <OrbitControls />
             <axesHelper args={[800]} />
             <IntroCamera />
-            <Physics>
+            <Physics timeStep="vary" colliders={false} debug >
               <ambientLight />
               <directionalLight />
+
               <Map />
-              <PerspectiveCamera />
+
+              {/* <PerspectiveCamera /> */}
               {/* 본인 캐릭터 */}
+
               <Character
                 characterURL={selectedCharacter.url}
                 characterScale={selectedCharacter.scale}
