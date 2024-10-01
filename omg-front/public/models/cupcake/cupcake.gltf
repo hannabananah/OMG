@@ -3,9 +3,6 @@
 		"generator":"Khronos glTF Blender I/O v4.2.60",
 		"version":"2.0"
 	},
-	"extensionsUsed":[
-		"KHR_materials_specular"
-	],
 	"scene":0,
 	"scenes":[
 		{
@@ -18,39 +15,30 @@
 	"nodes":[
 		{
 			"mesh":0,
-			"name":"Wrealth_02",
+			"name":"Circle.002",
 			"scale":[
-				0.012299414724111557,
-				0.012299414724111557,
-				0.012299414724111557
-			],
-			"translation":[
-				3.737943172454834,
-				-1.1879804134368896,
-				-0.13748201727867126
+				13.04097843170166,
+				13.04097843170166,
+				13.04097843170166
 			]
 		}
 	],
 	"materials":[
 		{
 			"doubleSided":true,
-			"extensions":{
-				"KHR_materials_specular":{
-					"specularFactor":0
-				}
-			},
-			"name":"Material #427",
+			"name":"Material.004",
 			"pbrMetallicRoughness":{
 				"baseColorTexture":{
 					"index":0
 				},
-				"roughnessFactor":0.858578622341156
+				"metallicFactor":0,
+				"roughnessFactor":0.5
 			}
 		}
 	],
 	"meshes":[
 		{
-			"name":"Mesh",
+			"name":"Circle.001",
 			"primitives":[
 				{
 					"attributes":{
@@ -73,69 +61,69 @@
 	"images":[
 		{
 			"mimeType":"image/png",
-			"name":"Atlas_Xmas_Items_01",
-			"uri":"Atlas_Xmas_Items_01.png"
+			"name":"Material.001_Base_Color",
+			"uri":"Material_001_Base_Color.png"
 		}
 	],
 	"accessors":[
 		{
 			"bufferView":0,
 			"componentType":5126,
-			"count":269,
+			"count":5390,
 			"max":[
-				-254.60888671875,
-				194.3084259033203,
-				29.220382690429688
+				0.03318891301751137,
+				0.10869023203849792,
+				0.033188916742801666
 			],
 			"min":[
-				-353.50006103515625,
-				97.05995178222656,
-				1.4965019226074219
+				-0.03873823955655098,
+				6.634792953263968e-05,
+				-0.03963139280676842
 			],
 			"type":"VEC3"
 		},
 		{
 			"bufferView":1,
 			"componentType":5126,
-			"count":269,
+			"count":5390,
 			"type":"VEC3"
 		},
 		{
 			"bufferView":2,
 			"componentType":5126,
-			"count":269,
+			"count":5390,
 			"type":"VEC2"
 		},
 		{
 			"bufferView":3,
 			"componentType":5123,
-			"count":1152,
+			"count":17466,
 			"type":"SCALAR"
 		}
 	],
 	"bufferViews":[
 		{
 			"buffer":0,
-			"byteLength":3228,
+			"byteLength":64680,
 			"byteOffset":0,
 			"target":34962
 		},
 		{
 			"buffer":0,
-			"byteLength":3228,
-			"byteOffset":3228,
+			"byteLength":64680,
+			"byteOffset":64680,
 			"target":34962
 		},
 		{
 			"buffer":0,
-			"byteLength":2152,
-			"byteOffset":6456,
+			"byteLength":43120,
+			"byteOffset":129360,
 			"target":34962
 		},
 		{
 			"buffer":0,
-			"byteLength":2304,
-			"byteOffset":8608,
+			"byteLength":34932,
+			"byteOffset":172480,
 			"target":34963
 		}
 	],
@@ -147,8 +135,8 @@
 	],
 	"buffers":[
 		{
-			"byteLength":10912,
-			"uri":"reels.bin"
+			"byteLength":207412,
+			"uri":"cupcake.bin"
 		}
 	]
 }

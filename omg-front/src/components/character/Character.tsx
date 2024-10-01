@@ -136,13 +136,14 @@ export default function Character({
     localActionToggle,
   ]);
 
+  // 트리 장식 배열 데이터 (예시)
   const items: { itemName: StockItem; count: number }[] = useMemo(
     () => [
-      { itemName: 'socks-with-cane', count: 1 },
-      { itemName: 'cane', count: 1 },
-      { itemName: 'socks', count: 1 },
-      { itemName: 'reels', count: 1 },
       { itemName: 'candy', count: 1 },
+      { itemName: 'cupcake', count: 1 },
+      { itemName: 'gift', count: 1 },
+      { itemName: 'hat', count: 1 },
+      { itemName: 'socks', count: 1 },
     ],
     [],
   );
