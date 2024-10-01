@@ -24,12 +24,17 @@ interface SocketContextType {
   rendered_complete: () => void;
   gameSubscription: () => void;
   players: Player[];
-  movePlayer: (position: number[], direction: number[]) => void;
+  movePlayer: (
+    position: number[],
+    direction: number[],
+    actionToggle: boolean,
+  ) => void;
   initGameSetting: () => void;
   allRendered: boolean;
   purchaseGold: (goldPurchaseCount: number) => void;
   takeLoan: (loanAmount: number) => void;
   repayLoan: (repayLoanAmount: number) => void;
+  buyStock: (stocks: number[]) => void;
   sellStock: (stocks: number[]) => void;
 }
 
@@ -55,6 +60,7 @@ const defaultContextValue: SocketContextType = {
   purchaseGold: () => {},
   takeLoan: () => {},
   repayLoan: () => {},
+  buyStock: () => {},
   sellStock: () => {},
 };
 
@@ -73,10 +79,13 @@ export default function SocketProvider({ children }: SocketProviderProps) {
     gameMessage,
     setRoomMessage,
     setGameMessage,
+    setBuyMessage,
+    setSellMessage,
     setLoanMessage,
     setRepayLoanMessage,
     setGoldPurchaseMessage,
-    setEventMessage,
+    setEventCardMessage,
+    setGameRoundMessage,
   } = useSocketMessage();
   const { setGameData } = useGameStore();
   const [socket, setSocket] = useState<Client | null>(null);
@@ -258,6 +267,7 @@ export default function SocketProvider({ children }: SocketProviderProps) {
                     characterType: existingUser?.characterType || 0,
                     position: player.position,
                     direction: player.direction,
+                    actionToggle: player.actionToggle,
                   };
                 },
               );
@@ -348,15 +358,64 @@ export default function SocketProvider({ children }: SocketProviderProps) {
 
           case 'GAME_NOTIFICATION':
             if (parsedMessage.data.roundStatus === 'ECONOMIC_EVENT') {
-              setEventMessage(parsedMessage.data);
+              setEventCardMessage(parsedMessage.data);
+            } else {
+              setGameRoundMessage({
+                type: parsedMessage.type,
+                message: parsedMessage.data.message,
+              });
+            }
+            break;
+
+          case 'SUCCESS_BUY_STOCK':
+            if (currentUser === nickname) {
+              setGameData(parsedMessage.data);
+              setBuyMessage({
+                message: '매수 완료!',
+                isCompleted: true,
+              });
+              console.log('매수 성공', parsedMessage.data);
+            }
+            break;
+
+          case 'INSUFFICIENT_CASH':
+            if (currentUser === nickname) {
+              setGameData(parsedMessage.data);
+              setBuyMessage({
+                message: '돈이 부족합니다.',
+                isCompleted: false,
+              });
+              console.log('돈이 부족합니다.', parsedMessage.data);
+            }
+            break;
+
+          case 'STOCK_NOT_AVAILABLE':
+            if (currentUser === nickname) {
+              setGameData(parsedMessage.data);
+              setBuyMessage({
+                message: '다른 사람이 이미 구매해서 개수가 부족합니다.',
+                isCompleted: false,
+              });
+              console.log(
+                '다른 사람이 이미 구매해서 개수가 부족합니다.',
+                parsedMessage.data,
+              );
             }
             break;
 
           case 'SUCCESS_SELL_STOCK':
             if (currentUser === nickname) {
               setGameData(parsedMessage.data);
-              console.log('매도 성공', parsedMessage.data);
+              setSellMessage({
+                message: '매도 성공!',
+                isCompleted: true,
+              });
             }
+            break;
+
+          case 'STOCK_FLUCTUATION':
+            setGameData(parsedMessage.data);
+            console.log('경제상황 발생', parsedMessage.data);
             break;
         }
       },
@@ -487,7 +546,11 @@ export default function SocketProvider({ children }: SocketProviderProps) {
   };
 
   // 캐릭터 이동
-  const movePlayer = (position: number[], direction: number[]) => {
+  const movePlayer = (
+    position: number[],
+    direction: number[],
+    actionToggle: boolean,
+  ) => {
     if (!isSocketConnected()) return;
     const messagePayload = {
       type: 'PLAYER_MOVE',
@@ -496,6 +559,7 @@ export default function SocketProvider({ children }: SocketProviderProps) {
       data: {
         position,
         direction,
+        actionToggle,
       },
     };
     socket.publish({
@@ -549,6 +613,21 @@ export default function SocketProvider({ children }: SocketProviderProps) {
     });
   };
 
+  // 주식 매수
+  const buyStock = (stocks: number[]) => {
+    if (!isSocketConnected()) return;
+    const messagePayload = {
+      type: 'BUY_STOCK',
+      roomId,
+      sender: nickname,
+      data: { stocks },
+    };
+    socket.publish({
+      destination: '/pub/buy-stock',
+      body: JSON.stringify(messagePayload),
+    });
+  };
+
   // 주식 매도
   const sellStock = (stocks: number[]) => {
     if (!isSocketConnected()) return;
@@ -588,6 +667,7 @@ export default function SocketProvider({ children }: SocketProviderProps) {
       purchaseGold,
       takeLoan,
       repayLoan,
+      buyStock,
       sellStock,
     }),
     [
@@ -602,6 +682,7 @@ export default function SocketProvider({ children }: SocketProviderProps) {
       purchaseGold,
       takeLoan,
       repayLoan,
+      buyStock,
       sellStock,
     ],
   );

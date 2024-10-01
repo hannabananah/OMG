@@ -1,4 +1,4 @@
-import { Suspense, useContext, useEffect, useState } from 'react';
+import { Suspense, useContext, useEffect, useMemo, useState } from 'react';
 
 import Character from '@/components/character/Character';
 import Button from '@/components/common/Button';
@@ -15,16 +15,20 @@ import { useOtherUserStore } from '@/stores/useOtherUserState';
 import { useSocketMessage } from '@/stores/useSocketMessage';
 import useUser from '@/stores/useUser';
 import { SocketContext } from '@/utils/SocketContext';
-import {
-  KeyboardControls,
-  OrbitControls,
-  PerspectiveCamera,
-} from '@react-three/drei';
+import { KeyboardControls, OrbitControls } from '@react-three/drei';
 import { Canvas } from '@react-three/fiber';
 import { Physics } from '@react-three/rapier';
 
 import IntroCamera from '../camera/IntroCamera';
 import ChatButton from '../common/ChatButton';
+
+export const Controls = {
+  forward: 'forward',
+  back: 'back',
+  left: 'left',
+  right: 'right',
+  pickup: 'pickup',
+};
 
 const stockTypes = [
   { name: '주식 종류1', id: 1 },
@@ -37,7 +41,7 @@ const stockTypes = [
 const CharacterInfo = {
   santa: {
     url: '/models/santa/santa.gltf',
-    scale: [2, 2, 2],
+    scale: [2.5, 2.5, 2.5],
   },
   elf: {
     url: '/models/elf/elf.gltf',
@@ -63,15 +67,37 @@ export default function MainMap() {
     purchaseGold,
     takeLoan,
     repayLoan,
+    buyStock,
     sellStock,
   } = useContext(SocketContext);
   const { carryingData, setCarryingData } = useGameStore();
   const { otherUsers } = useOtherUserStore();
-  const { goldPurchaseMessage, loanMessage, repayLoanMessage, eventMessage } =
-    useSocketMessage();
+
   const { modals, openModal } = useModalStore(); // 모달 상태 및 함수 불러오기
 
+  const {
+    goldPurchaseMessage,
+    loanMessage,
+    repayLoanMessage,
+    eventCardMessage,
+    buyStockMessage,
+    sellStockMessage,
+    gameRoundMessage,
+  } = useSocketMessage();
+
   const [isVisible, setIsVisible] = useState(false);
+  const [isAlertVisible, setIsAlertVisible] = useState(false);
+
+  const keyboardMap = useMemo(
+    () => [
+      { name: Controls.forward, keys: ['ArrowUp'] },
+      { name: Controls.back, keys: ['ArrowDown'] },
+      { name: Controls.left, keys: ['ArrowLeft'] },
+      { name: Controls.right, keys: ['ArrowRight'] },
+      { name: Controls.pickup, keys: ['Space'] },
+    ],
+    [],
+  );
 
   useEffect(() => {
     if (socket && online && allRendered) {
@@ -80,14 +106,14 @@ export default function MainMap() {
   }, [initGameSetting, allRendered, socket, online]);
 
   useEffect(() => {
-    if (!eventMessage.title) return;
+    if (!eventCardMessage.title && !eventCardMessage.content) return;
     setIsVisible(true);
 
     const timer = setTimeout(() => {
       setIsVisible(false);
     }, 5000);
     return () => clearTimeout(timer);
-  }, [eventMessage]);
+  }, [eventCardMessage]);
 
   useEffect(() => {
     if (!goldPurchaseMessage.message) return;
@@ -100,6 +126,28 @@ export default function MainMap() {
       alert(goldPurchaseMessage.message);
     }
   }, [goldPurchaseMessage]);
+
+  // 매수
+  useEffect(() => {
+    if (!buyStockMessage.message) return;
+
+    if (buyStockMessage.isCompleted) {
+      alert(buyStockMessage.message);
+    } else if (!buyStockMessage.isCompleted) {
+      alert(buyStockMessage.message);
+    }
+  }, [buyStockMessage]);
+
+  // 매도
+  useEffect(() => {
+    if (!sellStockMessage.message) return;
+
+    if (sellStockMessage.isCompleted) {
+      alert(sellStockMessage.message);
+    } else if (!sellStockMessage.isCompleted) {
+      alert(sellStockMessage.message);
+    }
+  }, [sellStockMessage]);
 
   useEffect(() => {
     if (!loanMessage.message) return;
@@ -132,6 +180,37 @@ export default function MainMap() {
     console.log('carryingData has changed:', carryingData);
   }, [carryingData]);
 
+  // TODO: 삭제해야됨, 라운드 알림 모달
+  useEffect(() => {
+    if (!gameRoundMessage.message) return;
+
+    console.log('gameRoundMessage-------->', gameRoundMessage);
+
+    let displayDuration = 2000;
+
+    switch (gameRoundMessage.type) {
+      case 'ROUND_START':
+      case 'ROUND_END':
+      case 'GAME_FINISHED':
+        displayDuration = 4000;
+        break;
+      case 'ROUND_IN_PROGRESS':
+      case 'PREPARING_NEXT_ROUND':
+        displayDuration = 1000;
+        break;
+      default:
+        break;
+    }
+
+    setIsAlertVisible(true);
+
+    const timer = setTimeout(() => {
+      setIsAlertVisible(false);
+    }, displayDuration);
+
+    return () => clearTimeout(timer);
+  }, [gameRoundMessage]);
+
   // TODO: 삭제해야됨, 주식 매도 집에서 들고갈때
   const handleClickStock = (stockId: number) => {
     setCarryingData((prevData: number[]) => {
@@ -158,24 +237,9 @@ export default function MainMap() {
       ...CharacterInfo[userCharacterKey],
       position: user.position,
       direction: user.direction,
+      actionToggle: user.actionToggle,
     };
   });
-
-  const Controls = {
-    forward: 'forward',
-    back: 'back',
-    left: 'left',
-    right: 'right',
-    pickup: 'pickup',
-  };
-
-  const keyboardMap = [
-    { name: Controls.forward, keys: ['ArrowUp'] },
-    { name: Controls.back, keys: ['ArrowDown'] },
-    { name: Controls.left, keys: ['ArrowLeft'] },
-    { name: Controls.right, keys: ['ArrowRight'] },
-    { name: Controls.pickup, keys: ['Space'] },
-  ];
 
   const openMainSettingsModal = () => {
     alert('메인 판 모달 띄워주기');
@@ -227,8 +291,14 @@ export default function MainMap() {
     openModal('stockMarket');
   };
 
+  const handleClickBuyStock = () => {
+    buyStock(carryingData);
+    setCarryingData([0, 0, 0, 0, 0, 0]);
+  };
+
   const handleClickSellStock = () => {
     sellStock(carryingData);
+    setCarryingData([0, 0, 0, 0, 0, 0]);
   };
 
   return (
@@ -236,7 +306,7 @@ export default function MainMap() {
       {/* 주식 시장 Modal */}
       {modals.stockMarket && <StockMarket />}
 
-      {/* 주식 매도 수량 선택(집에서) */}
+      {/* 주식 매도/매수 수량 선택(집에서/거래소에서) */}
       <div className='px-10 py-2'>
         {stockTypes.map(stock => (
           <button
@@ -251,10 +321,7 @@ export default function MainMap() {
 
       {/* TODO: 삭제해야됨, 주식 매수 매도 버튼 */}
       <div className='absolute z-30 flex items-center justify-center w-full h-full gap-56'>
-        <ChoiceTransaction
-          type='buy-stock'
-          onClick={() => alert('구매하기 클릭됨')}
-        />
+        <ChoiceTransaction type='buy-stock' onClick={handleClickBuyStock} />
         <ChoiceTransaction type='sell-stock' onClick={handleClickSellStock} />
       </div>
 
@@ -263,12 +330,14 @@ export default function MainMap() {
         <Round presentRound={1} />
         <Timer />
       </section>
+
       {/* TODO: 삭제해야됨, EventCard 모달 위치 */}
       {isVisible && (
         <div className='absolute z-30 flex items-center justify-center w-full h-full'>
           <EventCard />
         </div>
       )}
+
       {/* 모달 모음 */}
       <section className='absolute z-10 flex flex-col items-start gap-4 left-10 top-10'>
         <Button text='메인 판' type='mainmap' onClick={openMainSettingsModal} />
@@ -313,18 +382,22 @@ export default function MainMap() {
         <ChatButton isWhite={true} />
         <ExitButton />
       </section>
+
       <KeyboardControls map={keyboardMap}>
         <Canvas>
           <Suspense>
             <OrbitControls />
             <axesHelper args={[800]} />
             <IntroCamera />
-            <Physics>
+            <Physics timeStep='vary' colliders={false} debug>
               <ambientLight />
               <directionalLight />
+
               <Map />
-              <PerspectiveCamera />
+
+              {/* <PerspectiveCamera /> */}
               {/* 본인 캐릭터 */}
+
               <Character
                 characterURL={selectedCharacter.url}
                 characterScale={selectedCharacter.scale}
@@ -339,6 +412,7 @@ export default function MainMap() {
                   characterScale={userCharacter.scale}
                   position={userCharacter.position}
                   direction={userCharacter.direction}
+                  actionToggle={userCharacter.actionToggle}
                   isOwnCharacter={false}
                 />
               ))}

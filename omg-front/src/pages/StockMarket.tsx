@@ -31,15 +31,24 @@ interface Basket {
   height: number;
 }
 
+// TODO: 빌드 에러 해결을 위한 임시 주석 처리, 필요한 경우 주석 해제
+/* 
+// 바구니 범위
+interface BasketRange extends Basket {
+  itemWidth: number;
+  itemHeight: number;
+}
+ */
+
 export default function StockMarket() {
   const maxTradeCount = 5; // 최대 거래 가능 횟수
   const myMoney = 60; // 총 현금
 
   // 바구니 크기
-  const basketSize: Basket = {
-    width: 400,
-    height: 420,
-  };
+  // const basketSize: Basket = {
+  //   width: 400,
+  //   height: 420,
+  // };
 
   const treeItems: TreeItem[] = [
     {

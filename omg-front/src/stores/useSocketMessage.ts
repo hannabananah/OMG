@@ -10,12 +10,23 @@ interface EventMessage {
 interface SocketMessageState {
   roomMessage: unknown;
   gameMessage: unknown;
+  buyStockMessage?: { message: string; isCompleted: boolean };
+  sellStockMessage?: { message: string; isCompleted: boolean };
   loanMessage?: { message: string; isCompleted: boolean };
   repayLoanMessage?: { message: string; isCompleted: boolean };
   goldPurchaseMessage?: { message: string; isCompleted: boolean };
-  eventMessage: EventMessage;
+  eventCardMessage: EventMessage;
+  gameRoundMessage: { type: string; message: string };
   setRoomMessage: (newRoomMessage: unknown) => void;
   setGameMessage: (newGameMessage: unknown) => void;
+  setBuyMessage: (newBuyMessage: {
+    message: string;
+    isCompleted: boolean;
+  }) => void;
+  setSellMessage: (newSellMessage: {
+    message: string;
+    isCompleted: boolean;
+  }) => void;
   setLoanMessage: (newLoanMessage: {
     message: string;
     isCompleted: boolean;
@@ -28,7 +39,11 @@ interface SocketMessageState {
     message: string;
     isCompleted: boolean;
   }) => void;
-  setEventMessage: (newEventMessage: EventMessage) => void;
+  setEventCardMessage: (newEventMessage: EventMessage) => void;
+  setGameRoundMessage: (newGameRoundMessage: {
+    type: string;
+    message: string;
+  }) => void;
 }
 
 export const useSocketMessage = create<SocketMessageState>(set => ({
@@ -44,6 +59,20 @@ export const useSocketMessage = create<SocketMessageState>(set => ({
     set(state => ({
       ...state,
       gameMessage: newGameMessage,
+    }));
+  },
+  buyStockMessage: { message: null, isCompleted: false },
+  setBuyMessage: newBuyMessage => {
+    set(state => ({
+      ...state,
+      buyStockMessage: newBuyMessage,
+    }));
+  },
+  sellStockMessage: { message: null, isCompleted: false },
+  setSellMessage: newSellMessage => {
+    set(state => ({
+      ...state,
+      sellStockMessage: newSellMessage,
     }));
   },
   loanMessage: { message: null, isCompleted: false },
@@ -67,16 +96,23 @@ export const useSocketMessage = create<SocketMessageState>(set => ({
       goldPurchaseMessage: newGoldPurchaseMessage,
     }));
   },
-  eventMessage: {
+  eventCardMessage: {
     roundStatus: '',
     title: '',
     content: '',
     value: 0,
   },
-  setEventMessage: newEventMessage => {
+  setEventCardMessage: newEventMessage => {
     set(state => ({
       ...state,
-      eventMessage: newEventMessage,
+      eventCardMessage: newEventMessage,
+    }));
+  },
+  gameRoundMessage: { type: null, message: null },
+  setGameRoundMessage: newGameRoundMessage => {
+    set(state => ({
+      ...state,
+      gameRoundMessage: newGameRoundMessage,
     }));
   },
 }));
