@@ -63,6 +63,7 @@ export default function MainMap() {
     purchaseGold,
     takeLoan,
     repayLoan,
+    buyStock,
     sellStock,
   } = useContext(SocketContext);
   const { carryingData, setCarryingData } = useGameStore();
@@ -228,13 +229,17 @@ export default function MainMap() {
     repayLoan(repayLoanAmount);
   };
 
+  const handleClickBuyStock = () => {
+    buyStock(carryingData);
+  };
+
   const handleClickSellStock = () => {
     sellStock(carryingData);
   };
 
   return (
     <main className='relative w-full h-screen overflow-hidden'>
-      {/* 주식 매도 수량 선택(집에서) */}
+      {/* 주식 매도/매수 수량 선택(집에서/거래소에서) */}
       <div className='px-10 py-2'>
         {stockTypes.map(stock => (
           <button
@@ -249,10 +254,7 @@ export default function MainMap() {
 
       {/* TODO: 삭제해야됨, 주식 매수 매도 버튼 */}
       <div className='absolute z-30 flex items-center justify-center w-full h-full gap-56'>
-        <ChoiceTransaction
-          type='buy-stock'
-          onClick={() => alert('구매하기 클릭됨')}
-        />
+        <ChoiceTransaction type='buy-stock' onClick={handleClickBuyStock} />
         <ChoiceTransaction type='sell-stock' onClick={handleClickSellStock} />
       </div>
       

@@ -30,6 +30,7 @@ interface SocketContextType {
   purchaseGold: (goldPurchaseCount: number) => void;
   takeLoan: (loanAmount: number) => void;
   repayLoan: (repayLoanAmount: number) => void;
+  buyStock: (stocks: number[]) => void;
   sellStock: (stocks: number[]) => void;
 }
 
@@ -55,6 +56,7 @@ const defaultContextValue: SocketContextType = {
   purchaseGold: () => {},
   takeLoan: () => {},
   repayLoan: () => {},
+  buyStock: () => {},
   sellStock: () => {},
 };
 
@@ -352,11 +354,23 @@ export default function SocketProvider({ children }: SocketProviderProps) {
             }
             break;
 
+          case 'SUCCESS_BUY_STOCK':
+            if (currentUser === nickname) {
+              setGameData(parsedMessage.data);
+              console.log('매수 성공', parsedMessage.data);
+            }
+            break;
+
           case 'SUCCESS_SELL_STOCK':
             if (currentUser === nickname) {
               setGameData(parsedMessage.data);
               console.log('매도 성공', parsedMessage.data);
             }
+            break;
+
+          case 'STOCK_FLUCTUATION':
+            // setGameData(parsedMessage.data);
+            console.log('경제상황 발생', parsedMessage.data);
             break;
         }
       },
@@ -549,6 +563,21 @@ export default function SocketProvider({ children }: SocketProviderProps) {
     });
   };
 
+  // 주식 매수
+  const buyStock = (stocks: number[]) => {
+    if (!isSocketConnected()) return;
+    const messagePayload = {
+      type: 'BUY_STOCK',
+      roomId,
+      sender: nickname,
+      data: { stocks },
+    };
+    socket.publish({
+      destination: '/pub/buy-stock',
+      body: JSON.stringify(messagePayload),
+    });
+  };
+
   // 주식 매도
   const sellStock = (stocks: number[]) => {
     if (!isSocketConnected()) return;
@@ -588,6 +617,7 @@ export default function SocketProvider({ children }: SocketProviderProps) {
       purchaseGold,
       takeLoan,
       repayLoan,
+      buyStock,
       sellStock,
     }),
     [
@@ -602,6 +632,7 @@ export default function SocketProvider({ children }: SocketProviderProps) {
       purchaseGold,
       takeLoan,
       repayLoan,
+      buyStock,
       sellStock,
     ],
   );
