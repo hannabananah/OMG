@@ -75,9 +75,11 @@ export default function MainMap() {
     eventCardMessage,
     buyStockMessage,
     sellStockMessage,
+    gameRoundMessage,
   } = useSocketMessage();
 
   const [isVisible, setIsVisible] = useState(false);
+  const [isAlertVisible, setIsAlertVisible] = useState(false);
 
   useEffect(() => {
     if (socket && online && allRendered) {
@@ -86,7 +88,7 @@ export default function MainMap() {
   }, [initGameSetting, allRendered, socket, online]);
 
   useEffect(() => {
-    if (!eventCardMessage.title) return;
+    if (!eventCardMessage.title && !eventCardMessage.content) return;
     setIsVisible(true);
 
     const timer = setTimeout(() => {
@@ -109,7 +111,6 @@ export default function MainMap() {
 
   // 매수
   useEffect(() => {
-    console.log('buyStockMessage', buyStockMessage);
     if (!buyStockMessage.message) return;
 
     if (buyStockMessage.isCompleted) {
@@ -160,6 +161,37 @@ export default function MainMap() {
   useEffect(() => {
     console.log('carryingData has changed:', carryingData);
   }, [carryingData]);
+
+  // TODO: 삭제해야됨, 라운드 알림 모달
+  useEffect(() => {
+    if (!gameRoundMessage.message) return;
+
+    console.log('gameRoundMessage-------->', gameRoundMessage);
+
+    let displayDuration = 2000;
+
+    switch (gameRoundMessage.type) {
+      case 'ROUND_START':
+      case 'ROUND_END':
+      case 'GAME_FINISHED':
+        displayDuration = 4000;
+        break;
+      case 'ROUND_IN_PROGRESS':
+      case 'PREPARING_NEXT_ROUND':
+        displayDuration = 1000;
+        break;
+      default:
+        break;
+    }
+
+    setIsAlertVisible(true);
+
+    const timer = setTimeout(() => {
+      setIsAlertVisible(false);
+    }, displayDuration);
+
+    return () => clearTimeout(timer);
+  }, [gameRoundMessage]);
 
   // TODO: 삭제해야됨, 주식 매도 집에서 들고갈때
   const handleClickStock = (stockId: number) => {
@@ -340,6 +372,13 @@ export default function MainMap() {
       >
         <MainAlert text='클릭하면 임시 주식방으로' />
       </div>
+
+      {/* TODO: 삭제해야됨 */}
+      {isAlertVisible && (
+        <div className='absolute z-20 transform -translate-x-1/2 top-14 left-1/2 w-[60%]'>
+          <MainAlert text={gameRoundMessage.message} />
+        </div>
+      )}
 
       {/* 채팅 및 종료 버튼 고정 렌더링 */}
       <section className='absolute bottom-0 left-0 z-10 flex items-center justify-between w-full text-white py-14 px-14 text-omg-40b'>
