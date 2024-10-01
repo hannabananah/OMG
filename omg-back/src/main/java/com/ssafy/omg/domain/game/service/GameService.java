@@ -43,4 +43,6 @@ public interface GameService {
     void movePlayer(StompPayload<PlayerMoveRequest> playerMoveRequest) throws BaseException;
 
     void buyStock(StompPayload<StockRequest> data) throws BaseException, MessageException;
+
+    void setStockPriceChangeInfoAndSendMessage(Game game, int round, int remainTime);
 }

@@ -172,6 +172,9 @@ public class GameScheduler {
             game.setRoundStatus(ROUND_END);
             game.setTime(3);
             log.debug("상태를 ROUND_END로 변경. 새 시간: {}", game.getTime());
+        } else if (game.getTime() == 119 || game.getTime() % 20 == 0) {
+            int remainTime = (game.getTime() == 119) ? 120 : game.getTime();
+            gameService.setStockPriceChangeInfoAndSendMessage(game, game.getRound(), remainTime);
         }
     }
 
