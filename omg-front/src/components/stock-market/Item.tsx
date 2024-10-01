@@ -1,20 +1,22 @@
 import { useFloatingObject } from '@/hooks/useFloatingObject';
+import { StockItem } from '@/types';
 import { useGLTF } from '@react-three/drei';
 import { ThreeEvent } from '@react-three/fiber';
 
-interface CaneProps {
+interface ItemProps {
+  itemName: StockItem;
+  position: { x: number; y: number; z: number };
   onClick: (event: ThreeEvent<PointerEvent>) => void;
   disabled: boolean;
 }
 
-export default function Cane({ onClick, disabled }: CaneProps) {
-  const { scene } = useGLTF('/models/cane/cane.gltf');
-
-  const position = {
-    x: 2,
-    y: 0,
-    z: 0.7,
-  };
+export default function Item({
+  itemName,
+  position,
+  onClick,
+  disabled,
+}: ItemProps) {
+  const { scene } = useGLTF(`/models/${itemName}/${itemName}.gltf`);
 
   const ref = useFloatingObject(position.y);
 

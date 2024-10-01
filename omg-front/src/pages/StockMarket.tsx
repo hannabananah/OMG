@@ -1,53 +1,34 @@
 import { useState } from 'react';
 
-import SpeechBubble from '@/components/common/SpeechBubble';
 import BackButton from '@/components/common/BackButton';
 import Button from '@/components/common/Button';
 import ChatButton from '@/components/common/ChatButton';
 import ExitButton from '@/components/common/ExitButton';
 import Round from '@/components/common/Round';
 import Snowing from '@/components/common/Snowing';
+import SpeechBubble from '@/components/common/SpeechBubble';
 import Timer from '@/components/common/Timer';
-import Candy from '@/components/stock-market/Candy';
-import Cane from '@/components/stock-market/Cane';
+import Item from '@/components/stock-market/Item';
 import MarketState from '@/components/stock-market/MarketState';
 import MyAssets from '@/components/stock-market/MyAssets';
-import Reels from '@/components/stock-market/Reels';
-import Socks from '@/components/stock-market/Socks';
-import SocksWithCane from '@/components/stock-market/SocksWithCane';
 import StockInfoButton from '@/components/stock-market/StockInfoButton';
+import { StockItem } from '@/types';
 import { OrbitControls } from '@react-three/drei';
 import { Canvas } from '@react-three/fiber';
 
-type ItemName = 'socksWithCane' | 'cane' | 'socks' | 'reels' | 'candy';
-
 // 트리 장식
 interface TreeItem {
-  name: ItemName;
+  name: StockItem;
   price: number;
   img: string;
   width: number;
   height: number;
 }
 
-// 선택된 트리 장식의 타입 정의 (위치 정보 추가)
-// interface SelectedItem extends TreeItem {
-//   position: {
-//     left: number;
-//     top: number;
-//   };
-// }
-
 // 바구니 크기
 interface Basket {
   width: number;
   height: number;
-}
-
-// 바구니 범위
-interface BasketRange extends Basket {
-  itemWidth: number;
-  itemHeight: number;
 }
 
 export default function StockMarket() {
@@ -62,44 +43,43 @@ export default function StockMarket() {
 
   const treeItems: TreeItem[] = [
     {
-      name: 'socksWithCane',
+      name: 'candy',
       price: 10,
-      img: '/assets/socks-with-cane.png',
+      img: '/assets/candy.png',
       width: 50,
       height: 150,
     },
     {
-      name: 'cane',
+      name: 'cupcake',
       price: 10,
-      img: '/assets/cane.png',
+      img: '/assets/cupcake.png',
       width: 40,
       height: 90,
+    },
+    {
+      name: 'gift',
+      price: 10,
+      img: '/assets/gift.png',
+      width: 50,
+      height: 90,
+    },
+    {
+      name: 'hat',
+      price: 10,
+      img: '/assets/hat.png',
+      width: 80,
+      height: 80,
     },
     {
       name: 'socks',
       price: 10,
       img: '/assets/socks.png',
-      width: 50,
-      height: 90,
-    },
-    {
-      name: 'reels',
-      price: 10,
-      img: '/assets/reels.png',
-      width: 80,
-      height: 80,
-    },
-    {
-      name: 'candy',
-      price: 10,
-      img: '/assets/candy.png',
       width: 60,
       height: 110,
     },
   ];
 
   // 선택된 아이템 저장하는 배열
-  // const [selectedItems, setSelectedItems] = useState<SelectedItem[]>([]);
   const [selectedItems, setSelectedItems] = useState<TreeItem[]>([]);
 
   const [alertText, setAlertText] =
@@ -112,47 +92,8 @@ export default function StockMarket() {
     0,
   );
 
-  // (선택한 트리 장식 담을 공간 내에서) 랜덤 위치 생성
-  // const getRandomPosition = (
-  //   basket: BasketRange,
-  //   existingItems: SelectedItem[],
-  // ) => {
-  //   const minLeft = 20; // 바구니 좌측 여백
-  //   const maxLeft = basket.width - basket.itemWidth - 20; // 바구니 우측 여백
-
-  //   const minTop = 80; // 바구니 상단 여백
-  //   const maxTop = basket.height - basket.itemHeight - 80; // 바구니 하단 여백
-
-  //   const maxAttempts = 10; // 충돌 없는 위치를 찾기 위한 최대 시도 횟수
-
-  //   // const left = minLeft + Math.random() * (maxLeft - minLeft);
-  //   // const top = minTop + Math.random() * (maxTop - minTop);
-
-  //   let left: number, top: number;
-  //   let attempts = 0;
-  //   let overlap;
-
-  //   do {
-  //     left = minLeft + Math.random() * (maxLeft - minLeft);
-  //     top = minTop + Math.random() * (maxTop - minTop);
-
-  //     // 다른 아이템들과 충돌 확인
-  //     overlap = existingItems.some(item => {
-  //       const distance = Math.sqrt(
-  //         Math.pow(item.position.left - left, 2) +
-  //           Math.pow(item.position.top - top, 2),
-  //       );
-  //       return distance < Math.max(basket.itemWidth, basket.itemHeight); // 최소 거리 기준
-  //     });
-
-  //     attempts++;
-  //   } while (overlap && attempts < maxAttempts);
-
-  //   return { left, top };
-  // };
-
   // 트리 장식 선택
-  const handleSelect = (itemName: ItemName) => {
+  const handleSelect = (itemName: StockItem) => {
     const item = treeItems.find(item => item.name === itemName)!;
     const newTotalPrice = totalPrice + item.price;
 
@@ -169,15 +110,6 @@ export default function StockMarket() {
     // 선택된 아이템 추가 (처음 추가될 때만 랜덤 위치 생성)
     const newItem: TreeItem = {
       ...item,
-      // position: getRandomPosition(
-      //   {
-      //     width: basketSize.width,
-      //     height: basketSize.height,
-      //     itemWidth: item.width,
-      //     itemHeight: item.height,
-      //   },
-      //   selectedItems,
-      // ),
     };
 
     // 선택된 아이템 배열에 추가
@@ -185,13 +117,13 @@ export default function StockMarket() {
   };
 
   // 트리 장식 선택 취소
-  const handleDrop = (index: number) => {
-    setSelectedItems(prev => {
-      const newItems = [...prev];
-      newItems.splice(index, 1);
-      return newItems;
-    });
-  };
+  // const handleDrop = (index: number) => {
+  //   setSelectedItems(prev => {
+  //     const newItems = [...prev];
+  //     newItems.splice(index, 1);
+  //     return newItems;
+  //   });
+  // };
 
   // 거래 불가능한 조건 (현금 부족 또는 거래 수량 초과)
   const isDisabled =
@@ -204,6 +136,18 @@ export default function StockMarket() {
       setAlertText(`${selectedItems.map(item => item.name).join(', ')} 구입`);
     }
   };
+
+  // 트리 장식 배열
+  const items: {
+    itemName: StockItem;
+    position: { x: number; y: number; z: number };
+  }[] = [
+    { itemName: 'candy', position: { x: 2, y: 0, z: 1.4 } },
+    { itemName: 'cupcake', position: { x: 2, y: 0, z: 0.7 } },
+    { itemName: 'gift', position: { x: 2, y: 0, z: 0 } },
+    { itemName: 'hat', position: { x: 2, y: 0, z: -0.7 } },
+    { itemName: 'socks', position: { x: 2, y: 0, z: -1.4 } },
+  ];
 
   return (
     <main
@@ -236,6 +180,7 @@ export default function StockMarket() {
         <MyAssets />
         <ExitButton />
       </section>
+
       <Canvas
         style={{ height: '100vh', width: '100vw' }}
         camera={{ position: [20, 5, 0], fov: 20 }} // 카메라 위치와 fov 설정
@@ -252,17 +197,19 @@ export default function StockMarket() {
         {/* 추가 조명 (포인트 라이트) */}
         <pointLight position={[0, 10, 0]} intensity={3} />
         <Snowing />
-        <SocksWithCane
-          onClick={() => handleSelect('socksWithCane')}
-          disabled={isDisabled}
-        />
-        <Cane onClick={() => handleSelect('cane')} disabled={isDisabled} />
-        <Socks onClick={() => handleSelect('socks')} disabled={isDisabled} />
-        <Reels onClick={() => handleSelect('reels')} disabled={isDisabled} />
-        <Candy onClick={event => handleSelect('candy')} disabled={isDisabled} />
+        {items.map(({ itemName, position }) => (
+          <Item
+            key={itemName}
+            itemName={itemName}
+            position={position}
+            onClick={() => handleSelect(itemName)}
+            disabled={isDisabled}
+          />
+        ))}
       </Canvas>
+
       {/* 바구니에 랜덤하게 배치된 아이템들 */}
-      <div
+      {/* <div
         className='absolute bg-center bg-cover bg-[url("/assets/shopping-basket.png")] bottom-36 left-[3%] z-20'
         style={{
           width: `${basketSize.width}px`,
@@ -289,7 +236,8 @@ export default function StockMarket() {
             );
           })}
         </div>
-      </div>
+      </div> */}
+
       <div className='absolute -translate-x-1/2 bottom-56 left-1/2'>
         <Button
           text='구매하기'

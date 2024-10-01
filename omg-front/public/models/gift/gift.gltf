@@ -3,9 +3,6 @@
 		"generator":"Khronos glTF Blender I/O v4.2.60",
 		"version":"2.0"
 	},
-	"extensionsUsed":[
-		"KHR_materials_specular"
-	],
 	"scene":0,
 	"scenes":[
 		{
@@ -18,45 +15,45 @@
 	"nodes":[
 		{
 			"mesh":0,
-			"name":"Candy-in-Sock.001",
+			"name":"cartoon gift box",
 			"rotation":[
+				0.7071068286895752,
 				0,
-				0.3643587529659271,
 				0,
-				0.9312586784362793
+				0.7071068286895752
 			],
 			"scale":[
-				0.06446163356304169,
-				0.06446163356304169,
-				0.06446163356304169
+				0.0032765530049800873,
+				0.0032765530049800873,
+				0.0032765530049800873
 			],
 			"translation":[
-				0.09394413232803345,
-				2.2439589500427246,
-				-0.00504910945892334
+				-0.059273719787597656,
+				0.029636837542057037,
+				0
 			]
 		}
 	],
 	"materials":[
 		{
 			"doubleSided":true,
-			"extensions":{
-				"KHR_materials_specular":{
-					"specularFactor":0
-				}
+			"name":"cartoon gift box.001",
+			"normalTexture":{
+				"index":0
 			},
-			"name":"20 - Default.005",
 			"pbrMetallicRoughness":{
 				"baseColorTexture":{
-					"index":0
+					"index":1
 				},
-				"roughnessFactor":0.858578622341156
+				"metallicRoughnessTexture":{
+					"index":2
+				}
 			}
 		}
 	],
 	"meshes":[
 		{
-			"name":"Mesh.067",
+			"name":"Cube.001",
 			"primitives":[
 				{
 					"attributes":{
@@ -74,74 +71,92 @@
 		{
 			"sampler":0,
 			"source":0
+		},
+		{
+			"sampler":0,
+			"source":1
+		},
+		{
+			"sampler":0,
+			"source":2
 		}
 	],
 	"images":[
 		{
 			"mimeType":"image/png",
-			"name":"Curve_Candy_01",
-			"uri":"Curve_Candy_01.png"
+			"name":"gift_DefaultMaterial_Normal",
+			"uri":"gift_DefaultMaterial_Normal.png"
+		},
+		{
+			"mimeType":"image/png",
+			"name":"gift_DefaultMaterial_BaseColor",
+			"uri":"gift_DefaultMaterial_BaseColor.png"
+		},
+		{
+			"mimeType":"image/png",
+			"name":"gift_DefaultMaterial_Metallic.png-gift_DefaultMaterial_Roughness.png",
+			"uri":"gift_DefaultMaterial_Metallic_png-gift_DefaultMaterial_Roughness_png.png"
 		}
 	],
 	"accessors":[
 		{
 			"bufferView":0,
 			"componentType":5126,
-			"count":196,
+			"count":4546,
 			"max":[
-				5.0596818923950195,
-				2.363849639892578,
-				3.6974830627441406
+				180.85861206054688,
+				149.21920776367188,
+				-3.436756134033203
 			],
 			"min":[
-				-6.768211841583252,
-				-34.40464401245117,
-				-1.9404222965240479
+				-180.85858154296875,
+				-149.21920776367188,
+				-344.6321105957031
 			],
 			"type":"VEC3"
 		},
 		{
 			"bufferView":1,
 			"componentType":5126,
-			"count":196,
+			"count":4546,
 			"type":"VEC3"
 		},
 		{
 			"bufferView":2,
 			"componentType":5126,
-			"count":196,
+			"count":4546,
 			"type":"VEC2"
 		},
 		{
 			"bufferView":3,
 			"componentType":5123,
-			"count":1062,
+			"count":21672,
 			"type":"SCALAR"
 		}
 	],
 	"bufferViews":[
 		{
 			"buffer":0,
-			"byteLength":2352,
+			"byteLength":54552,
 			"byteOffset":0,
 			"target":34962
 		},
 		{
 			"buffer":0,
-			"byteLength":2352,
-			"byteOffset":2352,
+			"byteLength":54552,
+			"byteOffset":54552,
 			"target":34962
 		},
 		{
 			"buffer":0,
-			"byteLength":1568,
-			"byteOffset":4704,
+			"byteLength":36368,
+			"byteOffset":109104,
 			"target":34962
 		},
 		{
 			"buffer":0,
-			"byteLength":2124,
-			"byteOffset":6272,
+			"byteLength":43344,
+			"byteOffset":145472,
 			"target":34963
 		}
 	],
@@ -153,8 +168,8 @@
 	],
 	"buffers":[
 		{
-			"byteLength":8396,
-			"uri":"socks-with-cane.bin"
+			"byteLength":188816,
+			"uri":"gift.bin"
 		}
 	]
 }

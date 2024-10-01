@@ -83,13 +83,13 @@ export default function Character({
     }
   }, [scene, characterPosition, rotation, allRendered, isOwnCharacter]);
 
-  // 아이템 배열 데이터 (예시)
+  // 트리 장식 배열 데이터 (예시)
   const items: { itemName: StockItem; count: number }[] = [
-    { itemName: 'socks-with-cane', count: 1 },
-    { itemName: 'cane', count: 1 },
-    { itemName: 'socks', count: 1 },
-    { itemName: 'reels', count: 1 },
     { itemName: 'candy', count: 1 },
+    { itemName: 'cupcake', count: 1 },
+    { itemName: 'gift', count: 1 },
+    { itemName: 'hat', count: 1 },
+    { itemName: 'socks', count: 1 },
   ];
 
   return (

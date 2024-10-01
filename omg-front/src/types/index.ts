@@ -21,12 +21,11 @@ export interface ChatMessage {
   content: string;
 }
 
-export type StockItem =
-  | 'socks-with-cane'
-  | 'cane'
-  | 'socks'
-  | 'reels'
-  | 'candy';
+export type StockItem = 'candy' | 'cupcake' | 'gift' | 'hat' | 'socks';
+
+// Stock 차트 데이터
+export type StockDataPoint = { x: number; y: number };
+export type StockDataItem = { id: StockItem; data: StockDataPoint[] };
 
 export interface MarketStock {
   cnt: number;
