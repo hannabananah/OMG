@@ -1,4 +1,4 @@
-import { Suspense, useContext, useEffect, useState } from 'react';
+import { Suspense, useContext, useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 import Character from '@/components/character/Character';
@@ -15,11 +15,7 @@ import { useOtherUserStore } from '@/stores/useOtherUserState';
 import { useSocketMessage } from '@/stores/useSocketMessage';
 import useUser from '@/stores/useUser';
 import { SocketContext } from '@/utils/SocketContext';
-import {
-  KeyboardControls,
-  OrbitControls,
-  PerspectiveCamera,
-} from '@react-three/drei';
+import { KeyboardControls, OrbitControls } from '@react-three/drei';
 import { Canvas } from '@react-three/fiber';
 import { Physics } from '@react-three/rapier';
 
@@ -45,7 +41,7 @@ const stockTypes = [
 const CharacterInfo = {
   santa: {
     url: '/models/santa/santa.gltf',
-    scale: [2, 2, 2],
+    scale: [2.5, 2.5, 2.5],
   },
   elf: {
     url: '/models/elf/elf.gltf',
@@ -83,9 +79,22 @@ export default function MainMap() {
     eventCardMessage,
     buyStockMessage,
     sellStockMessage,
+    gameRoundMessage,
   } = useSocketMessage();
 
   const [isVisible, setIsVisible] = useState(false);
+  const [isAlertVisible, setIsAlertVisible] = useState(false);
+
+  const keyboardMap = useMemo(
+    () => [
+      { name: Controls.forward, keys: ['ArrowUp'] },
+      { name: Controls.back, keys: ['ArrowDown'] },
+      { name: Controls.left, keys: ['ArrowLeft'] },
+      { name: Controls.right, keys: ['ArrowRight'] },
+      { name: Controls.pickup, keys: ['Space'] },
+    ],
+    [],
+  );
 
   useEffect(() => {
     if (socket && online && allRendered) {
@@ -94,7 +103,7 @@ export default function MainMap() {
   }, [initGameSetting, allRendered, socket, online]);
 
   useEffect(() => {
-    if (!eventCardMessage.title) return;
+    if (!eventCardMessage.title && !eventCardMessage.content) return;
     setIsVisible(true);
 
     const timer = setTimeout(() => {
@@ -168,6 +177,37 @@ export default function MainMap() {
     console.log('carryingData has changed:', carryingData);
   }, [carryingData]);
 
+  // TODO: 삭제해야됨, 라운드 알림 모달
+  useEffect(() => {
+    if (!gameRoundMessage.message) return;
+
+    console.log('gameRoundMessage-------->', gameRoundMessage);
+
+    let displayDuration = 2000;
+
+    switch (gameRoundMessage.type) {
+      case 'ROUND_START':
+      case 'ROUND_END':
+      case 'GAME_FINISHED':
+        displayDuration = 4000;
+        break;
+      case 'ROUND_IN_PROGRESS':
+      case 'PREPARING_NEXT_ROUND':
+        displayDuration = 1000;
+        break;
+      default:
+        break;
+    }
+
+    setIsAlertVisible(true);
+
+    const timer = setTimeout(() => {
+      setIsAlertVisible(false);
+    }, displayDuration);
+
+    return () => clearTimeout(timer);
+  }, [gameRoundMessage]);
+
   // TODO: 삭제해야됨, 주식 매도 집에서 들고갈때
   const handleClickStock = (stockId: number) => {
     setCarryingData((prevData: number[]) => {
@@ -197,14 +237,6 @@ export default function MainMap() {
       actionToggle: user.actionToggle,
     };
   });
-
-  const keyboardMap = [
-    { name: Controls.forward, keys: ['ArrowUp'] },
-    { name: Controls.back, keys: ['ArrowDown'] },
-    { name: Controls.left, keys: ['ArrowLeft'] },
-    { name: Controls.right, keys: ['ArrowRight'] },
-    { name: Controls.pickup, keys: ['Space'] },
-  ];
 
   const navigate = useNavigate();
 
@@ -341,6 +373,13 @@ export default function MainMap() {
         <MainAlert text='클릭하면 임시 주식방으로' />
       </div>
 
+      {/* TODO: 삭제해야됨 */}
+      {isAlertVisible && (
+        <div className='absolute z-20 transform -translate-x-1/2 top-14 left-1/2 w-[60%]'>
+          <MainAlert text={gameRoundMessage.message} />
+        </div>
+      )}
+
       {/* 채팅 및 종료 버튼 고정 렌더링 */}
       <section className='absolute bottom-0 left-0 z-10 flex items-center justify-between w-full text-white py-14 px-14 text-omg-40b'>
         <ChatButton isWhite={true} />
@@ -352,12 +391,15 @@ export default function MainMap() {
             <OrbitControls />
             <axesHelper args={[800]} />
             <IntroCamera />
-            <Physics>
+            <Physics timeStep='vary' colliders={false} debug>
               <ambientLight />
               <directionalLight />
+
               <Map />
-              <PerspectiveCamera />
+
+              {/* <PerspectiveCamera /> */}
               {/* 본인 캐릭터 */}
+
               <Character
                 characterURL={selectedCharacter.url}
                 characterScale={selectedCharacter.scale}
