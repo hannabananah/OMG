@@ -215,6 +215,8 @@ public class GameServiceImpl implements GameService {
 
                     .goldPrice(20)                                // 초기 금 가격 20
                     .goldPriceIncreaseCnt(0)                      // 초기 금괴 매입 개수 0
+
+                    .stockPriceChangeInfo(new int[6][61])
                     .build();
 
             arena.setGame(newGame);
@@ -549,7 +551,6 @@ public class GameServiceImpl implements GameService {
     /**
      * [takeLoan] 대출 후 자산반영, 메세지 전송
      *
-     * @param userActionPayload
      * @throws BaseException 요청 금액이 대출 한도를 넘어가는 경우
      */
     @Override
@@ -654,14 +655,14 @@ public class GameServiceImpl implements GameService {
             leftStocks += stockSellTrack[i];
         }
         if (leftStocks == 5) {
-            changeStockPrice(game, currentStockPriceLevel);
-        }
+            game.setRoundStatus(STOCK_FLUCTUATION);
 
-        // 6. 매도트랙 세팅
-        for (int i = 1; i < 6; i++) {
-            game.getStockTokensPocket()[i] += stockSellTrack[i];
+            // 6. 매도트랙 세팅
+            for (int i = 1; i < 6; i++) {
+                game.getStockTokensPocket()[i] += stockSellTrack[i];
+            }
+            game.setStockSellTrack(new int[]{2, 2, 2, 2, 2, 2});
         }
-        game.setStockSellTrack(new int[]{2, 2, 2, 2, 2, 2});
 
         gameRepository.saveArena(roomId, arena);
     }
@@ -697,7 +698,6 @@ public class GameServiceImpl implements GameService {
 
     // 주가 변동
     public void changeStockPrice(Game game, int stockPriceLevel) throws BaseException {
-        // TODO 게임 상태 변경
 
         int[] stockTokensPocket = game.getStockTokensPocket();
 
@@ -931,6 +931,16 @@ public class GameServiceImpl implements GameService {
         }
     }
 
+    @Override
+    public void setStockPriceChangeInfoAndSendMessage(Game game, int round, int remainTime) {
+        int x_value = ((round - 1) * 120 + (120 - remainTime)) / 20;
+        StockInfo[] marketStocks = game.getMarketStocks();
+        for (int i = 1; i < 6; i++) {
+            int r = marketStocks[i].getState()[0];
+            int c = marketStocks[i].getState()[1];
+            game.getStockPriceChangeInfo()[i][x_value] = stockState.getStockStandard()[r][c].getPrice();
+        }
+    }
 
     private Player findPlayer(Arena arena, String nickname) throws BaseException {
         return arena.getGame().getPlayers().stream()
