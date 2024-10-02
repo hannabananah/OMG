@@ -2,8 +2,6 @@ package com.ssafy.omg.domain.room.controller;
 
 import com.ssafy.omg.config.baseresponse.BaseException;
 import com.ssafy.omg.config.baseresponse.BaseResponse;
-import com.ssafy.omg.domain.room.dto.CommonRoomRequest;
-import com.ssafy.omg.domain.room.dto.CommonRoomResponse;
 import com.ssafy.omg.domain.room.service.RoomService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -11,7 +9,6 @@ import org.springframework.boot.autoconfigure.reactor.ReactorProperties;
 import org.springframework.messaging.simp.SimpMessageSendingOperations;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -51,12 +48,12 @@ public class RoomController {
      * @return response
      * @throws BaseException
      */
-    @PostMapping("/enter")
-    public BaseResponse<CommonRoomResponse> enterRoom(@RequestBody CommonRoomRequest request) throws BaseException {
-        CommonRoomResponse response = roomService.enterRoom(request);
-        log.info("User {} entered room {}", request.getSender(), request.getRoomId());
-        return new BaseResponse<>(response);
-    }
+//    @PostMapping("/enter")
+//    public BaseResponse<CommonRoomResponse> enterRoom(@RequestBody CommonRoomRequest request) throws BaseException {
+//        CommonRoomResponse response = roomService.enterRoom(request);
+//        log.info("User {} entered room {}", request.getSender(), request.getRoomId());
+//        return new BaseResponse<>(response);
+//    }
 
     /**
      * 대기방 존재 여부 체크
