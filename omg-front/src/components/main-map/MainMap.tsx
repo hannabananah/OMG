@@ -2,8 +2,8 @@ import { Suspense, useContext, useEffect, useMemo, useState } from 'react';
 
 import Character from '@/components/character/Character';
 import Button from '@/components/common/Button';
-import ChoiceTransaction from '@/components/common/ChoiceTransaction';
 import ExitButton from '@/components/common/ExitButton';
+import MainAlert from '@/components/common/MainAlert';
 import Round from '@/components/common/Round';
 import Timer from '@/components/common/Timer';
 import EventCard from '@/components/game/EventCard';
@@ -21,6 +21,7 @@ import { Physics } from '@react-three/rapier';
 
 import IntroCamera from '../camera/IntroCamera';
 import ChatButton from '../common/ChatButton';
+import ChoiceTransaction from '../common/ChoiceTransaction';
 
 export const Controls = {
   forward: 'forward',
@@ -70,10 +71,12 @@ export default function MainMap() {
     buyStock,
     sellStock,
   } = useContext(SocketContext);
-  const { carryingData, setCarryingData } = useGameStore();
+  const { gameData, carryingData, setCarryingData } = useGameStore();
+  const { tradableStockCnt } = gameData || {};
+
   const { otherUsers } = useOtherUserStore();
 
-  const { modals, openModal } = useModalStore(); // 모달 상태 및 함수 불러오기
+  const { modals, openModal } = useModalStore();
 
   const {
     goldPurchaseMessage,
@@ -103,7 +106,7 @@ export default function MainMap() {
     if (socket && online && allRendered) {
       initGameSetting();
     }
-  }, [allRendered]);
+  }, [initGameSetting, allRendered, socket, online]);
 
   useEffect(() => {
     if (!eventCardMessage.title && !eventCardMessage.content) return;
@@ -183,8 +186,6 @@ export default function MainMap() {
   // TODO: 삭제해야됨, 라운드 알림 모달
   useEffect(() => {
     if (!gameRoundMessage.message) return;
-
-    console.log('gameRoundMessage-------->', gameRoundMessage);
 
     let displayDuration = 2000;
 
@@ -293,16 +294,37 @@ export default function MainMap() {
     }
   };
 
+  // 주식 매수
   const handleClickBuyStock = () => {
+    const totalCarryingStock = carryingData.reduce(
+      (sum, count) => sum + count,
+      0,
+    );
+
+    if (totalCarryingStock > tradableStockCnt) {
+      alert(`${tradableStockCnt}개 이상의 주식을 살 수 없습니다.`);
+      return;
+    }
+
     buyStock(carryingData);
     setCarryingData([0, 0, 0, 0, 0, 0]);
   };
 
+  // 주식 매도
   const handleClickSellStock = () => {
+    const totalCarryingStock = carryingData.reduce(
+      (sum, count) => sum + count,
+      0,
+    );
+
+    if (totalCarryingStock > tradableStockCnt) {
+      alert(`${tradableStockCnt}개 이상의 주식을 선택할 수 없습니다.`);
+      return;
+    }
+
     sellStock(carryingData);
     setCarryingData([0, 0, 0, 0, 0, 0]);
   };
-
   return (
     <main className='relative w-full h-screen overflow-hidden'>
       {/* 주식 시장 Modal */}
@@ -378,6 +400,13 @@ export default function MainMap() {
           onClick={openStockMarketModal}
         />
       </section>
+
+      {/* TODO: 삭제해야됨 */}
+      {isAlertVisible && (
+        <div className='absolute z-20 transform -translate-x-1/2 top-14 left-1/2 w-[60%]'>
+          <MainAlert text={gameRoundMessage.message} />
+        </div>
+      )}
 
       {/* 채팅 및 종료 버튼 고정 렌더링 */}
       <section className='absolute bottom-0 left-0 z-10 flex items-center justify-between w-full text-white py-14 px-14 text-omg-40b'>
