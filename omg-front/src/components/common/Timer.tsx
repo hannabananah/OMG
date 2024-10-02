@@ -4,6 +4,7 @@ export default function Timer({ time }: { time: number }) {
   const [remainingTime, setRemainingTime] = useState(time);
 
   useEffect(() => {
+    if (!time) return;
     setRemainingTime(time);
   }, [time]);
 

@@ -63,7 +63,7 @@ const defaultContextValue: SocketContextType = {
   repayLoan: () => {},
   buyStock: () => {},
   sellStock: () => {},
-  roundTimer: 0,
+  roundTimer: 120,
 };
 
 export const SocketContext =
@@ -361,18 +361,19 @@ export default function SocketProvider({ children }: SocketProviderProps) {
 
           case 'GAME_NOTIFICATION':
             console.log('parsedMessage', parsedMessage);
-            if (parsedMessage.data.roundStatus === 'ECONOMIC_EVENT') {
+            if (
+              parsedMessage.data.roundStatus === 'APPLY_PREVIOUS_EVENT' ||
+              parsedMessage.data.roundStatus === 'ECONOMIC_EVENT_NEWS'
+            ) {
               setEventCardMessage(parsedMessage.data);
-              setTimeout(() => {
-                setRoundTimer(parsedMessage.data.time);
-              }, 5000);
             } else {
-              setGameRoundMessage({
-                type: parsedMessage.type,
-                message: parsedMessage.data.message,
-              });
-              if (parsedMessage.data.roundStatus === 'ROUND_IN_PROGRESS') {
-                setRoundTimer(120);
+              if (parsedMessage.data.time) {
+                setRoundTimer(parsedMessage.data.time);
+              } else {
+                setGameRoundMessage({
+                  roundStatus: parsedMessage.data.roundStatus,
+                  message: parsedMessage.data.message,
+                });
               }
             }
             break;
