@@ -3,6 +3,7 @@ import { Suspense, useContext, useEffect, useMemo, useState } from 'react';
 import Character from '@/components/character/Character';
 import Button from '@/components/common/Button';
 import ExitButton from '@/components/common/ExitButton';
+import MainAlert from '@/components/common/MainAlert';
 import Round from '@/components/common/Round';
 import Timer from '@/components/common/Timer';
 import EventCard from '@/components/game/EventCard';
@@ -83,6 +84,7 @@ export default function MainMap() {
     sellStockMessage,
     gameRoundMessage,
   } = useSocketMessage();
+  const { roundTimer } = useContext(SocketContext);
 
   const [isVisible, setIsVisible] = useState(false);
   const [isAlertVisible, setIsAlertVisible] = useState(false);
@@ -182,8 +184,6 @@ export default function MainMap() {
   // TODO: 삭제해야됨, 라운드 알림 모달
   useEffect(() => {
     if (!gameRoundMessage.message) return;
-
-    console.log('gameRoundMessage-------->', gameRoundMessage);
 
     let displayDuration = 2000;
 
@@ -329,7 +329,7 @@ export default function MainMap() {
       {/* Round & Timer & Chat 고정 위치 렌더링 */}
       <section className='absolute z-10 flex flex-col items-end gap-4 top-10 right-10'>
         <Round presentRound={1} />
-        <Timer />
+        <Timer time={roundTimer} />
       </section>
 
       {/* TODO: 삭제해야됨, EventCard 모달 위치 */}
@@ -377,6 +377,13 @@ export default function MainMap() {
           onClick={openStockMarketModal}
         />
       </section>
+
+      {/* TODO: 삭제해야됨 */}
+      {isAlertVisible && (
+        <div className='absolute z-20 transform -translate-x-1/2 top-14 left-1/2 w-[60%]'>
+          <MainAlert text={gameRoundMessage.message} />
+        </div>
+      )}
 
       {/* 채팅 및 종료 버튼 고정 렌더링 */}
       <section className='absolute bottom-0 left-0 z-10 flex items-center justify-between w-full text-white py-14 px-14 text-omg-40b'>

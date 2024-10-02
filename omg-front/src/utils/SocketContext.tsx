@@ -36,6 +36,7 @@ interface SocketContextType {
   repayLoan: (repayLoanAmount: number) => void;
   buyStock: (stocks: number[]) => void;
   sellStock: (stocks: number[]) => void;
+  roundTimer: number;
 }
 
 const defaultContextValue: SocketContextType = {
@@ -62,6 +63,7 @@ const defaultContextValue: SocketContextType = {
   repayLoan: () => {},
   buyStock: () => {},
   sellStock: () => {},
+  roundTimer: 0,
 };
 
 export const SocketContext =
@@ -96,6 +98,7 @@ export default function SocketProvider({ children }: SocketProviderProps) {
   const [hostPlayer, setHostPlayer] = useState<string | null>(null);
   const [allRendered, setAllRendered] = useState(false);
   const navigate = useNavigate();
+  const [roundTimer, setRoundTimer] = useState(120);
 
   const roomTopic = `/sub/${roomId}/room`;
   const chatTopic = `/sub/${roomId}/chat`;
@@ -357,13 +360,20 @@ export default function SocketProvider({ children }: SocketProviderProps) {
             break;
 
           case 'GAME_NOTIFICATION':
+            console.log('parsedMessage', parsedMessage);
             if (parsedMessage.data.roundStatus === 'ECONOMIC_EVENT') {
               setEventCardMessage(parsedMessage.data);
+              setTimeout(() => {
+                setRoundTimer(parsedMessage.data.time);
+              }, 5000);
             } else {
               setGameRoundMessage({
                 type: parsedMessage.type,
                 message: parsedMessage.data.message,
               });
+              if (parsedMessage.data.roundStatus === 'ROUND_IN_PROGRESS') {
+                setRoundTimer(120);
+              }
             }
             break;
 
@@ -669,6 +679,7 @@ export default function SocketProvider({ children }: SocketProviderProps) {
       repayLoan,
       buyStock,
       sellStock,
+      roundTimer,
     }),
     [
       socket,
@@ -684,6 +695,7 @@ export default function SocketProvider({ children }: SocketProviderProps) {
       repayLoan,
       buyStock,
       sellStock,
+      roundTimer,
     ],
   );
 
