@@ -4,6 +4,7 @@ import com.ssafy.omg.config.baseresponse.BaseException;
 import com.ssafy.omg.domain.arena.entity.Arena;
 import com.ssafy.omg.domain.game.dto.GameEventDto;
 import com.ssafy.omg.domain.game.dto.GameNotificationDto;
+import com.ssafy.omg.domain.game.dto.TimeNotificationDto;
 import com.ssafy.omg.domain.game.entity.Game;
 import com.ssafy.omg.domain.game.entity.GameEvent;
 import com.ssafy.omg.domain.game.entity.GameStatus;
@@ -12,10 +13,12 @@ import com.ssafy.omg.domain.socket.dto.StompPayload;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationContext;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.messaging.simp.SimpMessageSendingOperations;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
@@ -33,10 +36,14 @@ import static com.ssafy.omg.domain.game.entity.RoundStatus.STOCK_FLUCTUATION;
 @Slf4j
 @Component
 @RequiredArgsConstructor
+@Transactional
 public class GameScheduler {
 
     @Autowired
     private RedisTemplate<String, Arena> redisTemplate;
+
+    @Autowired
+    private ApplicationContext applicationContext;
 
     private final GameService gameService;
     private final SimpMessageSendingOperations messagingTemplate;
@@ -79,6 +86,8 @@ public class GameScheduler {
                 break;
             case ROUND_IN_PROGRESS:
                 handleRoundInProgress(game);
+                int time = game.getTime();
+                notifyPlayersTime(game.getGameId(), time);
                 break;
             case STOCK_FLUCTUATION:
                 handleStockFluctuation(game);
@@ -133,27 +142,48 @@ public class GameScheduler {
 
     // 이전 라운드의 경제 이벤트 적용
     private void handleApplyPreviousEvent(Game game) throws BaseException {
-        if (game.getTime() == 2) {
-            GameEvent gameEvent = gameService.applyEconomicEvent(game.getGameId());
-            log.debug("이전 라운드의 경제 이벤트가 현재 경제 시장에 반영됩니다!!");
+        if (game.getTime() == 4) {
+            try {
+                GameEvent gameEvent = game.getCurrentEvent();
+                if (gameEvent == null) {
+                    log.warn("현재 이벤트가 null입니다. 이전 라운드에서 이벤트가 설정되지 않았을 수 있습니다.");
+                    game.setRoundStatus(ECONOMIC_EVENT_NEWS);
+                    game.setTime(5);
+                    return;
+                }
 
-            GameEventDto eventDto = new GameEventDto(
-                    APPLY_PREVIOUS_EVENT,
-                    gameEvent.getTitle(),
-                    gameEvent.getContent(),
-                    gameEvent.getValue()
-            );
+                gameService.applyEconomicEvent(game.getGameId());
+                System.out.println("-------------------");
+                if (gameEvent != null) {
+                    System.out.println(gameEvent.getTitle());
+                } else {
+                    System.out.println("null입니다");
+                }
+                System.out.println("-------------------");
+                log.debug("이전 라운드의 경제 이벤트가 현재 경제 시장에 반영됩니다!!");
 
-            StompPayload<GameEventDto> payload = new StompPayload<>(
-                    "GAME_NOTIFICATION",
-                    game.getGameId(),
-                    "GAME_MANAGER",
-                    eventDto
-            );
+                GameEventDto eventDto = new GameEventDto(
+                        APPLY_PREVIOUS_EVENT,
+                        gameEvent.getTitle(),
+                        gameEvent.getContent(),
+                        gameEvent.getValue()
+                );
 
-            messagingTemplate.convertAndSend("/sub/" + game.getGameId() + "/game", payload);
-            log.debug("경제 이벤트가 반영됨!");
+                StompPayload<GameEventDto> payload = new StompPayload<>(
+                        "GAME_NOTIFICATION",
+                        game.getGameId(),
+                        "GAME_MANAGER",
+                        eventDto
+                );
+
+                messagingTemplate.convertAndSend("/sub/" + game.getGameId() + "/game", payload);
+                log.debug("경제 이벤트가 반영됨!");
 //            notifyPlayers(game.getGameId(), APPLY_PREVIOUS_EVENT, "이전 라운드의 경제 이벤트가 적용되었습니다.");
+            } catch (BaseException e) {
+                log.error("경제 이벤트 반영 중 에러 발생 : {}", e.getMessage());
+                game.setRoundStatus(ECONOMIC_EVENT_NEWS);
+                game.setTime(5);
+            }
         } else if (game.getTime() == 0) {
             game.setRoundStatus(ECONOMIC_EVENT_NEWS);
             game.setTime(5);
@@ -164,10 +194,16 @@ public class GameScheduler {
         if (game.getTime() == 4) {
             try {
                 GameEvent gameEvent = gameService.createGameEventNews(game.getGameId());
-                log.debug("새로운 경제 이벤트 발생!");
+                System.out.println("출력되면 이까진 정상 " + gameEvent.getTitle());
+                System.out.println(redisTemplate.opsForValue().get("room" + game.getGameId()).getGame().getCurrentEvent().getTitle());
+                log.debug("새로운 경제 이벤트 발생: {}", gameEvent != null ? gameEvent.getTitle() : "null");
 //                notifyPlayers(game.getGameId(), ECONOMIC_EVENT, "경제 이벤트가 발생했습니다!");
 
                 if (gameEvent != null) {
+                    applicationContext.publishEvent(gameEvent);
+
+                    game.setCurrentEvent(gameEvent);
+
                     GameEventDto eventDto = new GameEventDto(
                             ECONOMIC_EVENT_NEWS,
                             gameEvent.getTitle(),
@@ -183,10 +219,13 @@ public class GameScheduler {
                     );
 
                     messagingTemplate.convertAndSend("/sub/" + game.getGameId() + "/game", payload);
-                    log.debug("경제 이벤트 발생!");
+                    log.debug("경제 이벤트 발생! : {}", gameEvent.getTitle());
                 }
-            } catch (Exception e) {
-                log.error("경제 이벤트 발생에 실패했습니다 : ", e);
+            } catch (BaseException e) {
+                log.error("경제 이벤트 생성 중 에러 발생: {}", e.getMessage());
+                if (game.getRound() == 10) return;
+                game.setRoundStatus(ECONOMIC_EVENT_NEWS);
+                game.setTime(5);
             }
         } else if (game.getTime() == 0) {
             game.setRoundStatus(ROUND_IN_PROGRESS);
@@ -241,6 +280,8 @@ public class GameScheduler {
     private void handlePreparingNextRound(Game game) {
         log.debug("handlePreparingNextRound 진입. 현재 시간: {}, 현재 라운드: {}", game.getTime(), game.getRound());
 
+        if (game.getRound() == 10) return; // TODO 게임 종료 화면 띄우는 로직 (게임 결화를 합산 중입니다... 같은거)
+
         if (game.getTime() == 4) {
             log.debug("5초 시점 도달. 라운드 증가 시작.");
             int nextRound = game.getRound() + 1;
@@ -281,6 +322,15 @@ public class GameScheduler {
                 .build();
 
         StompPayload<GameNotificationDto> payload = new StompPayload<>("GAME_NOTIFICATION", gameId, "GAME_MANAGER", gameNotificationDto2);
+        messagingTemplate.convertAndSend("/sub/" + gameId + "/game", payload);
+    }
+
+    private void notifyPlayersTime(String gameId, int time) {
+        TimeNotificationDto timeNotificationDto = TimeNotificationDto.builder()
+                .time(time)
+                .build();
+
+        StompPayload<TimeNotificationDto> payload = new StompPayload<>("GAME_NOTIFICATION", gameId, "GAME_MANAGER", timeNotificationDto);
         messagingTemplate.convertAndSend("/sub/" + gameId + "/game", payload);
     }
 

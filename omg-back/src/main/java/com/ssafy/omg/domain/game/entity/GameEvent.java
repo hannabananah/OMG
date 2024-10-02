@@ -1,5 +1,7 @@
 package com.ssafy.omg.domain.game.entity;
 
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -11,12 +13,16 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.io.Serializable;
+
 @Entity
 @Getter
-@Setter(AccessLevel.PROTECTED)
+@Setter
+@JsonSerialize
+@JsonDeserialize
 @Table(name = "event")
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-public class GameEvent {
+public class GameEvent implements Serializable {
     @Id
     @Column(name = "event_id")
     @GeneratedValue(strategy = GenerationType.IDENTITY)

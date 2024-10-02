@@ -50,8 +50,8 @@ import static com.ssafy.omg.config.baseresponse.MessageResponseStatus.INSUFFICIE
 import static com.ssafy.omg.config.baseresponse.MessageResponseStatus.LOAN_ALREADY_TAKEN;
 import static com.ssafy.omg.config.baseresponse.MessageResponseStatus.OUT_OF_CASH;
 import static com.ssafy.omg.config.baseresponse.MessageResponseStatus.STOCK_NOT_AVAILABLE;
-import static com.ssafy.omg.domain.game.entity.RoundStatus.ROUND_START;
 import static com.ssafy.omg.domain.game.entity.RoundStatus.STOCK_FLUCTUATION;
+import static com.ssafy.omg.domain.game.entity.RoundStatus.TUTORIAL;
 import static com.ssafy.omg.domain.player.entity.PlayerStatus.COMPLETED;
 import static com.ssafy.omg.domain.player.entity.PlayerStatus.NOT_STARTED;
 import static org.hibernate.query.sqm.tree.SqmNode.log;
@@ -202,10 +202,11 @@ public class GameServiceImpl implements GameService {
 
                     .time(20)
                     .round(1)                                     // 시작 라운드 1
-                    .roundStatus(ROUND_START)
+                    .roundStatus(TUTORIAL)
 
                     .currentInterestRate(5)                       // 예: 초기 금리 5%로 설정
                     .economicEvent(randomEvent)                   // 초기 경제 이벤트 없음
+                    .currentEvent(null)                           // 적용할 경제이벤트 없음
                     .currentStockPriceLevel(0)                    // 주가 수준
 
                     .stockTokensPocket(pocket)                    // 주머니 초기화
@@ -255,11 +256,12 @@ public class GameServiceImpl implements GameService {
         int currentRound = game.getRound();
         if (currentRound < 1 || currentRound >= 10) {
             log.info("경제 뉴스는 1라운드부터 9라운드까지 발생합니다.");
-            throw new BaseException(INVALID_ROUND);
+            throw new BaseException(EVENT_NOT_FOUND);
         }
 
         int[] economicEvent = game.getEconomicEvent();
         if (economicEvent == null) {
+            log.error("경제 이벤트 배열이 null이거나 현재 라운드에 해당하는 이벤트가 없습니다.");
             throw new BaseException(EVENT_NOT_FOUND);
         }
 
@@ -267,26 +269,39 @@ public class GameServiceImpl implements GameService {
         GameEvent gameEvent = gameEventRepository.findById(eventId)
                 .orElseThrow(() -> new BaseException(EVENT_NOT_FOUND));
 
-        // 금리 변동 반영
-        //TODO 일단 금리는 따로 변경(라운드차이로 인해) 일단 주석처리 - 삭제하지 말것
-        /*
-        int currentInterestRate = game.getCurrentInterestRate();
-        currentInterestRate += gameEvent.getValue();
-        if (currentInterestRate < 1) {
-            currentInterestRate = 1;
-        } else if (currentInterestRate > 10) {
-            currentInterestRate = 10;
-        }
-        game.setCurrentInterestRate(currentInterestRate);
-        */
+        // 현재 발생한(다음 라운드에 반영될) 경제 뉴스를 currentEvent로 설정
+
+        System.out.println("======================발행할 때=====================");
+        System.out.println("적용할 이벤트 : " + gameEvent.getTitle());
+        System.out.println("=================================================");
 
         // 현재 발생한(다음 라운드에 반영될) 경제 뉴스를 currentEvent로 설정
         game.setCurrentEvent(gameEvent);
 
+        System.out.println(game.getCurrentEvent());
+        System.out.println("=================================================");
+
+        // Arena 객체에 수정된 Game 객체를 다시 설정
         arena.setGame(game);
+
+        System.out.println(arena.getGame().getCurrentEvent().getTitle());
+        System.out.println("=================================================");
+
+        // 수정된 Arena를 Redis에 저장
         gameRepository.saveArena(roomId, arena);
 
-        return gameEvent;
+        System.out.println("잘 나오는지 체크 레디스에서");
+        System.out.println(redisTemplate.opsForValue().get(ROOM_PREFIX + roomId).getGame().getCurrentEvent().getTitle());
+        System.out.println("-=-=-=-=-=-=-=-=-=-=-");
+
+        // 저장 후 즉시 다시 조회하여 확인
+        Arena savedArena = gameRepository.findArenaByRoomId(roomId)
+                .orElseThrow(() -> new BaseException(ARENA_NOT_FOUND));
+        GameEvent savedEvent = savedArena.getGame().getCurrentEvent();
+        System.out.println("Saved currentEvent: " + (savedEvent != null ? savedEvent.getTitle() : "null"));
+
+
+        return game.getCurrentEvent();
     }
 
     /**
@@ -301,11 +316,21 @@ public class GameServiceImpl implements GameService {
         Arena arena = gameRepository.findArenaByRoomId(roomId)
                 .orElseThrow(() -> new BaseException(ARENA_NOT_FOUND));
         Game game = arena.getGame();
-        GameEvent currentEvent = game.getCurrentEvent();
 
+        int currentRound = game.getRound();
+        if (currentRound < 2 || currentRound > 10) {
+            log.info("경제 이벤트 적용은 2라운드부터 10라운드까지 발생합니다.");
+            throw new BaseException(INVALID_ROUND);
+        }
+
+        GameEvent currentEvent = game.getCurrentEvent();
         if (currentEvent == null) {
+            log.warn("현재 이벤트가 null입니다.");
             throw new BaseException(EVENT_NOT_FOUND);
         }
+        System.out.println("=====================적용할 떄=====================");
+        System.out.println(currentEvent.getTitle());
+        System.out.println("=================================================");
 
         // 금리 및 주가 변동 반영
         // 1. 금리 변동
@@ -351,7 +376,7 @@ public class GameServiceImpl implements GameService {
         GameEvent appliedEvent = currentEvent;
 
         // 현재 이벤트 초기화
-        game.setCurrentEvent(null);
+//        game.setCurrentEvent(null);
         gameRepository.saveArena(roomId, arena);
 
         return appliedEvent;
