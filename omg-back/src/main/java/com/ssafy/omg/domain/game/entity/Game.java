@@ -54,6 +54,15 @@ public class Game {
     private int goldPrice;                        // 금괴 가격
     private int goldPriceIncreaseCnt;             // 금괴 가격 상승 체크용
 
+    private int[][] stockPriceChangeInfo = new int[6][61];  // 주가 변동 그래프 정보
+
+    // Game이 생성될 때마다, stockPriceChangeInfo의 0번째 열을 8로 초기화
+    {
+        for (int i = 0; i < stockPriceChangeInfo[0].length; i++) {
+            stockPriceChangeInfo[0][i] = 8;
+        }
+    }
+
     public void addGoldPrice(int amount) {  // amount는 올라야 할 칸 수
         for (int i = 0; i < amount; i++) {
             if (this.goldPrice >= 100) {

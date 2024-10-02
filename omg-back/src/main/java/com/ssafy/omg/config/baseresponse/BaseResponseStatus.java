@@ -71,8 +71,6 @@ public enum BaseResponseStatus {
     INVALID_SELL_STOCKS(false, 3106, "매도 가능한 주식 개수가 아닙니다."),
     INVALID_STOCK_STATE(false, 3107, "유효하지 않은 주가 기준표의 좌표입니다."), // TODO message로 보낼 필요 없는 예외 상황입니다.
     INVALID_BLACK_TOKEN(false, 3110, "유효한 검은 토큰 개수가 아닙니다."),
-    INVALID_ARRAY_SIZE(false, 3111, "배열이 null이거나 6보다 작습니다."),
-    NO_POSSIBLE_INDICES(false, 3112, "매도트랙에서 주식시장에 올릴 수 있는 주식 토큰의 종류가 없습니다."),
     IMPOSSIBLE_STOCK_CNT(false, 3113, "거래 주식 개수가 0 이하이거나 주가수준 거래 가능 토큰 개수를 초과합니다."),
     EXCEEDS_DIFF_RANGE(false, 3114, "주가 조정 참조표의 -6보다 더 적은 값입니다."),
 

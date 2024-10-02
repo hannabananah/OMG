@@ -7,6 +7,7 @@ import com.ssafy.omg.domain.game.dto.IndividualMessageDto;
 import com.ssafy.omg.domain.game.dto.PlayerMoveRequest;
 import com.ssafy.omg.domain.game.dto.StockRequest;
 import com.ssafy.omg.domain.game.entity.Game;
+import com.ssafy.omg.domain.game.dto.StockMarketResponse;
 import com.ssafy.omg.domain.game.entity.GameEvent;
 import com.ssafy.omg.domain.socket.dto.StompPayload;
 
@@ -50,4 +51,8 @@ public interface GameService {
     void movePlayer(StompPayload<PlayerMoveRequest> playerMoveRequest) throws BaseException;
 
     void buyStock(StompPayload<StockRequest> data) throws BaseException, MessageException;
+
+    void setStockPriceChangeInfo(Game game, int round, int remainTime);
+
+    StockMarketResponse createStockMarketInfo(Game game);
 }

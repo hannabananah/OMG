@@ -1,30 +1,33 @@
-import { Suspense, useContext, useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { Suspense, useContext, useEffect, useMemo, useState } from 'react';
 
 import Character from '@/components/character/Character';
 import Button from '@/components/common/Button';
-import ChoiceTransaction from '@/components/common/ChoiceTransaction';
 import ExitButton from '@/components/common/ExitButton';
-import MainAlert from '@/components/common/MainAlert';
 import Round from '@/components/common/Round';
 import Timer from '@/components/common/Timer';
 import EventCard from '@/components/game/EventCard';
 import Map from '@/components/main-map/Map';
+import StockMarket from '@/components/stock-market/StockMarket';
 import { useGameStore } from '@/stores/useGameStore';
+import useModalStore from '@/stores/useModalStore';
 import { useOtherUserStore } from '@/stores/useOtherUserState';
 import { useSocketMessage } from '@/stores/useSocketMessage';
 import useUser from '@/stores/useUser';
 import { SocketContext } from '@/utils/SocketContext';
-import {
-  KeyboardControls,
-  OrbitControls,
-  PerspectiveCamera,
-} from '@react-three/drei';
+import { KeyboardControls, OrbitControls } from '@react-three/drei';
 import { Canvas } from '@react-three/fiber';
 import { Physics } from '@react-three/rapier';
 
 import IntroCamera from '../camera/IntroCamera';
 import ChatButton from '../common/ChatButton';
+
+export const Controls = {
+  forward: 'forward',
+  back: 'back',
+  left: 'left',
+  right: 'right',
+  pickup: 'pickup',
+};
 
 const stockTypes = [
   { name: '주식 종류1', id: 1 },
@@ -37,7 +40,7 @@ const stockTypes = [
 const CharacterInfo = {
   santa: {
     url: '/models/santa/santa.gltf',
-    scale: [2, 2, 2],
+    scale: [2.5, 2.5, 2.5],
   },
   elf: {
     url: '/models/elf/elf.gltf',
@@ -68,6 +71,9 @@ export default function MainMap() {
   } = useContext(SocketContext);
   const { carryingData, setCarryingData } = useGameStore();
   const { otherUsers } = useOtherUserStore();
+
+  const { modals, openModal } = useModalStore(); // 모달 상태 및 함수 불러오기
+
   const {
     goldPurchaseMessage,
     loanMessage,
@@ -75,9 +81,22 @@ export default function MainMap() {
     eventCardMessage,
     buyStockMessage,
     sellStockMessage,
+    gameRoundMessage,
   } = useSocketMessage();
 
   const [isVisible, setIsVisible] = useState(false);
+  const [isAlertVisible, setIsAlertVisible] = useState(false);
+
+  const keyboardMap = useMemo(
+    () => [
+      { name: Controls.forward, keys: ['ArrowUp'] },
+      { name: Controls.back, keys: ['ArrowDown'] },
+      { name: Controls.left, keys: ['ArrowLeft'] },
+      { name: Controls.right, keys: ['ArrowRight'] },
+      { name: Controls.pickup, keys: ['Space'] },
+    ],
+    [],
+  );
 
   useEffect(() => {
     if (socket && online && allRendered) {
@@ -86,7 +105,7 @@ export default function MainMap() {
   }, [initGameSetting, allRendered, socket, online]);
 
   useEffect(() => {
-    if (!eventCardMessage.title) return;
+    if (!eventCardMessage.title && !eventCardMessage.content) return;
     setIsVisible(true);
 
     const timer = setTimeout(() => {
@@ -109,7 +128,6 @@ export default function MainMap() {
 
   // 매수
   useEffect(() => {
-    console.log('buyStockMessage', buyStockMessage);
     if (!buyStockMessage.message) return;
 
     if (buyStockMessage.isCompleted) {
@@ -161,6 +179,37 @@ export default function MainMap() {
     console.log('carryingData has changed:', carryingData);
   }, [carryingData]);
 
+  // TODO: 삭제해야됨, 라운드 알림 모달
+  useEffect(() => {
+    if (!gameRoundMessage.message) return;
+
+    console.log('gameRoundMessage-------->', gameRoundMessage);
+
+    let displayDuration = 2000;
+
+    switch (gameRoundMessage.type) {
+      case 'ROUND_START':
+      case 'ROUND_END':
+      case 'GAME_FINISHED':
+        displayDuration = 4000;
+        break;
+      case 'ROUND_IN_PROGRESS':
+      case 'PREPARING_NEXT_ROUND':
+        displayDuration = 1000;
+        break;
+      default:
+        break;
+    }
+
+    setIsAlertVisible(true);
+
+    const timer = setTimeout(() => {
+      setIsAlertVisible(false);
+    }, displayDuration);
+
+    return () => clearTimeout(timer);
+  }, [gameRoundMessage]);
+
   // TODO: 삭제해야됨, 주식 매도 집에서 들고갈때
   const handleClickStock = (stockId: number) => {
     setCarryingData((prevData: number[]) => {
@@ -187,30 +236,9 @@ export default function MainMap() {
       ...CharacterInfo[userCharacterKey],
       position: user.position,
       direction: user.direction,
+      actionToggle: user.actionToggle,
     };
   });
-
-  const Controls = {
-    forward: 'forward',
-    back: 'back',
-    left: 'left',
-    right: 'right',
-    pickup: 'pickup',
-  };
-
-  const keyboardMap = [
-    { name: Controls.forward, keys: ['ArrowUp'] },
-    { name: Controls.back, keys: ['ArrowDown'] },
-    { name: Controls.left, keys: ['ArrowLeft'] },
-    { name: Controls.right, keys: ['ArrowRight'] },
-    { name: Controls.pickup, keys: ['Space'] },
-  ];
-
-  const navigate = useNavigate();
-
-  const goToStockMarket = () => {
-    navigate('/stockmarket');
-  };
 
   const openMainSettingsModal = () => {
     alert('메인 판 모달 띄워주기');
@@ -258,6 +286,12 @@ export default function MainMap() {
     repayLoan(repayLoanAmount);
   };
 
+  const openStockMarketModal = () => {
+    if (!modals.stockMarket) {
+      openModal('stockMarket');
+    }
+  };
+
   const handleClickBuyStock = () => {
     buyStock(carryingData);
     setCarryingData([0, 0, 0, 0, 0, 0]);
@@ -270,6 +304,9 @@ export default function MainMap() {
 
   return (
     <main className='relative w-full h-screen overflow-hidden'>
+      {/* 주식 시장 Modal */}
+      {modals.stockMarket && <StockMarket />}
+
       {/* 주식 매도/매수 수량 선택(집에서/거래소에서) */}
       <div className='px-10 py-2'>
         {stockTypes.map(stock => (
@@ -284,22 +321,24 @@ export default function MainMap() {
       </div>
 
       {/* TODO: 삭제해야됨, 주식 매수 매도 버튼 */}
-      <div className='absolute z-30 flex items-center justify-center w-full h-full gap-56'>
+      {/* <div className='absolute z-30 flex items-center justify-center w-full h-full gap-56'>
         <ChoiceTransaction type='buy-stock' onClick={handleClickBuyStock} />
         <ChoiceTransaction type='sell-stock' onClick={handleClickSellStock} />
-      </div>
+      </div> */}
 
       {/* Round & Timer & Chat 고정 위치 렌더링 */}
       <section className='absolute z-10 flex flex-col items-end gap-4 top-10 right-10'>
         <Round presentRound={1} />
         <Timer />
       </section>
+
       {/* TODO: 삭제해야됨, EventCard 모달 위치 */}
       {isVisible && (
         <div className='absolute z-30 flex items-center justify-center w-full h-full'>
           <EventCard />
         </div>
       )}
+
       {/* 모달 모음 */}
       <section className='absolute z-10 flex flex-col items-start gap-4 left-10 top-10'>
         <Button text='메인 판' type='mainmap' onClick={openMainSettingsModal} />
@@ -331,33 +370,35 @@ export default function MainMap() {
           type='mainmap'
           onClick={handleClickRepayLoan}
         />
+        {/* TODO: 삭제해야됨, 임시 주식 시장 버튼 */}
+        <Button
+          text='임시 주식 시장 버튼'
+          type='mainmap'
+          onClick={openStockMarketModal}
+        />
       </section>
-
-      {/* MainAlert 고정 위치 렌더링 */}
-      <div
-        className='absolute z-20 transform -translate-x-1/2 bottom-14 left-1/2 w-[60%]'
-        onClick={goToStockMarket}
-      >
-        <MainAlert text='클릭하면 임시 주식방으로' />
-      </div>
 
       {/* 채팅 및 종료 버튼 고정 렌더링 */}
       <section className='absolute bottom-0 left-0 z-10 flex items-center justify-between w-full text-white py-14 px-14 text-omg-40b'>
         <ChatButton isWhite={true} />
         <ExitButton />
       </section>
+
       <KeyboardControls map={keyboardMap}>
         <Canvas>
           <Suspense>
             <OrbitControls />
             <axesHelper args={[800]} />
             <IntroCamera />
-            <Physics>
+            <Physics timeStep='vary' colliders={false} debug>
               <ambientLight />
               <directionalLight />
+
               <Map />
-              <PerspectiveCamera />
+
+              {/* <PerspectiveCamera /> */}
               {/* 본인 캐릭터 */}
+
               <Character
                 characterURL={selectedCharacter.url}
                 characterScale={selectedCharacter.scale}
@@ -372,6 +413,7 @@ export default function MainMap() {
                   characterScale={userCharacter.scale}
                   position={userCharacter.position}
                   direction={userCharacter.direction}
+                  actionToggle={userCharacter.actionToggle}
                   isOwnCharacter={false}
                 />
               ))}

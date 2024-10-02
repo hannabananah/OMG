@@ -2,8 +2,11 @@ package com.ssafy.omg.domain.game.service;
 
 import com.ssafy.omg.config.baseresponse.BaseException;
 import com.ssafy.omg.domain.arena.entity.Arena;
+import com.ssafy.omg.domain.game.dto.StockFluctuationResponse;
 import com.ssafy.omg.domain.game.dto.GameEventDto;
 import com.ssafy.omg.domain.game.dto.GameNotificationDto;
+import com.ssafy.omg.domain.game.dto.StockMarketResponse;
+import com.ssafy.omg.domain.game.entity.*;
 import com.ssafy.omg.domain.game.dto.TimeNotificationDto;
 import com.ssafy.omg.domain.game.entity.Game;
 import com.ssafy.omg.domain.game.entity.GameEvent;
@@ -48,6 +51,8 @@ public class GameScheduler {
     private final GameService gameService;
     private final SimpMessageSendingOperations messagingTemplate;
     private static final int MAX_ROUNDS = 10;
+
+    private final StockState stockState;
 
     @Scheduled(fixedRate = 1000)  // 1초마다 실행
     public void updateGameState() throws BaseException {
@@ -242,6 +247,12 @@ public class GameScheduler {
             game.setRoundStatus(ROUND_END);
             game.setTime(3);
             log.debug("상태를 ROUND_END로 변경. 새 시간: {}", game.getTime());
+        } else if (game.getTime() == 119 || game.getTime() % 20 == 0) {
+            int remainTime = (game.getTime() == 119) ? 120 : game.getTime();
+            gameService.setStockPriceChangeInfo(game, game.getRound(), remainTime);
+            StockMarketResponse response = gameService.createStockMarketInfo(game);
+            StompPayload<StockMarketResponse> payload = new StompPayload<>("STOCK_MARKET_INFO", game.getGameId(), "GAME_MANAGER", response);
+            messagingTemplate.convertAndSend("/sub/" + game.getGameId() + "/game", payload);
         }
     }
 
@@ -251,6 +262,11 @@ public class GameScheduler {
             game.setPauseTime(5);
             gameService.changeStockPrice(game);
             notifyPlayers(game.getGameId(), STOCK_FLUCTUATION, "주가가 변동되었습니다! 5초 후 게임이 재개됩니다.");
+
+            // 거래 가능한 주식 개수 메세지로 전송
+            StockFluctuationResponse response = new StockFluctuationResponse(stockState.getStockLevelCards()[game.getCurrentStockPriceLevel()][0]);
+            StompPayload<StockFluctuationResponse> payload = new StompPayload<>("STOCK_FLUCTUATION", game.getGameId(), "GAME_MANAGER", response);
+            messagingTemplate.convertAndSend("/sub/" + game.getGameId() + "/game", payload);
         } else {
             if (game.getPauseTime() > 0) {
                 game.setPauseTime(game.getPauseTime() - 1);
