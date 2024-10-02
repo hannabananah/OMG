@@ -5,11 +5,8 @@ import com.ssafy.omg.domain.arena.entity.Arena;
 import com.ssafy.omg.domain.game.dto.StockFluctuationResponse;
 import com.ssafy.omg.domain.game.dto.GameEventDto;
 import com.ssafy.omg.domain.game.dto.GameNotificationDto;
-import com.ssafy.omg.domain.game.entity.Game;
-import com.ssafy.omg.domain.game.entity.GameEvent;
-import com.ssafy.omg.domain.game.entity.GameStatus;
-import com.ssafy.omg.domain.game.entity.RoundStatus;
-import com.ssafy.omg.domain.game.entity.StockState;
+import com.ssafy.omg.domain.game.dto.StockMarketResponse;
+import com.ssafy.omg.domain.game.entity.*;
 import com.ssafy.omg.domain.socket.dto.StompPayload;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -43,7 +40,7 @@ public class GameScheduler {
     private final SimpMessageSendingOperations messagingTemplate;
     private static final int MAX_ROUNDS = 10;
 
-    private static StockState stockState;
+    private final StockState stockState;
 
     @Scheduled(fixedRate = 1000)  // 1초마다 실행
     public void updateGameState() throws BaseException {
@@ -174,7 +171,10 @@ public class GameScheduler {
             log.debug("상태를 ROUND_END로 변경. 새 시간: {}", game.getTime());
         } else if (game.getTime() == 119 || game.getTime() % 20 == 0) {
             int remainTime = (game.getTime() == 119) ? 120 : game.getTime();
-            gameService.setStockPriceChangeInfoAndSendMessage(game, game.getRound(), remainTime);
+            gameService.setStockPriceChangeInfo(game, game.getRound(), remainTime);
+            StockMarketResponse response = gameService.createStockMarketInfo(game);
+            StompPayload<StockMarketResponse> payload = new StompPayload<>("STOCK_MARKET_INFO", game.getGameId(), "GAME_MANAGER", response);
+            messagingTemplate.convertAndSend("/sub/" + game.getGameId() + "/game", payload);
         }
     }
 

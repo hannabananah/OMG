@@ -12,6 +12,7 @@ import com.ssafy.omg.domain.game.entity.GameEvent;
 import com.ssafy.omg.domain.game.entity.GameStatus;
 import com.ssafy.omg.domain.game.entity.StockInfo;
 import com.ssafy.omg.domain.game.entity.StockState;
+import com.ssafy.omg.domain.game.dto.StockMarketResponse;
 import com.ssafy.omg.domain.game.repository.GameEventRepository;
 import com.ssafy.omg.domain.player.entity.Player;
 import com.ssafy.omg.domain.player.entity.PlayerStatus;
@@ -112,6 +113,50 @@ public class GameServiceImpl implements GameService {
                 .carryingGolds(player.getCarryingGolds())
                 .action(player.getAction())
                 .state(player.getState())
+                .build();
+    }
+
+    /**
+     * 주식 거래소 정보 생성
+     *
+     * @param game
+     * @return StockMarketInfo
+     */
+    @Override
+    public StockMarketResponse createStockMarketInfo(Game game) {
+        List<Player> players = game.getPlayers();
+        String[] playerNicknames = players.stream()
+                .map(Player::getNickname)
+                .toList().toArray(new String[0]);
+
+        StockInfo[] marketStocks = game.getMarketStocks();
+        int[][]  playerStockShares = new int[6][4];
+        int[] leftStocks = new int[6];
+        int[] stockPrices = new int[6];
+//        int[] recentStockPriceChanges = new int[6];
+
+        for (int i = 1; i < 6; i++) {
+            // 플레이어 별 보유 주식 개수 (r: 주식 종류 , c: 플레이어 , value: 주식 개수)
+            for (int j = 0; j < 4; j++) {
+                playerStockShares[i][j] = players.get(j).getStock()[i];
+            }
+
+            // 주식 별 남은 주식 개수
+            leftStocks[i] = marketStocks[i].getCnt();
+
+            // 주가
+            stockPrices[i] = stockState.getStockStandard()[marketStocks[i].getState()[0]][marketStocks[i].getState()[1]].getPrice();
+
+            // 최근 거래 변동값
+//            recentStockPriceChanges[i] = marketStocks[i].getRecentTransaction();
+        }
+
+        return StockMarketResponse.builder()
+                .stockPriceChangeInfo(game.getStockPriceChangeInfo())
+                .playerNicknames(playerNicknames)
+                .playerStockShares(playerStockShares)
+                .leftStocks(leftStocks)
+                .stockPrices(stockPrices)
                 .build();
     }
 
@@ -231,10 +276,10 @@ public class GameServiceImpl implements GameService {
 
     private StockInfo[] initializeMarket() {
         StockInfo[] market = new StockInfo[6];
-        market[0] = new StockInfo(0, new int[]{0, 0}, 0);
+        market[0] = new StockInfo(0, new int[]{0, 0});
 
         for (int i = 1; i < 6; i++) {
-            market[i] = new StockInfo(8, new int[]{12, 3}, 0);
+            market[i] = new StockInfo(8, new int[]{12, 3});
         }
 
         return market;
@@ -632,6 +677,13 @@ public class GameServiceImpl implements GameService {
         // 1. stocks 유효성 검사 (각 숫자가 0 이상/합산한 개수가 0 초과 주가 수준 거래 가능 토큰 개수 이하)
         validateStocks(stocksToSell, currentStockPriceLevel);
 
+        // stocksToSell이 내가 보유한 주식의 개수보다 작은지 판별
+        for (int i = 1; i < 6; i++) {
+            if (stocksToSell[i] > ownedStocks[i]) {
+                throw new BaseException(INVALID_SELL_STOCKS);
+            }
+        }
+
         // 2. 주식 매도 가격 계산
         int salePrice = 0;  // 주식 매도 대금
         int stockPrice;
@@ -932,8 +984,9 @@ public class GameServiceImpl implements GameService {
     }
 
     @Override
-    public void setStockPriceChangeInfoAndSendMessage(Game game, int round, int remainTime) {
+    public void setStockPriceChangeInfo(Game game, int round, int remainTime) {
         int x_value = ((round - 1) * 120 + (120 - remainTime)) / 20;
+
         StockInfo[] marketStocks = game.getMarketStocks();
         for (int i = 1; i < 6; i++) {
             int r = marketStocks[i].getState()[0];
@@ -971,7 +1024,7 @@ public class GameServiceImpl implements GameService {
      *                       - 주식 종류별 내가 보유한 주식 개수 이하
      */
     private void validateStocks(int[] stocksToSell, int stockPriceLevel) throws BaseException {
-        // 각 숫자가 0 이상 && 합산한 개수가 0 초과 주가 수준 거래 가능 토큰 개수 이하 && 내가 보유한 주식 개수 이하
+        // 각 숫자가 0 이상 && 합산한 개수가 0 초과 주가 수준 거래 가능 토큰 개수 이하
         int stockCnt = 0;
         for (int i = 1; i < 6; i++) {
             if (stocksToSell[i] < 0) {

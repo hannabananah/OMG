@@ -8,6 +8,7 @@ import com.ssafy.omg.domain.game.entity.GameEvent;
 import com.ssafy.omg.domain.game.dto.IndividualMessageDto;
 import com.ssafy.omg.domain.game.dto.PlayerMoveRequest;
 import com.ssafy.omg.domain.game.entity.Game;
+import com.ssafy.omg.domain.game.dto.StockMarketResponse;
 import com.ssafy.omg.domain.socket.dto.StompPayload;
 
 import java.util.List;
@@ -44,5 +45,7 @@ public interface GameService {
 
     void buyStock(StompPayload<StockRequest> data) throws BaseException, MessageException;
 
-    void setStockPriceChangeInfoAndSendMessage(Game game, int round, int remainTime);
+    void setStockPriceChangeInfo(Game game, int round, int remainTime);
+
+    StockMarketResponse createStockMarketInfo(Game game);
 }
