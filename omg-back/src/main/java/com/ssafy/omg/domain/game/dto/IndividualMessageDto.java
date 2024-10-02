@@ -1,6 +1,5 @@
 package com.ssafy.omg.domain.game.dto;
 
-import com.ssafy.omg.domain.game.entity.StockInfo;
 import com.ssafy.omg.domain.player.entity.PlayerAction;
 import com.ssafy.omg.domain.player.entity.PlayerStatus;
 import lombok.Builder;
@@ -24,10 +23,4 @@ public class IndividualMessageDto {
 
     private PlayerAction action;            // 플레이어 행위 (주식 매수, 주식 매도, 금괴 매입, 대출, 상환)
     private PlayerStatus state;             // 플레이어 행위 상태 (시작전, 진행중, 완료)
-
-    // 주식 거래소 정보
-    private int[][] stockPriceChangeInfo;   // 주가 변동 그래프 정보
-    private String[] playerNicknames;       // index별 player nickname 정보
-    private int[][] playerStockShares;      // 플레이어 별 보유 주식 개수 (r: 주식 종류 , c: 플레이어 , value: 주식 개수)
-    private StockInfo[] stockInfos;         // 주식 별 남은 주식 개수, 주가, 최근 거래 변동값
 }
