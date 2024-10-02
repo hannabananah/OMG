@@ -1,5 +1,5 @@
-# Use Gradle image for building, specify JDK 17 as the target
-FROM gradle:8.0-jdk17 AS build
+# Use Gradle image for building, specify JDK 21 as the target
+FROM gradle:8.0-jdk21 AS build
 
 WORKDIR /app
 
@@ -13,7 +13,7 @@ COPY . /app
 RUN gradle clean build --no-daemon -x test
 
 # Use JRE for runtime environment to keep the image size smaller
-FROM openjdk:17-jdk-slim
+FROM openjdk:21-jdk-slim
 
 WORKDIR /app
 
