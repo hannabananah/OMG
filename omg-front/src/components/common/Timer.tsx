@@ -14,5 +14,11 @@ export default function Timer({ time }: { time: number }) {
     return `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
   };
 
-  return <p className='text-white text-omg-40b'>{formatTime(remainingTime)}</p>;
+  return (
+    <p
+      className={`text-omg-40b ${remainingTime <= 5 ? 'text-red animate-shake' : 'text-white'}`}
+    >
+      {formatTime(remainingTime)}
+    </p>
+  );
 }
