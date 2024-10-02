@@ -18,16 +18,22 @@
 	"nodes":[
 		{
 			"mesh":0,
-			"name":"CandyCane_03",
+			"name":"CandyCane_02",
+			"rotation":[
+				0,
+				0.4226183295249939,
+				0,
+				0.9063077569007874
+			],
 			"scale":[
-				0.06579174846410751,
-				0.06579174846410751,
-				0.06579174846410751
+				0.008594791404902935,
+				0.008594791404902935,
+				0.008594791404902935
 			],
 			"translation":[
-				0.006953107193112373,
-				0.5520796775817871,
-				-0.0003466634079813957
+				3.660759449005127,
+				0.03768922761082649,
+				-4.3618316650390625
 			]
 		}
 	],
@@ -39,7 +45,7 @@
 					"specularFactor":0
 				}
 			},
-			"name":"Material #427.001",
+			"name":"Material #427.008",
 			"pbrMetallicRoughness":{
 				"baseColorTexture":{
 					"index":0
@@ -50,7 +56,7 @@
 	],
 	"meshes":[
 		{
-			"name":"Mesh.003",
+			"name":"Mesh.056",
 			"primitives":[
 				{
 					"attributes":{
@@ -81,61 +87,61 @@
 		{
 			"bufferView":0,
 			"componentType":5126,
-			"count":176,
+			"count":113,
 			"max":[
-				6.0944695472717285,
-				16.41751480102539,
-				2.1324219703674316
+				-651.4598388671875,
+				147.1044464111328,
+				11.466673851013184
 			],
 			"min":[
-				-6.220943927764893,
-				-8.38199234008789,
-				-1.106734275817871
+				-718.5076904296875,
+				-4.0669097900390625,
+				-11.964821815490723
 			],
 			"type":"VEC3"
 		},
 		{
 			"bufferView":1,
 			"componentType":5126,
-			"count":176,
+			"count":113,
 			"type":"VEC3"
 		},
 		{
 			"bufferView":2,
 			"componentType":5126,
-			"count":176,
+			"count":113,
 			"type":"VEC2"
 		},
 		{
 			"bufferView":3,
 			"componentType":5123,
-			"count":378,
+			"count":648,
 			"type":"SCALAR"
 		}
 	],
 	"bufferViews":[
 		{
 			"buffer":0,
-			"byteLength":2112,
+			"byteLength":1356,
 			"byteOffset":0,
 			"target":34962
 		},
 		{
 			"buffer":0,
-			"byteLength":2112,
-			"byteOffset":2112,
+			"byteLength":1356,
+			"byteOffset":1356,
 			"target":34962
 		},
 		{
 			"buffer":0,
-			"byteLength":1408,
-			"byteOffset":4224,
+			"byteLength":904,
+			"byteOffset":2712,
 			"target":34962
 		},
 		{
 			"buffer":0,
-			"byteLength":756,
-			"byteOffset":5632,
+			"byteLength":1296,
+			"byteOffset":3616,
 			"target":34963
 		}
 	],
@@ -147,7 +153,7 @@
 	],
 	"buffers":[
 		{
-			"byteLength":6388,
+			"byteLength":4912,
 			"uri":"candy.bin"
 		}
 	]

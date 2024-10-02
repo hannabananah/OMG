@@ -30,7 +30,7 @@ export default function Map() {
   }, [animations, scene]);
 
   return (
-    <RigidBody type='fixed'>
+    <RigidBody type='fixed' colliders={'hull'}>
       <primitive
         object={scene}
         scale={[0.05, 0.05, 0.05]}
