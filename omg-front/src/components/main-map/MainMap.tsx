@@ -21,6 +21,7 @@ import { Physics } from '@react-three/rapier';
 
 import IntroCamera from '../camera/IntroCamera';
 import ChatButton from '../common/ChatButton';
+import ChoiceTransaction from '../common/ChoiceTransaction';
 
 export const Controls = {
   forward: 'forward',
@@ -70,10 +71,12 @@ export default function MainMap() {
     buyStock,
     sellStock,
   } = useContext(SocketContext);
-  const { carryingData, setCarryingData } = useGameStore();
+  const { gameData, carryingData, setCarryingData } = useGameStore();
+  const { tradableStockCnt } = gameData || {};
+
   const { otherUsers } = useOtherUserStore();
 
-  const { modals, openModal } = useModalStore(); // 모달 상태 및 함수 불러오기
+  const { modals, openModal } = useModalStore();
 
   const {
     goldPurchaseMessage,
@@ -292,16 +295,37 @@ export default function MainMap() {
     }
   };
 
+  // 주식 매수
   const handleClickBuyStock = () => {
+    const totalCarryingStock = carryingData.reduce(
+      (sum, count) => sum + count,
+      0,
+    );
+
+    if (totalCarryingStock > tradableStockCnt) {
+      alert(`${tradableStockCnt}개 이상의 주식을 살 수 없습니다.`);
+      return;
+    }
+
     buyStock(carryingData);
     setCarryingData([0, 0, 0, 0, 0, 0]);
   };
 
+  // 주식 매도
   const handleClickSellStock = () => {
+    const totalCarryingStock = carryingData.reduce(
+      (sum, count) => sum + count,
+      0,
+    );
+
+    if (totalCarryingStock > tradableStockCnt) {
+      alert(`${tradableStockCnt}개 이상의 주식을 선택할 수 없습니다.`);
+      return;
+    }
+
     sellStock(carryingData);
     setCarryingData([0, 0, 0, 0, 0, 0]);
   };
-
   return (
     <main className='relative w-full h-screen overflow-hidden'>
       {/* 주식 시장 Modal */}
@@ -321,10 +345,10 @@ export default function MainMap() {
       </div>
 
       {/* TODO: 삭제해야됨, 주식 매수 매도 버튼 */}
-      {/* <div className='absolute z-30 flex items-center justify-center w-full h-full gap-56'>
+      <div className='absolute z-30 flex items-center justify-center w-full h-full gap-56'>
         <ChoiceTransaction type='buy-stock' onClick={handleClickBuyStock} />
         <ChoiceTransaction type='sell-stock' onClick={handleClickSellStock} />
-      </div> */}
+      </div>
 
       {/* Round & Timer & Chat 고정 위치 렌더링 */}
       <section className='absolute z-10 flex flex-col items-end gap-4 top-10 right-10'>
