@@ -2,16 +2,16 @@ package com.ssafy.omg.domain.game.service;
 
 import com.ssafy.omg.config.baseresponse.BaseException;
 import com.ssafy.omg.domain.arena.entity.Arena;
-import com.ssafy.omg.domain.game.dto.StockFluctuationResponse;
 import com.ssafy.omg.domain.game.dto.GameEventDto;
 import com.ssafy.omg.domain.game.dto.GameNotificationDto;
+import com.ssafy.omg.domain.game.dto.StockFluctuationResponse;
 import com.ssafy.omg.domain.game.dto.StockMarketResponse;
-import com.ssafy.omg.domain.game.entity.*;
 import com.ssafy.omg.domain.game.dto.TimeNotificationDto;
 import com.ssafy.omg.domain.game.entity.Game;
 import com.ssafy.omg.domain.game.entity.GameEvent;
 import com.ssafy.omg.domain.game.entity.GameStatus;
 import com.ssafy.omg.domain.game.entity.RoundStatus;
+import com.ssafy.omg.domain.game.entity.StockState;
 import com.ssafy.omg.domain.socket.dto.StompPayload;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -295,8 +295,6 @@ public class GameScheduler {
 
     private void handlePreparingNextRound(Game game) {
         log.debug("handlePreparingNextRound 진입. 현재 시간: {}, 현재 라운드: {}", game.getTime(), game.getRound());
-
-        if (game.getRound() == 10) return; // TODO 게임 종료 화면 띄우는 로직 (게임 결화를 합산 중입니다... 같은거)
 
         if (game.getTime() == 4) {
             log.debug("5초 시점 도달. 라운드 증가 시작.");
