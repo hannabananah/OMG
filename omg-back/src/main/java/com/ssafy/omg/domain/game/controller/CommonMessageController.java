@@ -25,7 +25,6 @@ import java.util.List;
 
 import static com.ssafy.omg.config.baseresponse.BaseResponseStatus.ARENA_NOT_FOUND;
 import static com.ssafy.omg.config.baseresponse.BaseResponseStatus.REQUEST_ERROR;
-import static com.ssafy.omg.domain.game.entity.RoundStatus.ECONOMIC_EVENT;
 
 @Slf4j
 @MessageController
@@ -94,14 +93,14 @@ public class CommonMessageController {
         switch (message) {
             case "ECONOMIC_EVENT_OCCURED":
 //                try {
-                GameEvent gameEvent = gameService.createGameEventandInterestChange(roomId);
+                GameEvent gameEvent = gameService.createGameEventNews(roomId);
                 if (gameEvent == null) {
                     log.error("GameEvent is null for roomId: {}", roomId);
                     return;
                 }
 
                 GameEventDto responseDto = new GameEventDto(
-                        ECONOMIC_EVENT,
+                        RoundStatus.ECONOMIC_EVENT_NEWS,
                         gameEvent.getTitle(),
                         gameEvent.getContent(),
                         gameEvent.getValue()
