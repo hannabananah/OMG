@@ -1,18 +1,15 @@
 import { useState } from 'react';
 
-import {
-  backendData,
-  chartData,
-  itemNameList,
-} from '@/assets/data/stockPriceData';
 import { getMaxPrice, stockDataUntilNow } from '@/hooks/useStock';
+import { StockDataItem } from '@/types';
 import { ResponsiveLine } from '@nivo/line';
 
-export default function LineChart() {
-  const [currentRound, _] = useState(1); // 현재 라운드 설정
+interface LineChartProps {
+  stockData: StockDataItem[];
+}
 
-  // chartData 받아오기
-  const stockData = chartData(backendData, itemNameList);
+export default function LineChart({ stockData }: LineChartProps) {
+  const [currentRound, _] = useState(1); // 현재 라운드 설정
 
   // 필터링된 데이터와 최대 주가 계산
   const filteredData = stockDataUntilNow(stockData, currentRound);
@@ -53,6 +50,12 @@ export default function LineChart() {
         },
         axis: {
           ticks: {
+            text: {
+              fontFamily: 'Katuri',
+              fontSize: 14,
+            },
+          },
+          legend: {
             text: {
               fontFamily: 'Katuri',
               fontSize: 14,

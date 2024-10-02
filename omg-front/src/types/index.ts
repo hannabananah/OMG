@@ -29,6 +29,13 @@ export interface StockDataItem {
   data: Array<{ x: number; y: number }>; // 각 시간(x)과 그에 따른 가격(y)
 }
 
+// 주식 차트 데이터 내에서 뽑을 주가와 등락 폭
+export interface StockPriceDataInfo {
+  itemName: StockItem;
+  price: number;
+  updown: number;
+}
+
 export interface MarketStock {
   cnt: number;
   state: [number, number];

@@ -10,7 +10,7 @@ interface ButtonProps {
 export default function Button({ text, type, onClick, disabled }: ButtonProps) {
   const buttonStyles = {
     mainmap: `text-omg-24b bg-white rounded-10 px-8 py-2`,
-    'stock-trade': `text-omg-28b text-white bg-green rounded-20 px-20 py-4`,
+    'stock-trade': `text-omg-24 bg-blue text-white rounded-10 px-16 py-2`,
   };
 
   return (

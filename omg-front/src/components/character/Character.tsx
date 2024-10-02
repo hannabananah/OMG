@@ -129,7 +129,7 @@ export default function Character({
     }
   }, [
     scene,
-    characterPosition,
+    // characterPosition,
     rotation,
     allRendered,
     isOwnCharacter,
