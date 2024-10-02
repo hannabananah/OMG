@@ -87,9 +87,12 @@ export default function MainMap() {
     sellStockMessage,
     gameRoundMessage,
   } = useSocketMessage();
+  const { roundTimer } = useContext(SocketContext);
 
   const [isVisible, setIsVisible] = useState(false);
   const [isAlertVisible, setIsAlertVisible] = useState(false);
+  const [isTimerVisible, setIsTimerVisible] = useState(false);
+  const [isRoundVisible, setIsRoundVisible] = useState(false);
 
   const keyboardMap = useMemo(
     () => [
@@ -106,7 +109,7 @@ export default function MainMap() {
     if (socket && online && allRendered) {
       initGameSetting();
     }
-  }, [initGameSetting, allRendered, socket, online]);
+  }, [allRendered]);
 
   useEffect(() => {
     if (!eventCardMessage.title && !eventCardMessage.content) return;
@@ -114,6 +117,7 @@ export default function MainMap() {
 
     const timer = setTimeout(() => {
       setIsVisible(false);
+      setIsTimerVisible(true);
     }, 5000);
     return () => clearTimeout(timer);
   }, [eventCardMessage]);
@@ -189,10 +193,17 @@ export default function MainMap() {
 
     let displayDuration = 2000;
 
-    switch (gameRoundMessage.type) {
-      case 'ROUND_START':
+    switch (gameRoundMessage.roundStatus) {
       case 'ROUND_END':
+        setIsTimerVisible(false);
+        break;
+      case 'ROUND_START':
+        setIsRoundVisible(true);
+        break;
       case 'GAME_FINISHED':
+        setIsRoundVisible(false);
+        break;
+      case 'APPLY_PREVIOUS_EVENT':
         displayDuration = 4000;
         break;
       case 'ROUND_IN_PROGRESS':
@@ -351,8 +362,8 @@ export default function MainMap() {
 
       {/* Round & Timer & Chat 고정 위치 렌더링 */}
       <section className='absolute z-10 flex flex-col items-end gap-4 top-10 right-10'>
-        <Round presentRound={1} />
-        <Timer />
+        {isRoundVisible && <Round presentRound={1} />}
+        {isTimerVisible && <Timer time={roundTimer} />}
       </section>
 
       {/* TODO: 삭제해야됨, EventCard 모달 위치 */}
