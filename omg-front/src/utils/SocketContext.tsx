@@ -653,7 +653,6 @@ export default function SocketProvider({ children }: SocketProviderProps) {
       sender: nickname,
       data: { stocks },
     };
-
     socket.publish({
       destination: '/pub/sell-stock',
       body: JSON.stringify(messagePayload),
