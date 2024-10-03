@@ -1,5 +1,4 @@
 import { Suspense, useContext, useEffect, useMemo, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
 
 import { CharacterInfo } from '@/assets/data/characterInfo';
 import Character from '@/components/character/Character';
@@ -24,6 +23,7 @@ import { Physics } from '@react-three/rapier';
 import IntroCamera from '../camera/IntroCamera';
 import ChatButton from '../common/ChatButton';
 import GoldMarket from '../gold-market/GoldMarket';
+import MyRoom from '../my-room/MyRoom';
 
 export const Controls = {
   forward: 'forward',
@@ -241,10 +241,10 @@ export default function MainMap() {
     repayLoan(repayLoanAmount);
   };
 
-  const navigate = useNavigate();
-
-  const goToMyRoom = () => {
-    navigate('/myroom');
+  const openMyRoomModal = () => {
+    if (!modals.myRoom) {
+      openModal('myRoom');
+    }
   };
 
   const openStockMarketModal = () => {
@@ -261,6 +261,9 @@ export default function MainMap() {
 
   return (
     <main className='relative w-full h-screen overflow-hidden'>
+      {/* 내 방 Modal */}
+      {modals.myRoom && <MyRoom />}
+
       {/* 주식 시장 Modal */}
       {modals.stockMarket && <StockMarket />}
 
@@ -319,7 +322,11 @@ export default function MainMap() {
           onClick={handleClickRepayLoan}
         />
         {/* TODO: 삭제해야됨, 임시 내 방 버튼 */}
-        <Button text='임시 내 방 버튼' type='mainmap' onClick={goToMyRoom} />
+        <Button
+          text='임시 내 방 버튼'
+          type='mainmap'
+          onClick={openMyRoomModal}
+        />
         {/* TODO: 삭제해야됨, 임시 주식 시장 버튼 */}
         <Button
           text='임시 주식 시장 버튼'

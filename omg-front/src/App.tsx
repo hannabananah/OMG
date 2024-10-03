@@ -24,9 +24,6 @@ const Game = loadable(() => import('@/pages/Game'), {
 const MainMap = loadable(() => import('@/components/main-map/MainMap'), {
   fallback: <div>메인 맵 로딩중</div>,
 });
-const MyRoom = loadable(() => import('@/pages/MyRoom'), {
-  fallback: <div>개인 방 로드중</div>,
-});
 
 export default function App() {
   return (
@@ -58,15 +55,6 @@ export default function App() {
           element={
             <SocketProvider>
               <MainMap />
-            </SocketProvider>
-          }
-        />
-
-        <Route
-          path='/myroom'
-          element={
-            <SocketProvider>
-              <MyRoom />
             </SocketProvider>
           }
         />
