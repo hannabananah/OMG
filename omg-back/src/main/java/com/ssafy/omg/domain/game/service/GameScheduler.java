@@ -2,17 +2,9 @@ package com.ssafy.omg.domain.game.service;
 
 import com.ssafy.omg.config.baseresponse.BaseException;
 import com.ssafy.omg.domain.arena.entity.Arena;
-import com.ssafy.omg.domain.game.dto.GameEventDto;
-import com.ssafy.omg.domain.game.dto.GameNotificationDto;
-import com.ssafy.omg.domain.game.dto.RoundStartNotificationDto;
-import com.ssafy.omg.domain.game.dto.StockFluctuationResponse;
-import com.ssafy.omg.domain.game.dto.StockMarketResponse;
-import com.ssafy.omg.domain.game.dto.TimeNotificationDto;
-import com.ssafy.omg.domain.game.entity.Game;
-import com.ssafy.omg.domain.game.entity.GameEvent;
-import com.ssafy.omg.domain.game.entity.GameStatus;
-import com.ssafy.omg.domain.game.entity.RoundStatus;
-import com.ssafy.omg.domain.game.entity.StockState;
+import com.ssafy.omg.domain.game.GameRepository;
+import com.ssafy.omg.domain.game.dto.*;
+import com.ssafy.omg.domain.game.entity.*;
 import com.ssafy.omg.domain.socket.dto.StompPayload;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -24,18 +16,12 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Arrays;
 import java.util.List;
+import java.util.stream.Collectors;
 
-import static com.ssafy.omg.config.baseresponse.BaseResponseStatus.INVALID_ROUND_STATUS;
-import static com.ssafy.omg.config.baseresponse.BaseResponseStatus.ROUND_STATUS_ERROR;
-import static com.ssafy.omg.domain.game.entity.RoundStatus.APPLY_PREVIOUS_EVENT;
-import static com.ssafy.omg.domain.game.entity.RoundStatus.ECONOMIC_EVENT_NEWS;
-import static com.ssafy.omg.domain.game.entity.RoundStatus.GAME_FINISHED;
-import static com.ssafy.omg.domain.game.entity.RoundStatus.PREPARING_NEXT_ROUND;
-import static com.ssafy.omg.domain.game.entity.RoundStatus.ROUND_END;
-import static com.ssafy.omg.domain.game.entity.RoundStatus.ROUND_IN_PROGRESS;
-import static com.ssafy.omg.domain.game.entity.RoundStatus.ROUND_START;
-import static com.ssafy.omg.domain.game.entity.RoundStatus.STOCK_FLUCTUATION;
+import static com.ssafy.omg.config.baseresponse.BaseResponseStatus.*;
+import static com.ssafy.omg.domain.game.entity.RoundStatus.*;
 
 @Slf4j
 @Component
@@ -50,6 +36,7 @@ public class GameScheduler {
     private ApplicationContext applicationContext;
 
     private final GameService gameService;
+    private final GameRepository gameRepository;
     private final SimpMessageSendingOperations messagingTemplate;
     private static final int MAX_ROUNDS = 10;
 
@@ -61,7 +48,8 @@ public class GameScheduler {
             List<Game> activeGames = gameService.getAllActiveGames();
             for (Game game : activeGames) {
                 updateRoundStatus(game);
-                gameService.saveGame(game);
+                gameRepository.saveGameToRedis(game);
+//                gameService.saveGame(game);
             }
         } catch (BaseException e) {
             log.info("라운드 진행 상태 업데이트 중 오류가 발생하였습니다.");
@@ -116,14 +104,14 @@ public class GameScheduler {
         if (!game.isPaused() && game.getTime() > 0) {
             game.setTime(game.getTime() - 1);
         }
-        log.debug("게임 {}의 현재 시간 : {}초", game.getGameId(), game.getTime());  // 로그 추가
+        log.debug("게임 {}의 현재 시간 : {}초", game.getGameId(), game.getTime());
     }
 
     private void decreasePauseTime(Game game) {
         if (game.isPaused() && game.getPauseTime() > 0) {
             game.setPauseTime(game.getPauseTime() - 1);
         }
-        log.debug("게임 {}의 현재 시간 : {}초", game.getGameId(), game.getTime());  // 로그 추가
+        log.debug("게임 {}의 현재 시간 : {}초", game.getGameId(), game.getTime());
     }
 
     private void handleTutorial(Game game) {
@@ -158,7 +146,28 @@ public class GameScheduler {
                 }
 
                 log.debug("이전 라운드의 경제 이벤트가 현재 경제 시장에 반영됩니다!!");
-                gameService.applyEconomicEvent(game.getGameId());
+                Game updatedGame = gameService.applyEconomicEvent(game.getGameId());
+
+                // 업데이트된 게임 상태를 사용
+                game.setCurrentInterestRate(updatedGame.getCurrentInterestRate());
+                game.setMarketStocks(updatedGame.getMarketStocks());
+
+                // 변경사항을 Redis에 저장
+                gameRepository.saveGameToRedis(game);
+
+                // 저장 후 즉시 Redis에서 다시 읽어와 확인
+                Arena savedArena = gameRepository.findArenaByRoomId(game.getGameId())
+                        .orElseThrow(() -> new BaseException(ARENA_NOT_FOUND));
+                Game savedGame = savedArena.getGame();
+
+                log.debug("경제 이벤트가 반영됨!");
+                log.debug("반영후 금리 : {}", savedGame.getCurrentInterestRate());
+                log.debug("반영후 주가 : {}", Arrays.stream(savedGame.getMarketStocks())
+                        .map(stockInfo -> {
+                            int[] state = stockInfo.getState();
+                            return stockState.getStockStandard()[state[0]][state[1]].getPrice();
+                        })
+                        .collect(Collectors.toList()));
 
                 GameEventDto eventDto = new GameEventDto(
                         APPLY_PREVIOUS_EVENT,
@@ -175,7 +184,20 @@ public class GameScheduler {
                 );
 
                 messagingTemplate.convertAndSend("/sub/" + game.getGameId() + "/game", payload);
+
+                // 트랜잭션 체킹용 sout
                 log.debug("경제 이벤트가 반영됨!");
+                System.out.println();
+                System.out.println("반영후 금리 : " + game.getCurrentInterestRate());
+                System.out.println();
+                List<Integer> prices = Arrays.stream(game.getMarketStocks())
+                        .map(stockInfo -> {
+                            int[] state = stockInfo.getState();
+                            return stockState.getStockStandard()[state[0]][state[1]].getPrice();
+                        })
+                        .collect(Collectors.toList());
+                System.out.println("반영후 주가 : " + prices);
+                System.out.println();
 //            notifyPlayers(game.getGameId(), APPLY_PREVIOUS_EVENT, "이전 라운드의 경제 이벤트가 적용되었습니다.");
             } catch (BaseException e) {
                 log.error("경제 이벤트 반영 중 에러 발생 : {}", e.getMessage());
@@ -260,9 +282,9 @@ public class GameScheduler {
             StompPayload<StockFluctuationResponse> payload = new StompPayload<>("STOCK_FLUCTUATION", game.getGameId(), "GAME_MANAGER", response);
             messagingTemplate.convertAndSend("/sub/" + game.getGameId() + "/game", payload);
         } else {
-            if (game.getPauseTime() > 0) {
-                game.setPauseTime(game.getPauseTime() - 1);
-            }
+//            if (game.getPauseTime() > 0) {
+//                game.setPauseTime(game.getPauseTime() - 1);
+//            }
 
             if (game.getPauseTime() == 0) {
                 game.setPaused(false);

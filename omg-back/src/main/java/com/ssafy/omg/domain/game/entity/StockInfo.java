@@ -75,4 +75,5 @@ public class StockInfo {
         ascendAndDescendState(dr);
         this.state[1] += dc;
     }
+
 }

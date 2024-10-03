@@ -16,25 +16,18 @@ import com.ssafy.omg.domain.socket.dto.StompPayload;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
-import static com.ssafy.omg.config.baseresponse.BaseResponseStatus.ARENA_NOT_FOUND;
-import static com.ssafy.omg.config.baseresponse.BaseResponseStatus.EVENT_NOT_FOUND;
-import static com.ssafy.omg.config.baseresponse.BaseResponseStatus.EXCEEDS_DIFF_RANGE;
-import static com.ssafy.omg.config.baseresponse.BaseResponseStatus.IMPOSSIBLE_STOCK_CNT;
-import static com.ssafy.omg.config.baseresponse.BaseResponseStatus.INSUFFICIENT_STOCK;
-import static com.ssafy.omg.config.baseresponse.BaseResponseStatus.INVALID_BLACK_TOKEN;
-import static com.ssafy.omg.config.baseresponse.BaseResponseStatus.INVALID_ROUND;
-import static com.ssafy.omg.config.baseresponse.BaseResponseStatus.INVALID_SELL_STOCKS;
-import static com.ssafy.omg.config.baseresponse.BaseResponseStatus.INVALID_STOCK_GROUP;
-import static com.ssafy.omg.config.baseresponse.BaseResponseStatus.INVALID_STOCK_LEVEL;
 import static com.ssafy.omg.config.baseresponse.BaseResponseStatus.PLAYER_NOT_FOUND;
 import static com.ssafy.omg.config.baseresponse.BaseResponseStatus.PLAYER_STATE_ERROR;
 import static com.ssafy.omg.config.baseresponse.BaseResponseStatus.REQUEST_ERROR;
 import static com.ssafy.omg.config.baseresponse.MessageResponseStatus.*;
+import static com.ssafy.omg.config.baseresponse.BaseResponseStatus.*;
+import static com.ssafy.omg.config.baseresponse.MessageResponseStatus.AMOUNT_OUT_OF_RANGE;
 import static com.ssafy.omg.domain.game.entity.RoundStatus.STOCK_FLUCTUATION;
 import static com.ssafy.omg.domain.game.entity.RoundStatus.TUTORIAL;
 import static com.ssafy.omg.domain.player.entity.PlayerStatus.COMPLETED;
@@ -322,7 +315,6 @@ public class GameServiceImpl implements GameService {
         GameEvent savedEvent = savedArena.getGame().getCurrentEvent();
         System.out.println("Saved currentEvent: " + (savedEvent != null ? savedEvent.getTitle() : "null"));
 
-
         return game.getCurrentEvent();
     }
 
@@ -333,8 +325,9 @@ public class GameServiceImpl implements GameService {
      * @return appliedEvent
      * @throws BaseException
      */
+    @Transactional
     @Override
-    public GameEvent applyEconomicEvent(String roomId) throws BaseException {
+    public Game applyEconomicEvent(String roomId) throws BaseException {
         Arena arena = gameRepository.findArenaByRoomId(roomId)
                 .orElseThrow(() -> new BaseException(ARENA_NOT_FOUND));
         Game game = arena.getGame();
@@ -351,22 +344,47 @@ public class GameServiceImpl implements GameService {
             throw new BaseException(EVENT_NOT_FOUND);
         }
 
-        System.out.println("====================================");
-        System.out.println("=========뉴스로 인한 변동값 보기==========");
+        // 현재 상태 로깅
+        logCurrentState(game);
 
-        System.out.println();
-        System.out.println("원래 금리 : " + game.getCurrentInterestRate());
-        System.out.println();
+        // 금리 변동 적용
+        applyInterestRateChange(game, currentEvent);
+
+        // 주가 변동 적용
+        applyStockPriceChange(game, currentEvent);
+
+        // 변경된 게임 상태를 Arena에 설정
+        arena.setGame(game);
+
+        // 변경사항 저장
+        gameRepository.saveArena(roomId, arena);
+
+        // 저장 후 상태 확인
+        Arena savedArena = gameRepository.findArenaByRoomId(roomId)
+                .orElseThrow(() -> new BaseException(ARENA_NOT_FOUND));
+        Game savedGame = savedArena.getGame();
+
+        // 최종 상태 로깅
+        logFinalState(savedGame);
+
+        return savedGame;
+    }
+
+    private void logCurrentState(Game game) {
+        log.info("====================================");
+        log.info("=========뉴스로 인한 변동값 보기==========");
+        log.info("원래 금리 : " + game.getCurrentInterestRate());
         List<Integer> prices = Arrays.stream(game.getMarketStocks())
                 .map(stockInfo -> {
                     int[] state = stockInfo.getState();
                     return stockState.getStockStandard()[state[0]][state[1]].getPrice();
                 })
                 .collect(Collectors.toList());
-        System.out.println("원래 주가 : " + prices);
+        log.info("원래 주가 : " + prices);
+    }
 
-        // 금리 및 주가 변동 반영
-        // 1. 금리 변동
+    // 금리 변동
+    private void applyInterestRateChange(Game game, GameEvent currentEvent) {
         int currentInterestRate = game.getCurrentInterestRate();
         currentInterestRate += currentEvent.getValue();
         if (currentInterestRate < 1) {
@@ -375,17 +393,14 @@ public class GameServiceImpl implements GameService {
             currentInterestRate = 10;
         }
         game.setCurrentInterestRate(currentInterestRate);
+        log.info("바뀐 금리 : " + game.getCurrentInterestRate());
+    }
 
-        System.out.println();
-        System.out.println("바뀐 금리 : " + game.getCurrentInterestRate());
-        System.out.println();
-
-
-        // 2. 주가 변동
+    // 주가 변동
+    private void applyStockPriceChange(Game game, GameEvent currentEvent) throws BaseException {
         StockInfo[] marketStocks = Arrays.stream(game.getMarketStocks())
                 .map(si -> new StockInfo(si.getCnt(), Arrays.copyOf(si.getState(), 2)))
                 .toArray(StockInfo[]::new);
-//        StockInfo[] marketStocks = game.getMarketStocks();
         String affectedStockGroup = currentEvent.getAffectedStockGroup();
         int eventValue = currentEvent.getValue();
 
@@ -414,42 +429,33 @@ public class GameServiceImpl implements GameService {
                 throw new BaseException(INVALID_STOCK_GROUP);
         }
 
-        System.out.println();
+        game.setMarketStocks(marketStocks);
         List<Integer> newPrices = Arrays.stream(game.getMarketStocks())
                 .map(stockInfo -> {
                     int[] state = stockInfo.getState();
                     return stockState.getStockStandard()[state[0]][state[1]].getPrice();
                 })
                 .collect(Collectors.toList());
-        System.out.println("바뀐 주가 : " + newPrices);
+        log.info("바뀐 주가 : " + newPrices);
+    }
 
-        game.setMarketStocks(marketStocks);
-        arena.setGame(game);
-
-        // 수정된 Arena를 Redis에 저장
-        gameRepository.saveArena(roomId, arena);
-
-        GameEvent appliedEvent = currentEvent;
-
-        // 현재 이벤트 초기화
-//        game.setCurrentEvent(null);
-        gameRepository.saveArena(roomId, arena);
-
-        System.out.println("금리 저장됐나요");
-        System.out.println(redisTemplate.opsForValue().get("room" + roomId).getGame().getCurrentInterestRate());
-
-        return appliedEvent;
+    // 저장 확인용 금리/주가 상태
+    private void logFinalState(Game game) {
+        log.info("금리 저장됐나요: " + game.getCurrentInterestRate());
+        List<Integer> finalPrices = Arrays.stream(game.getMarketStocks())
+                .map(stockInfo -> {
+                    int[] state = stockInfo.getState();
+                    return stockState.getStockStandard()[state[0]][state[1]].getPrice();
+                })
+                .collect(Collectors.toList());
+        log.info("최종 주가 : " + finalPrices);
     }
 
     private void modifyStockPrice(StockInfo stockInfo, int eventValue) throws BaseException {
         if (eventValue > 0) {
-            for (int i = 0; i < Math.abs(eventValue); i++) {
-                stockInfo.increaseState();
-            }
+            stockInfo.increaseState();
         } else if (eventValue < 0) {
-            for (int i = 0; i < Math.abs(eventValue); i++) {
-                stockInfo.decreaseState();
-            }
+            stockInfo.decreaseState();
         }
     }
 

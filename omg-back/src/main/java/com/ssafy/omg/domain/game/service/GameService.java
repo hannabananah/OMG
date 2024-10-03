@@ -5,9 +5,9 @@ import com.ssafy.omg.config.baseresponse.MessageException;
 import com.ssafy.omg.domain.arena.entity.Arena;
 import com.ssafy.omg.domain.game.dto.IndividualMessageDto;
 import com.ssafy.omg.domain.game.dto.PlayerMoveRequest;
+import com.ssafy.omg.domain.game.dto.StockMarketResponse;
 import com.ssafy.omg.domain.game.dto.StockRequest;
 import com.ssafy.omg.domain.game.entity.Game;
-import com.ssafy.omg.domain.game.dto.StockMarketResponse;
 import com.ssafy.omg.domain.game.entity.GameEvent;
 import com.ssafy.omg.domain.socket.dto.StompPayload;
 
@@ -31,7 +31,7 @@ public interface GameService {
     GameEvent createGameEventNews(String roomId) throws BaseException;
 
     // 전 라운드 경제 이벤트를 현 라운드에 적용
-    GameEvent applyEconomicEvent(String roomId) throws BaseException;
+    Game applyEconomicEvent(String roomId) throws BaseException;
 
     // 매입한 금괴 개수를 플레이어 자산 및 금괴 매입 트랙( + 추가개수)에 반영
     void purchaseGold(String roomId, String userNickname, int goldButCount) throws BaseException, MessageException;
