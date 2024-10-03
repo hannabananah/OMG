@@ -804,26 +804,22 @@ public class GameServiceImpl implements GameService {
 
             // 3-2. 뽑은 주식 토큰 中, 각 색깔의 주가 토큰 개수가 표시된 위치로 이동(*주가 조정 참조표* 참고)
             for (int i = 1; i < 6; i++) {
+
                 int stockCntDiff = selectedStockCnts[i] - selectedStockCnts[0];
+
                 if (stockCntDiff < -6) {
                     throw new BaseException(INVALID_BLACK_TOKEN);
                 }
-                int[] stockPriceState = marketStocks[i].getState();
-
-                if (0 <= stockCntDiff && stockCntDiff < 7) {
-                    stockPriceState[0] += stockState.getStockDr()[stockCntDiff];
-                    stockPriceState[1] += stockState.getStockDc()[stockCntDiff];
+                else if (stockCntDiff < 0) {
+                    marketStocks[i].setStockPriceInRange(stockCntDiff + 13);
                 }
-                // 3-3. 7개 이상 뽑았다면, 참조표에 표시된 6까지 이동 후 -> 초과한 숫자만큼 위로 한 칸씩 이동
-                else if (7 <= stockCntDiff && stockCntDiff <= 12) {
-                    stockPriceState[0] += stockState.getStockDr()[6];
-                    stockPriceState[1] += stockState.getStockDc()[6];
-                    for (int j = 0; j < stockCntDiff - 6; j++) {
-                        if (stockPriceState[0] == 0) {
-                            break;
-                        }
-                        stockPriceState[0] -= 1;
-                    }
+                else if (stockCntDiff < 7) {
+                    marketStocks[i].setStockPriceInRange(stockCntDiff);
+                }
+                // 토큰 개수이 차이가 6을 초과했다면(최대 12 가능)
+                else if (stockCntDiff <= 12) {
+                    marketStocks[i].setStockPriceInRange(6);
+                    marketStocks[i].ascendAndDescendState(-(stockCntDiff - 6));
                 } else {
                     throw new BaseException(EXCEEDS_DIFF_RANGE);
                 }
@@ -832,10 +828,11 @@ public class GameServiceImpl implements GameService {
                 marketStocks[i].addCnt(selectedStockCnts[i]);
 
                 // 5. 주가 상승: 여전히 주식 시장에 주식 토큰이 없는 색깔은 주가를 위쪽으로 한 칸 이동
-                if (marketStocks[i].getCnt() == 0) stockPriceState[0] -= 1;
+                if (marketStocks[i].getCnt() == 0) marketStocks[i].ascendAndDescendState(-1);;
 
                 // 6. 주가 수준 변동 조건 확인 후, 필요 시 주가 수준 변동
-                int newLevel = stockState.getStockStandard()[stockPriceState[0]][stockPriceState[1]].getLevel();
+                int newLevel = stockState.getStockStandard()[marketStocks[i].getState()[0]][marketStocks[i].getState()[1]].getLevel();
+
                 // 새로운 주가수준이 상위영역에 처음 진입했는지
                 if (stockPriceLevel < newLevel) {
                     game.setCurrentStockPriceLevel(newLevel);
