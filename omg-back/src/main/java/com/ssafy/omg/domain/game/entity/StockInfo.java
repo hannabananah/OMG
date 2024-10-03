@@ -1,6 +1,5 @@
 package com.ssafy.omg.domain.game.entity;
 
-import com.ssafy.omg.config.baseresponse.BaseException;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
@@ -23,29 +22,58 @@ public class StockInfo {
         this.cnt += amount;
     }
 
-    public void decreaseState() throws BaseException {
+    public void decreaseState() {
         if (this.state[0] == 12 && this.state[1] == 0) {
-//            throw new BaseException(INVALID_STOCK_STATE);
             return;
+        }
+
+        if (this.state[1] == 0) {
+            this.state[0]++;
         } else {
-            if (this.state[1] == 0) {
-                this.state[0] += 1;
+            this.state[1]--;
+        }
+    }
+
+    public void increaseState() {
+        if (this.state[0] == 0 && this.state[1] == 6) {
+            return;
+        }
+
+        if (this.state[1] == 6) {
+            this.state[0]--;
+        } else {
+            this.state[1]++;
+        }
+    }
+
+    public void ascendAndDescendState(int dr) {
+        if (dr < 0) {
+            if (this.state[0] + dr < 0) {
+                this.state[0] = 0;
             } else {
-                this.state[1] -= 1;
+                this.state[0] += dr;
+            }
+        } else {
+            if (this.state[0] + dr > 12) {
+                this.state[0] = 12;
+            } else {
+                this.state[0] += dr;
             }
         }
     }
 
-    public void increaseState() throws BaseException {
-        if (this.state[0] == 0 && this.state[1] == 6) {
-//            throw new BaseException(INVALID_STOCK_STATE);
-            return;
-        } else {
-            if (this.state[1] == 6) {
-                this.state[0] -= 1;
-            } else {
-                this.state[1] += 1;
-            }
+    public void setStockPriceInRange(int changeIdx) {
+        int dr = StockState.stockDr[changeIdx];
+        int dc = StockState.stockDc[changeIdx];
+
+        if (this.state[1] == 6 && (1 <= changeIdx && changeIdx <= 6)) {
+            dc = 1; // stockDc 1번 인덱스의 변동 값이 0이기 때문에
+        } else if (this.state[1] == 0 && (changeIdx == 0 || 6 < changeIdx)) {
+            dc = 1;
         }
+
+        ascendAndDescendState(dr);
+        this.state[1] += dc;
     }
+
 }
