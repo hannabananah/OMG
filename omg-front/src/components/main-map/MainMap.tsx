@@ -14,11 +14,10 @@ import { useOtherUserStore } from '@/stores/useOtherUserState';
 import { useSocketMessage } from '@/stores/useSocketMessage';
 import useUser from '@/stores/useUser';
 import { SocketContext } from '@/utils/SocketContext';
-import { KeyboardControls, OrbitControls } from '@react-three/drei';
+import { KeyboardControls } from '@react-three/drei';
 import { Canvas } from '@react-three/fiber';
 import { Physics } from '@react-three/rapier';
 
-import IntroCamera from '../camera/IntroCamera';
 import ChatButton from '../common/ChatButton';
 
 export const Controls = {
@@ -41,18 +40,22 @@ const CharacterInfo = {
   santa: {
     url: '/models/santa/santa.gltf',
     scale: [2.5, 2.5, 2.5],
+    position: [0, 0, 0],
   },
   elf: {
     url: '/models/elf/elf.gltf',
     scale: [1, 1, 1],
+    position: [0, 0, 5],
   },
   snowman: {
     url: '/models/snowman/snowman.gltf',
     scale: [1, 1, 1],
+    position: [2, 0, 3],
   },
   gingerbread: {
     url: '/models/gingerbread/gingerbread.gltf',
     scale: [1, 1, 1],
+    position: [-3, 0, 5],
   },
 };
 
@@ -387,21 +390,16 @@ export default function MainMap() {
       <KeyboardControls map={keyboardMap}>
         <Canvas>
           <Suspense>
-            <OrbitControls />
-            <axesHelper args={[800]} />
-            <IntroCamera />
             <Physics timeStep='vary' colliders={false} debug>
               <ambientLight />
               <directionalLight />
 
               <Map />
-
-              {/* <PerspectiveCamera /> */}
               {/* 본인 캐릭터 */}
-
               <Character
                 characterURL={selectedCharacter.url}
                 characterScale={selectedCharacter.scale}
+                position={selectedCharacter.position}
                 isOwnCharacter={true}
               />
 

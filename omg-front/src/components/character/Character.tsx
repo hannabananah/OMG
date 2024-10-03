@@ -6,9 +6,10 @@ import { StockItem } from '@/types';
 import { SocketContext } from '@/utils/SocketContext';
 import { useKeyboardControls } from '@react-three/drei';
 import { useFrame } from '@react-three/fiber';
-import { RigidBody } from '@react-three/rapier';
+import { CuboidCollider, RigidBody } from '@react-three/rapier';
 import * as THREE from 'three';
 
+import IntroCamera from '../camera/IntroCamera';
 import Item from './Item';
 
 interface Props {
@@ -29,15 +30,13 @@ export default function Character({
   isOwnCharacter = false,
 }: Props) {
   const { movePlayer, allRendered } = useContext(SocketContext);
-
   const [localActionToggle, setLocalActionToggle] = useState(false);
   const [characterPosition, setCharacterPosition] = useState(
     new THREE.Vector3(),
-  ); // 캐릭터 기본 위치
+  );
   const [rotation, setRotation] = useState(0);
   const movementStateRef = useRef<'idle' | 'walking' | 'running'>('idle');
 
-  // const pickupPressed = useKeyboardControls((state) => state[Controls.pickup])
   const leftPressed = useKeyboardControls(state => state[Controls.left]);
   const rightPressed = useKeyboardControls(state => state[Controls.right]);
   const backPressed = useKeyboardControls(state => state[Controls.back]);
@@ -64,31 +63,21 @@ export default function Character({
       scene.rotation.y = rotation;
 
       if (isOwnCharacter) {
-        // 이동 속도 설정
-        const moveDistance = 0.1;
+        const moveDistance = 0.1; // 이동 속도
+        const newPosition = characterPosition.clone(); // 현재 캐릭터 위치 복사
 
-        // 현재 캐릭터 위치 복사
-        const newPosition = characterPosition.clone();
+        if (leftPressed) newPosition.x += moveDistance;
+        if (rightPressed) newPosition.x -= moveDistance;
+        if (backPressed) newPosition.z -= moveDistance;
+        if (forwardPressed) newPosition.z += moveDistance;
 
-        // 키 입력에 따른 위치 변경
-        if (leftPressed) {
-          newPosition.x += moveDistance;
-        }
-        if (rightPressed) {
-          newPosition.x -= moveDistance;
-        }
-        if (backPressed) {
-          newPosition.z -= moveDistance;
-        }
-        if (forwardPressed) {
-          newPosition.z += moveDistance;
-        }
-
-        // 캐릭터 위치 업데이트
         setCharacterPosition(newPosition);
         scene.position.copy(newPosition);
 
-        // 걷기 및 달리기 상태
+        const rigidBody = scene.userData.rigidBody;
+        if (rigidBody) {
+          rigidBody.setTranslation(newPosition.toArray());
+        }
         if (
           movementStateRef.current === 'walking' ||
           movementStateRef.current === 'running'
@@ -104,6 +93,10 @@ export default function Character({
             .add(forwardDirection.multiplyScalar(moveSpeed));
           setCharacterPosition(newForwardPosition);
           scene.position.copy(newForwardPosition);
+
+          if (rigidBody) {
+            rigidBody.setTranslation(newForwardPosition.toArray());
+          }
         }
       } else if (position && Array.isArray(position) && position.length === 3) {
         scene.position.set(...(position as [number, number, number]));
@@ -136,7 +129,6 @@ export default function Character({
     localActionToggle,
   ]);
 
-  // 트리 장식 배열 데이터 (예시)
   const items: { itemName: StockItem; count: number }[] = useMemo(
     () => [
       { itemName: 'candy', count: 1 },
@@ -159,24 +151,54 @@ export default function Character({
 
   return (
     <>
-      <RigidBody type='dynamic' colliders={'trimesh'} lockRotations>
+      <IntroCamera characterPosition={characterPosition} />
+
+      <RigidBody type='dynamic' colliders={false} lockRotations={true}>
         <primitive
           object={scene}
           scale={characterScale}
-          position={characterPosition}
+          position={
+            new THREE.Vector3(
+              characterPosition.x,
+              characterPosition.y,
+              characterPosition.z,
+            )
+          }
         />
+        {/* 콜라이더를 캐릭터 중간에 위치 */}
+        <CuboidCollider
+          position={
+            new THREE.Vector3(
+              characterPosition.x,
+              characterPosition.y + characterScale[1] / 2,
+              characterPosition.z,
+            )
+          }
+          args={[
+            characterScale[0] / 4,
+            characterScale[1] / 2.2,
+            characterScale[2] / 3,
+          ]}
+          onCollisionEnter={() => console.log('충돌감지')}
+        />
+        {items.map((item, itemIndex) =>
+          [...Array(item.count)].map((_, index) => (
+            <Item
+              key={`${item.itemName}-${itemIndex}-${index}`}
+              disabled={true}
+              characterPosition={
+                new THREE.Vector3(
+                  characterPosition.x,
+                  characterPosition.y + 1,
+                  characterPosition.z,
+                )
+              }
+              index={index + itemIndex * 2}
+              itemName={item.itemName}
+            />
+          )),
+        )}
       </RigidBody>
-      {items.map((item, itemIndex) =>
-        [...Array(item.count)].map((_, index) => (
-          <Item
-            key={`${item.itemName}-${itemIndex}-${index}`}
-            disabled={true}
-            characterPosition={characterPosition}
-            index={index + itemIndex * 2}
-            itemName={item.itemName}
-          />
-        )),
-      )}
     </>
   );
 }
