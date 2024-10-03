@@ -10,6 +10,7 @@ import Snowing from '@/components/common/Snowing';
 import SpeechBubble from '@/components/common/SpeechBubble';
 import Timer from '@/components/common/Timer';
 import Item from '@/components/stock-market/Item';
+import { treeItemNameInKorean } from '@/hooks/useStock';
 import { SocketContext } from '@/utils/SocketContext';
 import { Html, OrbitControls } from '@react-three/drei';
 import { Canvas } from '@react-three/fiber';
@@ -17,18 +18,62 @@ import { Canvas } from '@react-three/fiber';
 export default function MyRoom() {
   const { roundTimer, presentRound } = useContext(SocketContext);
 
-  // const MAX_TRADE_COUNT = 5; // 최대 거래 가능 횟수
-  // const STOCK_MARKET_PRICE = [0, 8, 8, 8, 8, 8]; // 현재 주가
-  const MY_STOCK = [0, 1, 0, 1, 2, 3]; // 보유 주식 개수
+  const MAX_TRADE_COUNT = 5; // 최대 거래 가능 수량
+  const STOCK_MARKET_PRICE = [0, 4, 6, 8, 10, 12]; // 현재 주가
+  const MY_STOCK = [0, 0, 1, 2, 0, 3]; // 보유 주식 개수
 
-  // 선택된 아이템 개수 저장하는 배열: 6짜리 count 배열 (1 ~ 5번 인덱스 활용)
-  const [selectedCounts, setSelectedCounts] = useState(Array(6).fill(0));
+  // 선택된 아이템 개수 저장하는 배열 (5 크기)
+  const [selectedCounts, setSelectedCounts] = useState(Array(5).fill(0));
 
   const [alertText, setAlertText] =
     useState<string>('판매 할 아이템을 선택해주세요!');
 
-  const goToSellStockItem = () => {};
-  const handleClickItem = () => {};
+  const goToSellStockItem = () => {
+    const stockItemToSell = [0, ...selectedCounts];
+    console.log('판매 할 수량: ', stockItemToSell);
+  };
+
+  const handleCountChange = (itemIndex: number, value: number) => {
+    const newCounts = [...selectedCounts];
+    const stockIndex = itemNameList.indexOf(
+      ownedStockItems[itemIndex].itemName,
+    ); // 필터링된 아이템의 원래 인덱스 찾기
+    const newCount = newCounts[stockIndex] + value;
+
+    // 총 선택한 수량 계산
+    const totalSelectedCount =
+      newCounts.reduce((acc, count) => acc + count, 0) + value;
+
+    if (totalSelectedCount > MAX_TRADE_COUNT) {
+      setAlertText(`(현재) 최대 판매 가능 수량은 ${MAX_TRADE_COUNT}개 입니다.`);
+      return;
+    }
+
+    if (newCount > MY_STOCK[stockIndex + 1]) {
+      const itemName = treeItemNameInKorean(itemNameList[stockIndex]); // 해당 아이템 이름 가져오기
+      setAlertText(
+        `'${itemName}' 보유 수량 ${MY_STOCK[stockIndex + 1]}개를 초과할 수 없습니다.`,
+      );
+      return;
+    }
+
+    newCounts[stockIndex] = Math.max(0, newCount); // 수량이 0보다 작아지지 않도록
+    setSelectedCounts(newCounts);
+
+    // 선택한 아이템과 수량 알림 추가
+    const selectedItemName = treeItemNameInKorean(itemNameList[stockIndex]);
+    setAlertText(
+      `${selectedItemName}을(를) ${newCounts[stockIndex]}개 선택했습니다.`,
+    );
+  };
+
+  // 예상 판매 수익 계산 함수
+  const calculateTotalRevenue = () => {
+    return selectedCounts.reduce(
+      (total, count, index) => total + count * STOCK_MARKET_PRICE[index + 1],
+      0,
+    );
+  };
 
   // 보유한 아이템들만 필터링
   const ownedStockItems = MY_STOCK.slice(1)
@@ -42,8 +87,6 @@ export default function MyRoom() {
       return null;
     })
     .filter(Boolean);
-
-  console.log(ownedStockItems);
 
   // 가로로 중앙 정렬을 위한 위치 계산
   const spacing = 1.5; // 아이템 간격
@@ -87,26 +130,52 @@ export default function MyRoom() {
         <pointLight position={[0, 10, 0]} intensity={3} />
         <Snowing />
 
-        {ownedStockItems.map((item, index) => {
-          const positionX = startPosition + index * spacing;
+        {ownedStockItems.map((item, itemIndex) => {
+          const positionX = startPosition + itemIndex * spacing;
+          const stockIndex = itemNameList.indexOf(item.itemName); // 필터링된 아이템의 원래 인덱스 찾기
           return (
             <group key={item.itemName}>
               <Item
                 itemName={item.itemName}
-                position={{ x: positionX, y: 0, z: 0 }} // X축으로 위치 조정
+                position={{ x: positionX, y: 0.8, z: 0 }} // X축으로 위치 조정
                 onClick={() => console.log(`${item.itemName} 클릭됨`)}
                 disabled={false}
               />
-              {/* 보유 개수 표시 */}
-              <Html position={[positionX, -0.5, 0]}>
-                <div className='text-white'>{item.count}개</div>
+              {/* 보유 수량 & 판매할 수량 선택 & 현재 판매가 */}
+              <Html position={[positionX, 0, 0]} center>
+                <div className='flex flex-col items-center w-40 gap-2 text-omg-18'>
+                  {/* 보유 수량 */}
+                  <div>보유 수량: {item.count}개</div>
+
+                  {/* 수량 선택 */}
+                  <div className='flex items-center'>
+                    <Button
+                      text='-'
+                      type='count'
+                      onClick={() => handleCountChange(itemIndex, -1)}
+                      disabled={selectedCounts[stockIndex] === 0}
+                    />
+                    <p className='mx-4'>{selectedCounts[stockIndex]}개</p>
+                    <Button
+                      text='+'
+                      type='count'
+                      onClick={() => handleCountChange(itemIndex, 1)}
+                    />
+                  </div>
+
+                  {/* 현재 판매가 */}
+                  <div className='text-omg-14'>
+                    현재 판매가: ${STOCK_MARKET_PRICE[stockIndex + 1]}
+                  </div>
+                </div>
               </Html>
             </group>
           );
         })}
       </Canvas>
 
-      <div className='absolute -translate-x-1/2 bottom-44 left-1/2'>
+      <div className='absolute flex flex-col items-center gap-4 -translate-x-1/2 text-omg-18 bottom-56 left-1/2'>
+        <p>예상 판매 수익: ${calculateTotalRevenue()}</p>
         <Button
           text='주식 시장에 팔러 가기'
           type='trade'
