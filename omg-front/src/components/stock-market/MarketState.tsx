@@ -19,7 +19,7 @@ export default function MarketState() {
   const [progress, setProgress] = useState(20); // 초기값 20
 
   // TODO: 추후 삭제 필요
-  // console.log('빌드 에러 해결을 위한 임시 setProgress 콘솔', setProgress(10));
+  console.log('빌드 에러 해결을 위한 임시 setProgress 콘솔', setProgress(20));
 
   return (
     <div className='flex items-center gap-20 text-omg-20'>
