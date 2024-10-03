@@ -24,8 +24,8 @@ const Game = loadable(() => import('@/pages/Game'), {
 const MainMap = loadable(() => import('@/components/main-map/MainMap'), {
   fallback: <div>메인 맵 로딩중</div>,
 });
-const StockMarket = loadable(() => import('@/pages/StockMarket'), {
-  fallback: <div>주식 시장 로드중</div>,
+const MyRoom = loadable(() => import('@/pages/MyRoom'), {
+  fallback: <div>개인 방 로드중</div>,
 });
 
 export default function App() {
@@ -63,10 +63,10 @@ export default function App() {
         />
 
         <Route
-          path='/stockmarket'
+          path='/myroom'
           element={
             <SocketProvider>
-              <StockMarket />
+              <MyRoom />
             </SocketProvider>
           }
         />

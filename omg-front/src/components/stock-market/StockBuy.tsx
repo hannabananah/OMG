@@ -1,6 +1,6 @@
 import { useState } from 'react';
 
-import { itemNameList } from '@/assets/data/stockPriceData';
+import { itemNameList } from '@/assets/data/stockMarketData';
 import { getTreeItemImagePath } from '@/hooks/useStock';
 import { useStockStore } from '@/stores/useStockStore';
 
