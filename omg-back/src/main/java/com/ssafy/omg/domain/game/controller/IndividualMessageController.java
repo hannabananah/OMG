@@ -158,7 +158,14 @@ public class IndividualMessageController {
     public void requestBattle(@Payload StompPayload<BattleRequestDto> payload) throws BaseException {
         String roomId = payload.getRoomId();
         String userNickname = payload.getSender();
-        gameBattleService.handleBattleRequest(payload);
+        StompPayload<?> response = null;
+        try {
+            gameBattleService.handleBattleRequest(payload);
+        } catch (MessageException e) {
+            // TODO
+            response = new StompPayload<>(e.getStatus().name(), roomId, userNickname, null);
+            messagingTemplate.convertAndSend("/sub/" + roomId + "/game", response);
+        }
     }
 
 }

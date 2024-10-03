@@ -9,3 +9,7 @@ spring:
     redis:
       host: ${REDIS_URL_PROD}
       port: ${REDIS_PORT_PROD}
+
+logging.level:
+  org.hibernate.SQL: info
+  com.ssafy.omg: info
