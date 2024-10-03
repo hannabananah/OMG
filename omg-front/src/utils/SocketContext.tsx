@@ -79,7 +79,7 @@ interface SocketProviderProps {
 export default function SocketProvider({ children }: SocketProviderProps) {
   const { roomId } = useParams<{ roomId: string }>();
   const { nickname, setCharacterType, setPlayerIndex } = useUser();
-  const base_url = 'ws://localhost:8080/omg';
+  const base_url = import.meta.env.VITE_APP_SOCKET_URL;
   const {
     gameMessage,
     setRoomMessage,
