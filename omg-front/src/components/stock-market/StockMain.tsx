@@ -1,12 +1,9 @@
 import { IoMdArrowDropdown, IoMdArrowDropup } from 'react-icons/io';
 import { IoRemoveOutline } from 'react-icons/io5';
 
-import {
-  backendData,
-  chartData,
-  itemNameList,
-} from '@/assets/data/stockPriceData';
-import { getStockPriceData } from '@/hooks/useStock';
+import { itemNameList } from '@/assets/data/stockPriceData';
+import { chartData, getStockPriceData } from '@/hooks/useStock';
+import { useStockStore } from '@/stores/useStockStore';
 import { StockMarketView } from '@/types';
 
 import Button from '../common/Button';
@@ -17,9 +14,12 @@ interface StockMainProps {
 }
 
 export default function StockMain({ setCurrentView }: StockMainProps) {
-  // chartData 받아오기
+  // 서버로 부터 주식 데이터 받아오기
+  const { stockPriceChangeInfo } = useStockStore();
+
+  // 주가 차트 데이터 생성
   const reversedItemNameList = [...itemNameList].reverse();
-  const stockData = chartData(backendData, reversedItemNameList);
+  const stockData = chartData(stockPriceChangeInfo, reversedItemNameList);
 
   // 주가와 등락 계산
   const stockPriceData = getStockPriceData(stockData);

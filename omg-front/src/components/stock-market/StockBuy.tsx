@@ -1,16 +1,16 @@
 import { useState } from 'react';
 
-import {
-  remainTreeItemCount,
-  treeItemNameList,
-  treeItemPrice,
-} from '@/assets/data/stockPriceData';
+import { itemNameList } from '@/assets/data/stockPriceData';
 import { getTreeItemImagePath } from '@/hooks/useStock';
+import { useStockStore } from '@/stores/useStockStore';
 
 import Button from '../common/Button';
 import PossessionChart from './PossessionChart';
 
 export default function StockBuy() {
+  // 서버로 부터 주식 데이터 받아오기
+  const { stockPrices, leftStocks } = useStockStore();
+
   const MAX_TRADE_COUNT = 5; // 최대 거래 가능 수량
   const MY_MONEY = 50; // 보유한 현금
 
@@ -35,7 +35,7 @@ export default function StockBuy() {
     }
 
     // 보유 현금 초과하면 alert
-    const newTotalPrice = totalPrice + value * treeItemPrice[idx + 1];
+    const newTotalPrice = totalPrice + value * stockPrices[idx + 1];
     if (newTotalPrice > MY_MONEY) {
       alert(`보유한 현금 $${MY_MONEY}을 초과할 수 없습니다.`);
       return;
@@ -47,7 +47,7 @@ export default function StockBuy() {
 
   // 총 가격 계산
   const totalPrice = selectedCounts.reduce(
-    (acc, count, idx) => acc + count * treeItemPrice[idx],
+    (acc, count, idx) => acc + count * stockPrices[idx],
     0,
   );
 
@@ -68,7 +68,7 @@ export default function StockBuy() {
         <div className='flex flex-col w-full h-full gap-10 px-20 py-10'>
           {/* 이미지 & 주가 & 남은 수량 & 수량 선택 */}
           <ul className='flex flex-col gap-8'>
-            {treeItemNameList.map((treeItem, idx) => (
+            {itemNameList.map((treeItem, idx) => (
               <li
                 key={idx}
                 className='flex items-center justify-between text-omg-18'
@@ -81,10 +81,10 @@ export default function StockBuy() {
                   />
                 </div>
                 {/* 주가 */}
-                <p>${treeItemPrice[idx + 1]}</p>
+                <p>${stockPrices[idx + 1]}</p>
                 {/* 남은 수량 */}
                 <p className='text-omg-14'>
-                  남은 수량: {remainTreeItemCount[idx + 1]}개
+                  남은 수량: {leftStocks[idx + 1]}개
                 </p>
                 {/* 수량 선택 */}
                 <div className='flex items-center'>

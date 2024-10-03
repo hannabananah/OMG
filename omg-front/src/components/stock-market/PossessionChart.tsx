@@ -1,13 +1,10 @@
-import {
-  players,
-  treeItemNameList,
-  treeItemPossessionInfo,
-} from '@/assets/data/stockPriceData';
+import { itemNameList } from '@/assets/data/stockPriceData';
 import {
   getPossessionData,
   getTreeItemImagePath,
   shortenName,
 } from '@/hooks/useStock';
+import { useStockStore } from '@/stores/useStockStore';
 import { StockItem } from '@/types';
 import { AxisTickProps } from '@nivo/axes';
 import { ResponsiveBar } from '@nivo/bar';
@@ -24,21 +21,24 @@ const CustomTick = ({ x, y, value }: AxisTickProps<any>) => (
 );
 
 export default function PossessionChart() {
+  // 서버로 부터 데이터 받아오기
+  const { playerNicknames, playerStockShares } = useStockStore();
+
   let data = getPossessionData(
-    treeItemPossessionInfo,
-    treeItemNameList,
-    players,
+    playerStockShares.slice(1),
+    itemNameList,
+    playerNicknames,
   );
 
   // bar 차트 렌더링 순서 위해 뒤집기
   data = data.sort(
     (a, b) =>
-      treeItemNameList.indexOf(b.treeItemName) -
-      treeItemNameList.indexOf(a.treeItemName),
+      itemNameList.indexOf(b.treeItemName) -
+      itemNameList.indexOf(a.treeItemName),
   );
 
   // 플레이어 이름 목록
-  const nickNameList = [...players].map(shortenName);
+  const nickNameList = [...playerNicknames].map(shortenName);
 
   return (
     <ResponsiveBar
