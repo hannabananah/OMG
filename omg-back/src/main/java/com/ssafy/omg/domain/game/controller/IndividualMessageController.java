@@ -5,8 +5,10 @@ import com.ssafy.omg.config.baseresponse.BaseException;
 import com.ssafy.omg.config.baseresponse.BaseResponse;
 import com.ssafy.omg.config.baseresponse.MessageException;
 import com.ssafy.omg.domain.game.GameRepository;
+import com.ssafy.omg.domain.game.dto.BattleRequestDto;
 import com.ssafy.omg.domain.game.dto.IndividualMessageDto;
 import com.ssafy.omg.domain.game.dto.StockRequest;
+import com.ssafy.omg.domain.game.service.GameBattleService;
 import com.ssafy.omg.domain.game.service.GameBroadcastService;
 import com.ssafy.omg.domain.game.service.GameService;
 import com.ssafy.omg.domain.socket.dto.StompPayload;
@@ -31,6 +33,7 @@ public class IndividualMessageController {
     private final GameBroadcastService gameBroadcastService;
     private final SimpMessageSendingOperations messagingTemplate;
     private final GameRepository gameRepository;
+    private final GameBattleService gameBattleService;
 
     @MessageMapping("/gold")
     public BaseResponse<?> purchaseGold(@Payload StompPayload<Integer> goldPayload) throws BaseException, MessageException {
@@ -149,6 +152,13 @@ public class IndividualMessageController {
             response = new StompPayload<>(e.getStatus().name(), roomId, userNickname, individualMessage);
             messagingTemplate.convertAndSend("/sub/" + roomId + "/game", response);
         }
+    }
+
+    @MessageMapping("/request-battle")
+    public void requestBattle(@Payload StompPayload<BattleRequestDto> payload) throws BaseException {
+        String roomId = payload.getRoomId();
+        String userNickname = payload.getSender();
+        gameBattleService.handleBattleRequest(payload);
     }
 
 }

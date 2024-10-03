@@ -35,6 +35,7 @@ public class Player {
 
     private PlayerAction action;       // 플레이어 행위 (주식 매수, 주식 매도, 금괴 매입, 대출, 상환)
     private PlayerStatus state;        // 플레이어 행위 상태 (시작전, 진행중, 완료)
+    private boolean battleState;
     private int isConnected;           // 플레이어 접속 상태 (0: 끊김, 1: 연결됨)
 
     public void addCash(int amount) {
