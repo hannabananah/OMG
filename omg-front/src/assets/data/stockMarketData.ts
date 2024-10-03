@@ -1,4 +1,4 @@
-import { StockDataItem, StockItem } from '@/types';
+import { StockItem } from '@/types';
 
 // 백엔드에서 받은 2차원 데이터를 가정
 export const backendData: number[][] = [
@@ -8,7 +8,7 @@ export const backendData: number[][] = [
     0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
   ], // 무의미
   [
-    8, 6, 4, 6, 14, 4, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+    8, 6, 4, 6, 14, 14, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
     0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
     0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
   ], // candy
@@ -43,42 +43,20 @@ export const itemNameList: StockItem[] = [
   'socks',
 ];
 
-// [변환] 백엔드 데이터 => 프론트 차트
-export const chartData = (
-  backendData: number[][],
-  itemNameList: StockItem[],
-): StockDataItem[] => {
-  // 첫 번째 행(무의미한 데이터) 제외하고 1 ~ 5번째 사용
-  return backendData.slice(1, 6).map((itemData, index) => {
-    const data = itemData.map((price, time) => ({
-      x: time,
-      y: price,
-    }));
+// 지분 처리 위해 각 플레이어 이름 & 트리 장식 이름 구분
+export const players = ['nickname 1', 'nickname 2', 'nickname 3', 'nickname 4'];
 
-    return {
-      id: itemNameList[index],
-      data,
-    };
-  });
-};
+// 각 주식의 플레이어 별 보유 개수
+export const treeItemPossessionInfo: number[][] = [
+  [10, 20, 30, 40], // candy
+  [20, 30, 40, 10], // cupcake
+  [30, 40, 10, 20], // gift
+  [40, 10, 20, 30], // hat
+  [10, 10, 10, 10], // socks (아무도 갖고 있지 않음)
+];
 
-// // 플레이어 이름
-// ['player1', 'player2', 'player3', 'player4']
+// 각 트리 장식 별 주가
+export const treeItemPrice = [0, 10, 20, 30, 40, 50];
 
-// // 지분: 2차원 배열
-//   [
-//     [4, 6, 8, 8], // 트리 1 - 각 플레이어가 가진 개수
-//     [4, 6, 8, 8], // 트리 2 - 각 플레이어가 가진 개수
-//     [4, 6, 8, 8], // 트리 3 - 각 플레이어가 가진 개수
-//     [4, 6, 8, 8], // 트리 4 - 각 플레이어가 가진 개수
-//     [4, 6, 8, 8], // 트리 5 - 각 플레이어가 가진 개수
-//   ];
-
-// // 주식 변동 (80초 초과 100초 미만인 상태)
-// [
-//   [8, 3, 4, 6, 0, 0, 0, ...],
-//   [8, 3, 4, 6, 0, 0, 0, ...],
-//   [8, 3, 4, 6, 0, 0, 0, ...],
-//   [8, 3, 4, 6, 0, 0, 0, ...],
-//   [8, 3, 4, 6, 0, 0, 0, ...],
-// ]
+// 각 트리 장식 별 남은 수량
+export const remainTreeItemCount = [0, 10, 20, 30, 400, 50];

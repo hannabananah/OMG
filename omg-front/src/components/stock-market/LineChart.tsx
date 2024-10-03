@@ -1,22 +1,33 @@
 import { useState } from 'react';
 
 import {
-  backendData,
-  chartData,
-  itemNameList,
-} from '@/assets/data/stockPriceData';
-import { getMaxPrice, stockDataUntilNow } from '@/hooks/useStock';
+  getMaxPrice,
+  stockDataUntilNow,
+  treeItemNameInKorean,
+} from '@/hooks/useStock';
+import { StockDataItem, StockDataItemInKorean } from '@/types';
 import { ResponsiveLine } from '@nivo/line';
 
-export default function LineChart() {
+interface LineChartProps {
+  stockData: StockDataItem[];
+}
+
+export default function LineChart({ stockData }: LineChartProps) {
   const [currentRound, _] = useState(1); // 현재 라운드 설정
 
-  // chartData 받아오기
-  const stockData = chartData(backendData, itemNameList);
+  // stockData의 id(StockItem) => 한글로 변환
+  const stockDataWithKoreanTreeItemName: StockDataItemInKorean[] =
+    stockData.map(item => ({
+      ...item,
+      id: treeItemNameInKorean(item.id),
+    }));
 
   // 필터링된 데이터와 최대 주가 계산
-  const filteredData = stockDataUntilNow(stockData, currentRound);
-  const maxPrice = getMaxPrice(stockData);
+  const filteredData = stockDataUntilNow(
+    stockDataWithKoreanTreeItemName,
+    currentRound,
+  );
+  const maxPrice = getMaxPrice(stockDataWithKoreanTreeItemName);
 
   return (
     <ResponsiveLine
@@ -58,6 +69,12 @@ export default function LineChart() {
               fontSize: 14,
             },
           },
+          legend: {
+            text: {
+              fontFamily: 'Katuri',
+              fontSize: 14,
+            },
+          },
         },
         legends: {
           text: {
@@ -66,7 +83,7 @@ export default function LineChart() {
           },
         },
       }}
-      // 아이템 분류
+      // 차트 범례 (아이템 항목)
       legends={[
         {
           anchor: 'bottom-right',
@@ -74,7 +91,7 @@ export default function LineChart() {
           justify: false,
           translateX: 100,
           translateY: 0,
-          itemsSpacing: 0,
+          itemsSpacing: 4,
           itemDirection: 'left-to-right',
           itemWidth: 80,
           itemHeight: 28,

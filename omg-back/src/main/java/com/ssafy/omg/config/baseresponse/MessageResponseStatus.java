@@ -20,7 +20,10 @@ public enum MessageResponseStatus {
 
     // RepayLoan
     AMOUNT_EXCEED_DEBT(3108, "상환 금액이 총 부채보다 많습니다."),
-    AMOUNT_EXCEED_CASH(3109, "상환 금액이 보유 자산보다 많습니다.");
+    AMOUNT_EXCEED_CASH(3109, "상환 금액이 보유 자산보다 많습니다."),
+
+    // SetLoanLimit
+    REPAYMENT_CAPACITY_LACK(502, "상환 능력 부족으로 대출이 불가능합니다.");
 
     private final int code;
     private final String message;

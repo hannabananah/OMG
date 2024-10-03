@@ -33,8 +33,6 @@ public interface GameService {
     // 전 라운드 경제 이벤트를 현 라운드에 적용
     Game applyEconomicEvent(String roomId) throws BaseException;
 
-    void takeLoan(String roomId, String userNickname, int amount) throws BaseException, MessageException;
-
     // 매입한 금괴 개수를 플레이어 자산 및 금괴 매입 트랙( + 추가개수)에 반영
     void purchaseGold(String roomId, String userNickname, int goldButCount) throws BaseException, MessageException;
 
@@ -44,7 +42,11 @@ public interface GameService {
     // 주가 변동
     void changeStockPrice(Game game) throws BaseException;
 
-    void repayLoan(String roomId, String userNickname, int amount) throws BaseException, MessageException;
+    int calculateLoanLimit(String roomId, String sender) throws BaseException, MessageException;
+
+    void takeLoan(String roomId, String userNickname, int amount) throws BaseException, MessageException;
+
+//    void repayLoan(String roomId, String userNickname, int amount) throws BaseException, MessageException;
 
     void sellStock(String roomId, String userNickname, int[] amount) throws BaseException;
 
