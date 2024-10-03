@@ -71,7 +71,7 @@ public class IndividualMessageController {
         StompPayload<Integer> response = null;
         try {
             int loanLimit = gameService.calculateLoanLimit(roomId, userNickname);
-            response = new StompPayload<>("SUCCESS_TAKE_LOAN", roomId, userNickname, loanLimit);
+            response = new StompPayload<>("SUCCESS_CALCULATE_LOANLIMIT", roomId, userNickname, loanLimit);
             messagingTemplate.convertAndSend("/sub/" + roomId + "/game", response);
             return new BaseResponse<>(response);
         } catch (MessageException e) {
