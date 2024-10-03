@@ -1,4 +1,5 @@
 import { Suspense, useContext, useEffect, useMemo, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 
 import Character from '@/components/character/Character';
 import Button from '@/components/common/Button';
@@ -252,6 +253,12 @@ export default function MainMap() {
     repayLoan(repayLoanAmount);
   };
 
+  const navigate = useNavigate();
+
+  const goToMyRoom = () => {
+    navigate('/myroom');
+  };
+
   const openStockMarketModal = () => {
     if (!modals.stockMarket) {
       openModal('stockMarket');
@@ -323,6 +330,8 @@ export default function MainMap() {
           type='mainmap'
           onClick={handleClickRepayLoan}
         />
+        {/* TODO: 삭제해야됨, 임시 내 방 버튼 */}
+        <Button text='임시 내 방 버튼' type='mainmap' onClick={goToMyRoom} />
         {/* TODO: 삭제해야됨, 임시 주식 시장 버튼 */}
         <Button
           text='임시 주식 시장 버튼'
