@@ -1,7 +1,7 @@
 import { IoMdArrowDropdown, IoMdArrowDropup } from 'react-icons/io';
 import { IoRemoveOutline } from 'react-icons/io5';
 
-import { itemNameList } from '@/assets/data/stockPriceData';
+import { itemNameList } from '@/assets/data/stockMarketData';
 import { chartData, getStockPriceData } from '@/hooks/useStock';
 import { useStockStore } from '@/stores/useStockStore';
 import { StockMarketView } from '@/types';

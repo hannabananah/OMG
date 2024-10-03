@@ -1,4 +1,4 @@
-import { itemNameList } from '@/assets/data/stockPriceData';
+import { itemNameList } from '@/assets/data/stockMarketData';
 import {
   getPossessionData,
   getTreeItemImagePath,

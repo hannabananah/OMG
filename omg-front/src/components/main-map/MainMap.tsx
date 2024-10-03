@@ -23,6 +23,7 @@ import { Physics } from '@react-three/rapier';
 import IntroCamera from '../camera/IntroCamera';
 import ChatButton from '../common/ChatButton';
 import GoldMarket from '../gold-market/GoldMarket';
+import MyRoom from '../my-room/MyRoom';
 
 export const Controls = {
   forward: 'forward',
@@ -240,6 +241,12 @@ export default function MainMap() {
     repayLoan(repayLoanAmount);
   };
 
+  const openMyRoomModal = () => {
+    if (!modals.myRoom) {
+      openModal('myRoom');
+    }
+  };
+
   const openStockMarketModal = () => {
     if (!modals.stockMarket) {
       openModal('stockMarket');
@@ -254,6 +261,9 @@ export default function MainMap() {
 
   return (
     <main className='relative w-full h-screen overflow-hidden'>
+      {/* 내 방 Modal */}
+      {modals.myRoom && <MyRoom />}
+
       {/* 주식 시장 Modal */}
       {modals.stockMarket && <StockMarket />}
 
@@ -310,6 +320,12 @@ export default function MainMap() {
           text='임시 대출상환 버튼'
           type='mainmap'
           onClick={handleClickRepayLoan}
+        />
+        {/* TODO: 삭제해야됨, 임시 내 방 버튼 */}
+        <Button
+          text='임시 내 방 버튼'
+          type='mainmap'
+          onClick={openMyRoomModal}
         />
         {/* TODO: 삭제해야됨, 임시 주식 시장 버튼 */}
         <Button

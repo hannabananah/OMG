@@ -1,6 +1,6 @@
 import { useContext, useEffect } from 'react';
 
-import { itemNameList } from '@/assets/data/stockPriceData';
+import { itemNameList } from '@/assets/data/stockMarketData';
 import { getTreeItemImagePath } from '@/hooks/useStock';
 import { useGameStore } from '@/stores/useGameStore';
 import { useSocketMessage } from '@/stores/useSocketMessage';
