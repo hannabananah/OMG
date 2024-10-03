@@ -6,6 +6,8 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.util.Arrays;
+
 @Getter
 @Setter
 @Builder
@@ -23,4 +25,11 @@ public class IndividualMessageDto {
 
     private PlayerAction action;            // 플레이어 행위 (주식 매수, 주식 매도, 금괴 매입, 대출, 상환)
     private PlayerStatus state;             // 플레이어 행위 상태 (시작전, 진행중, 완료)
+
+    @Override
+    public String toString() {
+        return "IndividualMessageDto{" +
+                "stock=" + Arrays.toString(stock) +
+                '}';
+    }
 }

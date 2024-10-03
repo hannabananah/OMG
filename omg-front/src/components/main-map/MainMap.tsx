@@ -21,6 +21,7 @@ import { Physics } from '@react-three/rapier';
 
 import IntroCamera from '../camera/IntroCamera';
 import ChatButton from '../common/ChatButton';
+import GoldMarket from '../gold-market/GoldMarket';
 
 export const Controls = {
   forward: 'forward',
@@ -59,15 +60,8 @@ const CharacterInfo = {
 
 export default function MainMap() {
   const { characterType } = useUser();
-  const {
-    socket,
-    online,
-    initGameSetting,
-    allRendered,
-    purchaseGold,
-    takeLoan,
-    repayLoan,
-  } = useContext(SocketContext);
+  const { socket, online, initGameSetting, allRendered, takeLoan, repayLoan } =
+    useContext(SocketContext);
   const { carryingCount, setCarryingCount } = useGameStore();
 
   const { otherUsers } = useOtherUserStore();
@@ -237,19 +231,6 @@ export default function MainMap() {
     alert('게임 미션 모달 띄워주기');
   };
 
-  // TODO: 삭제해야됨
-  const handleClickPurchaseGold = () => {
-    const goldPurchaseCount = Number(
-      prompt('금괴 매입 수량을 입력하세요.').trim(),
-    );
-    if (goldPurchaseCount == 0) {
-      alert('매입 수량을 다시 입력해주세요.');
-      return;
-    }
-
-    purchaseGold(goldPurchaseCount);
-  };
-
   const handleClickTakeLoan = () => {
     const loanAmount = Number(prompt('대출할 액수를 입력하세요.').trim());
     if (loanAmount == 0) {
@@ -277,10 +258,19 @@ export default function MainMap() {
     }
   };
 
+  const openGoldMarketModal = () => {
+    if (!modals.goldMarket) {
+      openModal('goldMarket');
+    }
+  };
+
   return (
     <main className='relative w-full h-screen overflow-hidden'>
       {/* 주식 시장 Modal */}
       {modals.stockMarket && <StockMarket />}
+
+      {/* 금 시장 모달 */}
+      {modals.goldMarket && <GoldMarket />}
 
       {/* 주식 매도 수량 선택(집에서) */}
       <div className='px-10 py-2'>
@@ -321,12 +311,6 @@ export default function MainMap() {
           type='mainmap'
           onClick={openPersonalMissionModal}
         />
-        {/* TODO: 삭제해야됨, 임시 금괴매입 버튼 */}
-        <Button
-          text='임시 금괴매입 버튼'
-          type='mainmap'
-          onClick={handleClickPurchaseGold}
-        />
         {/* TODO: 삭제해야됨, 임시 대출신청 버튼 */}
         <Button
           text='임시 대출신청 버튼'
@@ -344,6 +328,12 @@ export default function MainMap() {
           text='임시 주식 시장 버튼'
           type='mainmap'
           onClick={openStockMarketModal}
+        />
+        {/* TODO: 삭제해야됨, 임시 금 시장 버튼 */}
+        <Button
+          text='임시 금 시장 버튼'
+          type='mainmap'
+          onClick={openGoldMarketModal}
         />
       </section>
 

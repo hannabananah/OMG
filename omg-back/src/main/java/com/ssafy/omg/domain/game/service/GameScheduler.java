@@ -4,6 +4,7 @@ import com.ssafy.omg.config.baseresponse.BaseException;
 import com.ssafy.omg.domain.arena.entity.Arena;
 import com.ssafy.omg.domain.game.dto.GameEventDto;
 import com.ssafy.omg.domain.game.dto.GameNotificationDto;
+import com.ssafy.omg.domain.game.dto.RoundStartNotificationDto;
 import com.ssafy.omg.domain.game.dto.StockFluctuationResponse;
 import com.ssafy.omg.domain.game.dto.StockMarketResponse;
 import com.ssafy.omg.domain.game.dto.TimeNotificationDto;
@@ -91,8 +92,6 @@ public class GameScheduler {
                 break;
             case ROUND_IN_PROGRESS:
                 handleRoundInProgress(game);
-                int time = game.getTime();
-                notifyPlayersTime(game.getGameId(), time);
                 break;
             case STOCK_FLUCTUATION:
                 handleStockFluctuation(game);
@@ -137,7 +136,8 @@ public class GameScheduler {
 
     private void handleRoundStart(Game game) throws BaseException {
         if (game.getTime() == 2) {
-            notifyPlayers(game.getGameId(), ROUND_START, +game.getRound() + "라운드가 시작됩니다!");
+//            notifyPlayers(game.getGameId(), ROUND_START, +game.getRound() + "라운드가 시작됩니다!");
+            notifyRoundStart(game.getGameId(), ROUND_START, game.getRound() + "라운드가 시작됩니다!", game.getRound());
         } else if (game.getTime() == 0) {
             game.setRoundStatus(APPLY_PREVIOUS_EVENT);
             game.setTime(5);
@@ -157,15 +157,8 @@ public class GameScheduler {
                     return;
                 }
 
-                gameService.applyEconomicEvent(game.getGameId());
-                System.out.println("-------------------");
-                if (gameEvent != null) {
-                    System.out.println(gameEvent.getTitle());
-                } else {
-                    System.out.println("null입니다");
-                }
-                System.out.println("-------------------");
                 log.debug("이전 라운드의 경제 이벤트가 현재 경제 시장에 반영됩니다!!");
+                gameService.applyEconomicEvent(game.getGameId());
 
                 GameEventDto eventDto = new GameEventDto(
                         APPLY_PREVIOUS_EVENT,
@@ -199,8 +192,6 @@ public class GameScheduler {
         if (game.getTime() == 4) {
             try {
                 GameEvent gameEvent = gameService.createGameEventNews(game.getGameId());
-                System.out.println("출력되면 이까진 정상 " + gameEvent.getTitle());
-                System.out.println(redisTemplate.opsForValue().get("room" + game.getGameId()).getGame().getCurrentEvent().getTitle());
                 log.debug("새로운 경제 이벤트 발생: {}", gameEvent != null ? gameEvent.getTitle() : "null");
 //                notifyPlayers(game.getGameId(), ECONOMIC_EVENT, "경제 이벤트가 발생했습니다!");
 
@@ -223,8 +214,8 @@ public class GameScheduler {
                             eventDto
                     );
 
-                    messagingTemplate.convertAndSend("/sub/" + game.getGameId() + "/game", payload);
                     log.debug("경제 이벤트 발생! : {}", gameEvent.getTitle());
+                    messagingTemplate.convertAndSend("/sub/" + game.getGameId() + "/game", payload);
                 }
             } catch (BaseException e) {
                 log.error("경제 이벤트 생성 중 에러 발생: {}", e.getMessage());
@@ -241,6 +232,7 @@ public class GameScheduler {
 
     private void handleRoundInProgress(Game game) throws BaseException {
         int currentTime = game.getTime();
+        notifyPlayersTime(game.getGameId(), currentTime);
         if (currentTime == 30 || currentTime == 10) {
             notifyPlayers(game.getGameId(), ROUND_IN_PROGRESS, currentTime + " 초 남았습니다!");
         } else if (game.getTime() == 0) {
@@ -327,6 +319,17 @@ public class GameScheduler {
             player.setAction(null);
             player.setState(null);
         });
+    }
+
+    private void notifyRoundStart(String gameId, RoundStatus roundStatus, String message, int currentRound) {
+        RoundStartNotificationDto roundStartNotificationDto = RoundStartNotificationDto.builder()
+                .roundStatus(roundStatus)
+                .message(message)
+                .round(currentRound)
+                .build();
+
+        StompPayload<RoundStartNotificationDto> payload = new StompPayload<>("GAME_NOTIFICATION", gameId, "GAME_MANAGER", roundStartNotificationDto);
+        messagingTemplate.convertAndSend("/sub/" + gameId + "/game", payload);
     }
 
     private void notifyPlayers(String gameId, RoundStatus roundStatus, String message) {

@@ -9,7 +9,26 @@ import {
 
 // 1. 주식 차트 (Graph)
 
-// 1) 현재까지의 데이터만 필터링 (가격 0인 지점 이후는 무시)
+// 1) [변환] 백엔드 데이터 => 프론트 차트
+export const chartData = (
+  backendData: number[][],
+  itemNameList: StockItem[],
+): StockDataItem[] => {
+  // 첫 번째 행(무의미한 데이터) 제외하고 1 ~ 5번째 사용
+  return backendData.slice(1, 6).map((itemData, index) => {
+    const data = itemData.map((price, time) => ({
+      x: time,
+      y: price,
+    }));
+
+    return {
+      id: itemNameList[index],
+      data,
+    };
+  });
+};
+
+// 2) 현재까지의 데이터만 필터링 (가격 0인 지점 이후는 무시)
 export const stockDataUntilNow = (
   data: StockDataItem[] | StockDataItemInKorean[],
   currentRound: number,
@@ -28,7 +47,7 @@ export const stockDataUntilNow = (
   }));
 };
 
-// 2) 가장 높은 주가 뽑아내기 (최초 시점에서 최고 가: 8)
+// 3) 가장 높은 주가 뽑아내기 (최초 시점에서 최고 가: 8)
 export const getMaxPrice = (
   data: StockDataItem[] | StockDataItemInKorean[],
 ): number => {
@@ -39,7 +58,7 @@ export const getMaxPrice = (
   }, 8);
 };
 
-// 3) 마지막 시점 주가 & 가격 등락 폭 계산 함수
+// 4) 마지막 시점 주가 & 가격 등락 폭 계산 함수
 export const getStockPriceData = (
   stockChartData: StockDataItem[],
 ): StockPriceDataInfo[] => {
@@ -71,7 +90,7 @@ export const getStockPriceData = (
   return result.reverse();
 };
 
-// 4) 차트 범례를 한글로 표시해주기 위한 mapping 함수
+// 5) 차트 범례를 한글로 표시해주기 위한 mapping 함수
 export const treeItemNameInKorean = (id: StockItem): StockItemInKorean => {
   const translations: Record<StockItem, StockItemInKorean> = {
     candy: '사탕',
@@ -88,7 +107,7 @@ export const treeItemNameInKorean = (id: StockItem): StockItemInKorean => {
 // 1) 각 트리 장식 별 지분 계산 함수
 export const getPossessionData = (
   treeItemPossessionInfo: number[][],
-  treeItemNameList: StockItem[],
+  itemNameList: StockItem[],
   players: string[],
 ): PossessionDataInfo[] => {
   return treeItemPossessionInfo.map((item, index): PossessionDataInfo => {
@@ -97,13 +116,13 @@ export const getPossessionData = (
 
     // 각 플레이어 비율 계산
     const possessionData: PossessionDataInfo = {
-      treeItemName: treeItemNameList[index],
+      treeItemName: itemNameList[index],
     };
 
     // 아무도 해당 주식 갖고 있지 않으면, 회색 영역으로 표시
     if (total === 0) {
       return {
-        treeItemName: treeItemNameList[index], // 트리 장식 이름
+        treeItemName: itemNameList[index], // 트리 장식 이름
         none: 0,
       };
     }

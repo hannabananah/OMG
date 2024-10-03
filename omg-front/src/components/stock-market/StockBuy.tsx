@@ -1,13 +1,10 @@
 import { useContext, useEffect } from 'react';
 
-import {
-  remainTreeItemCount,
-  treeItemNameList,
-  treeItemPrice,
-} from '@/assets/data/stockPriceData';
+import { itemNameList } from '@/assets/data/stockPriceData';
 import { getTreeItemImagePath } from '@/hooks/useStock';
 import { useGameStore } from '@/stores/useGameStore';
 import { useSocketMessage } from '@/stores/useSocketMessage';
+import { useStockStore } from '@/stores/useStockStore';
 import { SocketContext } from '@/utils/SocketContext';
 
 import Button from '../common/Button';
@@ -15,6 +12,7 @@ import PossessionChart from './PossessionChart';
 
 export default function StockBuy() {
   const { buyStock } = useContext(SocketContext);
+  const { stockPrices, leftStocks } = useStockStore();
 
   const { gameData, selectedCount, setSelectedCount } = useGameStore();
   const { buyStockMessage } = useSocketMessage();
@@ -25,7 +23,6 @@ export default function StockBuy() {
   // TODO: 돈 정보 받아와야 함
   const MY_MONEY = 50;
 
-  // 매수
   useEffect(() => {
     if (!buyStockMessage.message) return;
 
@@ -35,12 +32,6 @@ export default function StockBuy() {
   // 총 선택된 수량 계산
   const totalSelectedCount = selectedCount.reduce(
     (acc, count) => acc + count,
-    0,
-  );
-
-  // 총 가격 계산
-  const totalPrice = selectedCount.reduce(
-    (acc, count, idx) => acc + count * treeItemPrice[idx + 1],
     0,
   );
 
@@ -59,7 +50,8 @@ export default function StockBuy() {
     }
 
     // 보유 현금 초과하면 alert
-    if (totalPrice + value * treeItemPrice[idx + 1] > MY_MONEY) {
+    const newTotalPrice = totalPrice + value * stockPrices[idx + 1];
+    if (newTotalPrice > MY_MONEY) {
       alert(`보유한 현금 $${MY_MONEY}을 초과할 수 없습니다.`);
       return;
     }
@@ -67,6 +59,12 @@ export default function StockBuy() {
     updatedCounts[idx + 1] = newCount;
     setSelectedCount(updatedCounts);
   };
+
+  // 총 가격 계산
+  const totalPrice = selectedCount.reduce(
+    (acc, count, idx) => acc + count * stockPrices[idx],
+    0,
+  );
 
   const handleBuying = () => {
     buyStock(selectedCount);
@@ -85,7 +83,7 @@ export default function StockBuy() {
         <div className='flex flex-col w-full h-full gap-10 px-20 py-10'>
           {/* 이미지 & 주가 & 남은 수량 & 수량 선택 */}
           <ul className='flex flex-col gap-8'>
-            {treeItemNameList.map((treeItem, idx) => (
+            {itemNameList.map((treeItem, idx) => (
               <li
                 key={idx}
                 className='flex items-center justify-between text-omg-18'
@@ -98,10 +96,10 @@ export default function StockBuy() {
                   />
                 </div>
                 {/* 주가 */}
-                <p>${treeItemPrice[idx + 1]}</p>
+                <p>${stockPrices[idx + 1]}</p>
                 {/* 남은 수량 */}
                 <p className='text-omg-14'>
-                  남은 수량: {remainTreeItemCount[idx + 1]}개
+                  남은 수량: {leftStocks[idx + 1]}개
                 </p>
                 {/* 수량 선택 */}
                 <div className='flex items-center'>
@@ -130,7 +128,7 @@ export default function StockBuy() {
 
           {/* 매수 버튼 */}
           <div className='flex items-center justify-center'>
-            <Button text='매수하기' type='stock-trade' onClick={handleBuying} />
+            <Button text='매수하기' type='trade' onClick={handleBuying} />
           </div>
         </div>
       </section>
