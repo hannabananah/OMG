@@ -1,5 +1,6 @@
 import { Suspense, useContext, useEffect, useMemo, useState } from 'react';
 
+import { CharacterInfo } from '@/assets/data/characterInfo';
 import Character from '@/components/character/Character';
 import Button from '@/components/common/Button';
 import ExitButton from '@/components/common/ExitButton';
@@ -38,25 +39,6 @@ const stockTypes = [
   { name: 'hat', id: 4 },
   { name: 'socks', id: 5 },
 ];
-
-const CharacterInfo = {
-  santa: {
-    url: '/models/santa/santa.gltf',
-    scale: [2.5, 2.5, 2.5],
-  },
-  elf: {
-    url: '/models/elf/elf.gltf',
-    scale: [1, 1, 1],
-  },
-  snowman: {
-    url: '/models/snowman/snowman.gltf',
-    scale: [1, 1, 1],
-  },
-  gingerbread: {
-    url: '/models/gingerbread/gingerbread.gltf',
-    scale: [1, 1, 1],
-  },
-};
 
 export default function MainMap() {
   const { characterType } = useUser();
@@ -172,15 +154,15 @@ export default function MainMap() {
       case 'APPLY_PREVIOUS_EVENT':
         displayDuration = 4000;
         break;
-      case 'ROUND_IN_PROGRESS':
-      case 'PREPARING_NEXT_ROUND':
-        displayDuration = 1000;
-        break;
       default:
         break;
     }
 
-    setIsAlertVisible(true);
+    if (gameRoundMessage.message) {
+      setIsAlertVisible(true);
+    } else {
+      setIsAlertVisible(false);
+    }
 
     const timer = setTimeout(() => {
       setIsAlertVisible(false);
@@ -338,7 +320,7 @@ export default function MainMap() {
       </section>
 
       {/* TODO: 삭제해야됨 */}
-      {isAlertVisible && (
+      {isAlertVisible && gameRoundMessage.message && (
         <div className='absolute z-20 transform -translate-x-1/2 top-14 left-1/2 w-[60%]'>
           <MainAlert text={gameRoundMessage.message} />
         </div>

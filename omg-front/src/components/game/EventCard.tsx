@@ -9,6 +9,7 @@ const calcX = (y: number, ly: number) =>
 const calcY = (x: number, lx: number) => (x - lx - window.innerWidth / 2) / 20;
 export default function EventCard() {
   const { eventCardMessage } = useSocketMessage();
+  const [eventRoundStatus, setEventRoundStatus] = useState('');
   const [eventCardTitle, setEventCardTitle] = useState('');
   const [eventCardContent, setEventCardContent] = useState('');
   const [eventCardValue, setEventCardValue] = useState(0);
@@ -17,6 +18,7 @@ export default function EventCard() {
   useEffect(() => {
     if (!eventCardMessage.title) return;
 
+    setEventRoundStatus(eventCardMessage.roundStatus);
     setEventCardTitle(eventCardMessage.title);
     setEventCardContent(eventCardMessage.content);
     setEventCardValue(eventCardMessage.value);
@@ -76,12 +78,17 @@ export default function EventCard() {
           <h2 className='basis-1/6 text-omg-30b font-omg-title'>
             {eventCardTitle}
           </h2>
-          <span
-            className={`${isPositive ? 'text-red' : 'text-blue'} text-omg-18`}
-          >
-            {isPositive ? '금리 상승' : '금리 하락'} {eventCardValue}%
-          </span>
+          {eventRoundStatus === 'APPLY_PREVIOUS_EVENT' && (
+            <span
+              className={`${isPositive ? 'text-red' : 'text-blue'} text-omg-18`}
+            >
+              {isPositive ? '금리 상승' : '금리 하락'} {eventCardValue}%
+            </span>
+          )}
           <p className='font-omg-body text-omg-20'>{eventCardContent}</p>
+          <p className='underline font-omg-body text-omg-14'>
+            *해당 뉴스는 다음 라운드의 금리 변동에 영향을 줍니다.
+          </p>
         </div>
       </animated.div>
     </div>
