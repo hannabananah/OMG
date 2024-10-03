@@ -26,6 +26,9 @@ export const useCharacter = ({
   const [movementState, setMovementState] = useState<
     'idle' | 'walking' | 'running'
   >('idle');
+
+  // TODO: 삭제 필요: 빌드에러 해결을 위한 임시 콘솔
+  console.log(movementState);
   const [rotation, setRotation] = useState(0);
   const [isMoving, setIsMoving] = useState(false);
   const clock = useRef(new THREE.Clock());

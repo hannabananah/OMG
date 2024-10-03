@@ -10,7 +10,7 @@ import StockBuy from './StockBuy';
 import StockSell from './StockSell';
 
 export default function StockMarket() {
-  const { modals, closeModal } = useModalStore(); // 모달 상태 및 함수 불러오기
+  const { modals, closeModal } = useModalStore();
   const [currentView, setCurrentView] = useState<StockMarketView>('main');
 
   // 렌더링 할 컴포넌트 결정
