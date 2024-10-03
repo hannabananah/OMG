@@ -127,4 +127,33 @@ public class CommonMessageController {
 //    public void buyStock(@Payload StompPayload<StockRequest> message) throws BaseException, MessageException {
 //        gameService.buyStock(message);
 //    }
+
+//    /**
+//     * 경제 이벤트를 적용하여 주가 및 금리 변동을 처리하는 메서드
+//     *
+//     * @param gameEventPayload
+//     * @throws BaseException
+//     */
+//    @MessageMapping("/game-event")
+//    public void createGameEvent(@Payload StompPayload<String> gameEventPayload) throws BaseException {
+//        String roomId = gameEventPayload.getRoomId();
+//        Arena arena = gameRepository.findArenaByRoomId(roomId).orElseThrow(() -> new BaseException(ARENA_NOT_FOUND));
+//
+//        // 경제 이벤트를 적용하는 서비스 호출
+//        GameEvent appliedEvent = gameService.applyEconomicEvent(roomId);
+//
+//        if (appliedEvent == null) {
+//            log.error("게임 이벤트가 null 입니다. 처리할 수 없습니다.");
+//            return;
+//        }
+//
+//        Arena newArena = gameRepository.findArenaByRoomId(roomId).orElseThrow(() -> new BaseException(ARENA_NOT_FOUND));
+//
+//
+//        // 변경된 게임 상태를 브로드캐스트
+//        StompPayload<Arena> response = new StompPayload<>("ECONOMIC_EVENT_APPLIED", roomId, "GAME_MANAGER", newArena);
+//        messagingTemplate.convertAndSend("/sub/" + roomId + "/game", response);
+//
+//        log.info("경제 이벤트가 성공적으로 적용되었습니다. Room ID: {}", roomId);
+//    }
 }

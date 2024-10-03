@@ -8,8 +8,6 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-import static com.ssafy.omg.config.baseresponse.BaseResponseStatus.INVALID_STOCK_STATE;
-
 @Getter
 @Setter
 @NoArgsConstructor
@@ -27,7 +25,8 @@ public class StockInfo {
 
     public void decreaseState() throws BaseException {
         if (this.state[0] == 12 && this.state[1] == 0) {
-            throw new BaseException(INVALID_STOCK_STATE);
+//            throw new BaseException(INVALID_STOCK_STATE);
+            return;
         } else {
             if (this.state[1] == 0) {
                 this.state[0] += 1;
@@ -39,7 +38,8 @@ public class StockInfo {
 
     public void increaseState() throws BaseException {
         if (this.state[0] == 0 && this.state[1] == 6) {
-            throw new BaseException(INVALID_STOCK_STATE);
+//            throw new BaseException(INVALID_STOCK_STATE);
+            return;
         } else {
             if (this.state[1] == 6) {
                 this.state[0] -= 1;
