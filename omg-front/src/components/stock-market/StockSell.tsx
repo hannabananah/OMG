@@ -18,11 +18,7 @@ export default function StockSell() {
           {/* 집에서 가져온 트리 장식 렌더링 */}
           {/* 매도 버튼 */}
           <div className='flex items-center justify-center'>
-            <Button
-              text='매도하기'
-              type='stock-trade'
-              onClick={handleSelling}
-            />
+            <Button text='매도하기' type='trade' onClick={handleSelling} />
           </div>
         </div>
       </section>

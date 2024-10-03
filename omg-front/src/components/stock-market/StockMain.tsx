@@ -84,12 +84,12 @@ export default function StockMain({ setCurrentView }: StockMainProps) {
           <div className='flex justify-center w-full gap-5'>
             <Button
               text='매수'
-              type='stock-trade'
+              type='trade'
               onClick={renderStockBuyComponent}
             />
             <Button
               text='매도'
-              type='stock-trade'
+              type='trade'
               onClick={renderStockSellComponent}
             />
           </div>

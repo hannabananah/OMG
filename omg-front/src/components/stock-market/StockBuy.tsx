@@ -112,7 +112,7 @@ export default function StockBuy() {
 
           {/* 매수 버튼 */}
           <div className='flex items-center justify-center'>
-            <Button text='매수하기' type='stock-trade' onClick={handleBuying} />
+            <Button text='매수하기' type='trade' onClick={handleBuying} />
           </div>
         </div>
       </section>
