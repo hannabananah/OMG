@@ -37,6 +37,7 @@ interface SocketContextType {
   buyStock: (stocks: number[]) => void;
   sellStock: (stocks: number[]) => void;
   roundTimer: number;
+  presentRound: number;
 }
 
 const defaultContextValue: SocketContextType = {
@@ -64,6 +65,7 @@ const defaultContextValue: SocketContextType = {
   buyStock: () => {},
   sellStock: () => {},
   roundTimer: 120,
+  presentRound: 1,
 };
 
 export const SocketContext =
@@ -99,6 +101,7 @@ export default function SocketProvider({ children }: SocketProviderProps) {
   const [allRendered, setAllRendered] = useState(false);
   const navigate = useNavigate();
   const [roundTimer, setRoundTimer] = useState(120);
+  const [presentRound, setPresentRound] = useState(1);
 
   const roomTopic = `/sub/${roomId}/room`;
   const chatTopic = `/sub/${roomId}/chat`;
@@ -369,6 +372,8 @@ export default function SocketProvider({ children }: SocketProviderProps) {
             } else {
               if (parsedMessage.data.time) {
                 setRoundTimer(parsedMessage.data.time);
+              } else if (parsedMessage.data.round) {
+                setPresentRound(parsedMessage.data.round);
               } else {
                 setGameRoundMessage({
                   roundStatus: parsedMessage.data.roundStatus,
@@ -681,6 +686,7 @@ export default function SocketProvider({ children }: SocketProviderProps) {
       buyStock,
       sellStock,
       roundTimer,
+      presentRound,
     }),
     [
       socket,
@@ -697,6 +703,7 @@ export default function SocketProvider({ children }: SocketProviderProps) {
       buyStock,
       sellStock,
       roundTimer,
+      presentRound,
     ],
   );
 
