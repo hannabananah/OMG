@@ -21,7 +21,7 @@ import { Physics } from '@react-three/rapier';
 
 import IntroCamera from '../camera/IntroCamera';
 import ChatButton from '../common/ChatButton';
-import ChoiceTransaction from '../common/ChoiceTransaction';
+import GoldMarket from '../gold-market/GoldMarket';
 
 export const Controls = {
   forward: 'forward',
@@ -65,7 +65,6 @@ export default function MainMap() {
     online,
     initGameSetting,
     allRendered,
-    purchaseGold,
     takeLoan,
     repayLoan,
     buyStock,
@@ -265,19 +264,6 @@ export default function MainMap() {
     alert('게임 미션 모달 띄워주기');
   };
 
-  // TODO: 삭제해야됨
-  const handleClickPurchaseGold = () => {
-    const goldPurchaseCount = Number(
-      prompt('금괴 매입 수량을 입력하세요.').trim(),
-    );
-    if (goldPurchaseCount == 0) {
-      alert('매입 수량을 다시 입력해주세요.');
-      return;
-    }
-
-    purchaseGold(goldPurchaseCount);
-  };
-
   const handleClickTakeLoan = () => {
     const loanAmount = Number(prompt('대출할 액수를 입력하세요.').trim());
     if (loanAmount == 0) {
@@ -302,6 +288,12 @@ export default function MainMap() {
   const openStockMarketModal = () => {
     if (!modals.stockMarket) {
       openModal('stockMarket');
+    }
+  };
+
+  const openGoldMarketModal = () => {
+    if (!modals.goldMarket) {
+      openModal('goldMarket');
     }
   };
 
@@ -341,6 +333,9 @@ export default function MainMap() {
       {/* 주식 시장 Modal */}
       {modals.stockMarket && <StockMarket />}
 
+      {/* 금 시장 모달 */}
+      {modals.goldMarket && <GoldMarket />}
+
       {/* 주식 매도/매수 수량 선택(집에서/거래소에서) */}
       <div className='px-10 py-2'>
         {stockTypes.map(stock => (
@@ -355,10 +350,10 @@ export default function MainMap() {
       </div>
 
       {/* TODO: 삭제해야됨, 주식 매수 매도 버튼 */}
-      <div className='absolute z-30 flex items-center justify-center w-full h-full gap-56'>
+      {/* <div className='absolute z-30 flex items-center justify-center w-full h-full gap-56'>
         <ChoiceTransaction type='buy-stock' onClick={handleClickBuyStock} />
         <ChoiceTransaction type='sell-stock' onClick={handleClickSellStock} />
-      </div>
+      </div> */}
 
       {/* Round & Timer & Chat 고정 위치 렌더링 */}
       <section className='absolute z-10 flex flex-col items-end gap-4 top-10 right-10'>
@@ -386,12 +381,6 @@ export default function MainMap() {
           type='mainmap'
           onClick={openPersonalMissionModal}
         />
-        {/* TODO: 삭제해야됨, 임시 금괴매입 버튼 */}
-        <Button
-          text='임시 금괴매입 버튼'
-          type='mainmap'
-          onClick={handleClickPurchaseGold}
-        />
         {/* TODO: 삭제해야됨, 임시 대출신청 버튼 */}
         <Button
           text='임시 대출신청 버튼'
@@ -409,6 +398,12 @@ export default function MainMap() {
           text='임시 주식 시장 버튼'
           type='mainmap'
           onClick={openStockMarketModal}
+        />
+        {/* TODO: 삭제해야됨, 임시 금 시장 버튼 */}
+        <Button
+          text='임시 금 시장 버튼'
+          type='mainmap'
+          onClick={openGoldMarketModal}
         />
       </section>
 

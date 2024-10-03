@@ -253,7 +253,7 @@ export default function StockMarket() {
       <div className='absolute -translate-x-1/2 bottom-56 left-1/2'>
         <Button
           text='구매하기'
-          type='stock-trade'
+          type='trade'
           disabled={
             selectedItems.length === 0 || selectedItems.length > maxTradeCount
           }
