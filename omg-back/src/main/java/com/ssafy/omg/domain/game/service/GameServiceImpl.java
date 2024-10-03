@@ -6,13 +6,13 @@ import com.ssafy.omg.domain.arena.entity.Arena;
 import com.ssafy.omg.domain.game.GameRepository;
 import com.ssafy.omg.domain.game.dto.IndividualMessageDto;
 import com.ssafy.omg.domain.game.dto.PlayerMoveRequest;
+import com.ssafy.omg.domain.game.dto.StockMarketResponse;
 import com.ssafy.omg.domain.game.dto.StockRequest;
 import com.ssafy.omg.domain.game.entity.Game;
 import com.ssafy.omg.domain.game.entity.GameEvent;
 import com.ssafy.omg.domain.game.entity.GameStatus;
 import com.ssafy.omg.domain.game.entity.StockInfo;
 import com.ssafy.omg.domain.game.entity.StockState;
-import com.ssafy.omg.domain.game.dto.StockMarketResponse;
 import com.ssafy.omg.domain.game.repository.GameEventRepository;
 import com.ssafy.omg.domain.player.entity.Player;
 import com.ssafy.omg.domain.player.entity.PlayerStatus;
@@ -49,9 +49,6 @@ import static com.ssafy.omg.config.baseresponse.MessageResponseStatus.AMOUNT_EXC
 import static com.ssafy.omg.config.baseresponse.MessageResponseStatus.AMOUNT_OUT_OF_RANGE;
 import static com.ssafy.omg.config.baseresponse.MessageResponseStatus.INSUFFICIENT_CASH;
 import static com.ssafy.omg.config.baseresponse.MessageResponseStatus.LOAN_ALREADY_TAKEN;
-import static com.ssafy.omg.config.baseresponse.MessageResponseStatus.OUT_OF_CASH;
-import static com.ssafy.omg.config.baseresponse.MessageResponseStatus.STOCK_NOT_AVAILABLE;
-import static com.ssafy.omg.domain.game.entity.RoundStatus.ROUND_START;
 import static com.ssafy.omg.config.baseresponse.MessageResponseStatus.OUT_OF_CASH;
 import static com.ssafy.omg.config.baseresponse.MessageResponseStatus.STOCK_NOT_AVAILABLE;
 import static com.ssafy.omg.domain.game.entity.RoundStatus.STOCK_FLUCTUATION;
@@ -134,7 +131,7 @@ public class GameServiceImpl implements GameService {
                 .toList().toArray(new String[0]);
 
         StockInfo[] marketStocks = game.getMarketStocks();
-        int[][]  playerStockShares = new int[6][4];
+        int[][] playerStockShares = new int[6][4];
         int[] leftStocks = new int[6];
         int[] stockPrices = new int[6];
 //        int[] recentStockPriceChanges = new int[6];
@@ -328,21 +325,11 @@ public class GameServiceImpl implements GameService {
         // 현재 발생한(다음 라운드에 반영될) 경제 뉴스를 currentEvent로 설정
         game.setCurrentEvent(gameEvent);
 
-        System.out.println(game.getCurrentEvent());
-        System.out.println("=================================================");
-
         // Arena 객체에 수정된 Game 객체를 다시 설정
         arena.setGame(game);
 
-        System.out.println(arena.getGame().getCurrentEvent().getTitle());
-        System.out.println("=================================================");
-
         // 수정된 Arena를 Redis에 저장
         gameRepository.saveArena(roomId, arena);
-
-        System.out.println("잘 나오는지 체크 레디스에서");
-        System.out.println(redisTemplate.opsForValue().get(ROOM_PREFIX + roomId).getGame().getCurrentEvent().getTitle());
-        System.out.println("-=-=-=-=-=-=-=-=-=-=-");
 
         // 저장 후 즉시 다시 조회하여 확인
         Arena savedArena = gameRepository.findArenaByRoomId(roomId)
@@ -378,9 +365,20 @@ public class GameServiceImpl implements GameService {
             log.warn("현재 이벤트가 null입니다.");
             throw new BaseException(EVENT_NOT_FOUND);
         }
-        System.out.println("=====================적용할 떄=====================");
-        System.out.println(currentEvent.getTitle());
-        System.out.println("=================================================");
+
+        System.out.println("====================================");
+        System.out.println("=========뉴스로 인한 변동값 보기==========");
+
+        System.out.println();
+        System.out.println("원래 금리 : " + game.getCurrentInterestRate());
+        System.out.println();
+        List<Integer> prices = Arrays.stream(game.getMarketStocks())
+                .map(stockInfo -> {
+                    int[] state = stockInfo.getState();
+                    return stockState.getStockStandard()[state[0]][state[1]].getPrice();
+                })
+                .collect(Collectors.toList());
+        System.out.println("원래 주가 : " + prices);
 
         // 금리 및 주가 변동 반영
         // 1. 금리 변동
@@ -393,8 +391,16 @@ public class GameServiceImpl implements GameService {
         }
         game.setCurrentInterestRate(currentInterestRate);
 
+        System.out.println();
+        System.out.println("바뀐 금리 : " + game.getCurrentInterestRate());
+        System.out.println();
+
+
         // 2. 주가 변동
-        StockInfo[] marketStocks = game.getMarketStocks();
+        StockInfo[] marketStocks = Arrays.stream(game.getMarketStocks())
+                .map(si -> new StockInfo(si.getCnt(), Arrays.copyOf(si.getState(), 2)))
+                .toArray(StockInfo[]::new);
+//        StockInfo[] marketStocks = game.getMarketStocks();
         String affectedStockGroup = currentEvent.getAffectedStockGroup();
         int eventValue = currentEvent.getValue();
 
@@ -423,11 +429,29 @@ public class GameServiceImpl implements GameService {
                 throw new BaseException(INVALID_STOCK_GROUP);
         }
 
+        System.out.println();
+        List<Integer> newPrices = Arrays.stream(game.getMarketStocks())
+                .map(stockInfo -> {
+                    int[] state = stockInfo.getState();
+                    return stockState.getStockStandard()[state[0]][state[1]].getPrice();
+                })
+                .collect(Collectors.toList());
+        System.out.println("바뀐 주가 : " + newPrices);
+
+        game.setMarketStocks(marketStocks);
+        arena.setGame(game);
+
+        // 수정된 Arena를 Redis에 저장
+        gameRepository.saveArena(roomId, arena);
+
         GameEvent appliedEvent = currentEvent;
 
         // 현재 이벤트 초기화
 //        game.setCurrentEvent(null);
         gameRepository.saveArena(roomId, arena);
+
+        System.out.println("금리 저장됐나요");
+        System.out.println(redisTemplate.opsForValue().get("room" + roomId).getGame().getCurrentInterestRate());
 
         return appliedEvent;
     }
@@ -1133,7 +1157,7 @@ public class GameServiceImpl implements GameService {
     /**
      * 주식 매수/매도 시 거래 요청한 주식의 검사
      *
-     * @param stocksToSell : 플레이어가 파려고 하는 주식들
+     * @param stocksToSell    : 플레이어가 파려고 하는 주식들
      * @param stockPriceLevel : 주가 수준
      * @throws BaseException : 아래 두 조건을 만족하지 않는 경우
      *                       - 각 숫자가 0 미만인 동시에 거래 주식 개수가 0 초과 거래가능토큰개수(주가수준 기준) 이하
