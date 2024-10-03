@@ -87,7 +87,7 @@ export default function MainMap() {
     sellStockMessage,
     gameRoundMessage,
   } = useSocketMessage();
-  const { roundTimer } = useContext(SocketContext);
+  const { roundTimer, presentRound } = useContext(SocketContext);
 
   const [isVisible, setIsVisible] = useState(false);
   const [isAlertVisible, setIsAlertVisible] = useState(false);
@@ -362,7 +362,7 @@ export default function MainMap() {
 
       {/* Round & Timer & Chat 고정 위치 렌더링 */}
       <section className='absolute z-10 flex flex-col items-end gap-4 top-10 right-10'>
-        {isRoundVisible && <Round presentRound={1} />}
+        {isRoundVisible && <Round presentRound={presentRound} />}
         {isTimerVisible && <Timer time={roundTimer} />}
       </section>
 
