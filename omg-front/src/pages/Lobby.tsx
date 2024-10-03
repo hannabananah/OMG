@@ -70,6 +70,12 @@ export default function Lobby() {
     }
   };
 
+  const handleKeyPress = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter') {
+      handleClickEnterRoom();
+    }
+  };
+
   useEffect(() => {
     roomCodeInputRef.current?.focus();
   }, []);
@@ -104,6 +110,7 @@ export default function Lobby() {
                 placeholder='코드 입력하기'
                 value={roomCode}
                 onChange={handleRoomCodeChange}
+                onKeyDown={handleKeyPress}
                 ref={roomCodeInputRef}
                 className='w-full py-2 pl-10 pr-20 border-4 border-black rounded-40 text-omg-24'
               />
