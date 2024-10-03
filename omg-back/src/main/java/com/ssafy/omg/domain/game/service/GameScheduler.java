@@ -262,12 +262,43 @@ public class GameScheduler {
             game.setTime(3);
             log.debug("상태를 ROUND_END로 변경. 새 시간: {}", game.getTime());
         } else if (game.getTime() == 119 || game.getTime() % 20 == 0) {
-            int remainTime = (game.getTime() == 119) ? 120 : game.getTime();
-            gameService.setStockPriceChangeInfo(game, game.getRound(), remainTime);
-            StockMarketResponse response = gameService.createStockMarketInfo(game);
-            StompPayload<StockMarketResponse> payload = new StompPayload<>("STOCK_MARKET_INFO", game.getGameId(), "GAME_MANAGER", response);
-            messagingTemplate.convertAndSend("/sub/" + game.getGameId() + "/game", payload);
+            updateAndBroadcastMarketInfo(game, "STOCK");
+            updateAndBroadcastMarketInfo(game, "GOLD");
+
+//            int remainTime = (game.getTime() == 119) ? 120 : game.getTime();
+//            gameService.setStockPriceChangeInfo(game, game.getRound(), remainTime);
+//            StockMarketResponse stockMarketResponseresponse = gameService.createStockMarketInfo(game);
+//            GoldMarketInfoResponse goldMarketInfoResponse = gameService.createGoldMarketInfo(game);
+//            StompPayload<StockMarketResponse> stockMarketResponseStompPayload = new StompPayload<>("STOCK_MARKET_INFO", game.getGameId(), "GAME_MANAGER", stockMarketResponseresponse);
+//            StompPayload<GoldMarketInfoResponse> goldMarketResponseStompPayload = new StompPayload<>("GOLD_MARKET_INFO", game.getGameId(), "GAME_MANAGER", goldMarketInfoResponse);
+//            messagingTemplate.convertAndSend("/sub/" + game.getGameId() + "/game", stockMarketResponseStompPayload);
+//            messagingTemplate.convertAndSend("/sub/" + game.getGameId() + "/game", goldMarketResponseStompPayload);
         }
+    }
+
+    public void updateAndBroadcastMarketInfo(Game game, String marketType) throws BaseException {
+        int remainingTime = (game.getTime() == 119) ? 120 : game.getTime();
+        gameService.setStockPriceChangeInfo(game, game.getRound(), remainingTime);
+
+        switch (marketType) {
+            case "STOCK":
+                broadcastMarketInfo(game, "STOCK_MARKET_INFO", gameService.createStockMarketInfo(game));
+                break;
+
+            case "GOLD":
+                broadcastMarketInfo(game, "GOLD_MARKET_INFO", gameService.createGoldMarketInfo(game));
+                break;
+
+            default:
+                throw new BaseException(INVALID_MARKET_INFO);
+        }
+//        broadcastMarketInfo(game, "STOCK_MARKET_INFO", gameService.createStockMarketInfo(game));
+//        broadcastMarketInfo(game, "GOLD_MARKET_INFO", gameService.createGoldMarketInfo(game));
+    }
+
+    private <T> void broadcastMarketInfo(Game game, String type, T marketInfo) {
+        StompPayload<T> payload = new StompPayload<>(type, game.getGameId(), "GAME_MANAGER", marketInfo);
+        messagingTemplate.convertAndSend("/sub/" + game.getGameId() + "/game", payload);
     }
 
     private void handleStockFluctuation(Game game) throws BaseException {

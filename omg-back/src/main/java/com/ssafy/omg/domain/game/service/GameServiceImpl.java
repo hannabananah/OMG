@@ -4,10 +4,7 @@ import com.ssafy.omg.config.baseresponse.BaseException;
 import com.ssafy.omg.config.baseresponse.MessageException;
 import com.ssafy.omg.domain.arena.entity.Arena;
 import com.ssafy.omg.domain.game.GameRepository;
-import com.ssafy.omg.domain.game.dto.IndividualMessageDto;
-import com.ssafy.omg.domain.game.dto.PlayerMoveRequest;
-import com.ssafy.omg.domain.game.dto.StockMarketResponse;
-import com.ssafy.omg.domain.game.dto.StockRequest;
+import com.ssafy.omg.domain.game.dto.*;
 import com.ssafy.omg.domain.game.entity.*;
 import com.ssafy.omg.domain.game.repository.GameEventRepository;
 import com.ssafy.omg.domain.player.entity.Player;
@@ -22,12 +19,9 @@ import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
-import static com.ssafy.omg.config.baseresponse.BaseResponseStatus.PLAYER_NOT_FOUND;
-import static com.ssafy.omg.config.baseresponse.BaseResponseStatus.PLAYER_STATE_ERROR;
-import static com.ssafy.omg.config.baseresponse.BaseResponseStatus.REQUEST_ERROR;
-import static com.ssafy.omg.config.baseresponse.MessageResponseStatus.*;
 import static com.ssafy.omg.config.baseresponse.BaseResponseStatus.*;
 import static com.ssafy.omg.config.baseresponse.MessageResponseStatus.AMOUNT_OUT_OF_RANGE;
+import static com.ssafy.omg.config.baseresponse.MessageResponseStatus.*;
 import static com.ssafy.omg.domain.game.entity.RoundStatus.STOCK_FLUCTUATION;
 import static com.ssafy.omg.domain.game.entity.RoundStatus.TUTORIAL;
 import static com.ssafy.omg.domain.player.entity.PlayerStatus.COMPLETED;
@@ -135,6 +129,34 @@ public class GameServiceImpl implements GameService {
                 .playerStockShares(playerStockShares)
                 .leftStocks(leftStocks)
                 .stockPrices(stockPrices)
+                .build();
+    }
+
+    /**
+     * @param game
+     * @return
+     * @throws BaseException
+     */
+    @Override
+    public GoldMarketInfoResponse createGoldMarketInfo(Game game) throws BaseException {
+        List<Player> players = game.getPlayers();
+        String[] playerNicknames = players.stream()
+                .map(Player::getNickname)
+                .toList().toArray(new String[0]);
+
+        int[] playerGoldCounts = players.stream()
+                .map(Player::getGoldOwned)
+                .mapToInt(Integer::intValue)
+                .toArray();
+
+        int goldPrice = game.getGoldPrice();
+        int goldPriceIncreaseCnt = game.getGoldPriceIncreaseCnt();
+
+        return GoldMarketInfoResponse.builder()
+                .playerNicknames(playerNicknames)
+                .playerGoldCounts(playerGoldCounts)
+                .goldPrice(goldPrice)
+                .goldPriceIncreaseCnt(goldPriceIncreaseCnt)
                 .build();
     }
 
@@ -559,6 +581,7 @@ public class GameServiceImpl implements GameService {
         int totalCost = currentGoldPrice * goldBuyCount;
 
         if (player.getState() == COMPLETED) {
+            log.debug("이미 금괴 매입을 완료한 플레이어입니다!");
             throw new BaseException(PLAYER_STATE_ERROR);
         }
 
@@ -695,7 +718,7 @@ public class GameServiceImpl implements GameService {
         Game game = arena.getGame();
 
         // 1. 현금 자산 대비 DSR 목표 금액 계산
-        double desiredDsr = isRichestPlayer(game, player)? 0.04 : 0.03; // 가장 부유한 플레이어는 DesiredDSR가 40%, 그 외 30%
+        double desiredDsr = isRichestPlayer(game, player) ? 0.04 : 0.03; // 가장 부유한 플레이어는 DesiredDSR가 40%, 그 외 30%
         int maxLoanPayment = (int) (player.getCash() * desiredDsr);
 
         // 2. 기존 부채 상환액 차감
@@ -707,8 +730,8 @@ public class GameServiceImpl implements GameService {
             double interestRate = loanProduct.getInterestRate() / 100.0;
             int loanInterest = loanProduct.getLoanInterest();
             existingDebt +=
-                    (int) (((loanPrincipal * interestRate * Math.pow(1+interestRate, leftRoundCnt))
-                    / Math.pow(1+interestRate, leftRoundCnt) - 1) + loanInterest / leftRoundCnt);
+                    (int) (((loanPrincipal * interestRate * Math.pow(1 + interestRate, leftRoundCnt))
+                            / Math.pow(1 + interestRate, leftRoundCnt) - 1) + loanInterest / leftRoundCnt);
         }
         // 2-2. DSR 목표 금액에서 기존 부채 상환액 차감
         int availableRepaymentCapacity = maxLoanPayment - existingDebt;
@@ -984,11 +1007,9 @@ public class GameServiceImpl implements GameService {
 
                 if (stockCntDiff < -6) {
                     throw new BaseException(INVALID_BLACK_TOKEN);
-                }
-                else if (stockCntDiff < 0) {
+                } else if (stockCntDiff < 0) {
                     marketStocks[i].setStockPriceInRange(stockCntDiff + 13);
-                }
-                else if (stockCntDiff < 7) {
+                } else if (stockCntDiff < 7) {
                     marketStocks[i].setStockPriceInRange(stockCntDiff);
                 }
                 // 토큰 개수이 차이가 6을 초과했다면(최대 12 가능)
@@ -1003,7 +1024,7 @@ public class GameServiceImpl implements GameService {
                 marketStocks[i].addCnt(selectedStockCnts[i]);
 
                 // 5. 주가 상승: 여전히 주식 시장에 주식 토큰이 없는 색깔은 주가를 위쪽으로 한 칸 이동
-                if (marketStocks[i].getCnt() == 0) marketStocks[i].ascendAndDescendState(-1);;
+                if (marketStocks[i].getCnt() == 0) marketStocks[i].ascendAndDescendState(-1);
 
                 // 6. 주가 수준 변동 조건 확인 후, 필요 시 주가 수준 변동
                 int newLevel = stockState.getStockStandard()[marketStocks[i].getState()[0]][marketStocks[i].getState()[1]].getLevel();
@@ -1157,6 +1178,7 @@ public class GameServiceImpl implements GameService {
 
     @Override
     public void setStockPriceChangeInfo(Game game, int round, int remainTime) {
+
         int x_value = ((round - 1) * 120 + (120 - remainTime)) / 20;
 
         StockInfo[] marketStocks = game.getMarketStocks();

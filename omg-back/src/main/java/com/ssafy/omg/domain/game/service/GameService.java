@@ -3,10 +3,7 @@ package com.ssafy.omg.domain.game.service;
 import com.ssafy.omg.config.baseresponse.BaseException;
 import com.ssafy.omg.config.baseresponse.MessageException;
 import com.ssafy.omg.domain.arena.entity.Arena;
-import com.ssafy.omg.domain.game.dto.IndividualMessageDto;
-import com.ssafy.omg.domain.game.dto.PlayerMoveRequest;
-import com.ssafy.omg.domain.game.dto.StockMarketResponse;
-import com.ssafy.omg.domain.game.dto.StockRequest;
+import com.ssafy.omg.domain.game.dto.*;
 import com.ssafy.omg.domain.game.entity.Game;
 import com.ssafy.omg.domain.game.entity.GameEvent;
 import com.ssafy.omg.domain.socket.dto.StompPayload;
@@ -56,5 +53,9 @@ public interface GameService {
 
     void setStockPriceChangeInfo(Game game, int round, int remainTime);
 
+    // 주식 거래소 정보 생성
     StockMarketResponse createStockMarketInfo(Game game);
+
+    // 금괴 매입소 정보 생성
+    GoldMarketInfoResponse createGoldMarketInfo(Game game) throws BaseException;
 }
