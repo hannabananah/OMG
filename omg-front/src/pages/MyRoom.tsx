@@ -20,17 +20,37 @@ export default function MyRoom() {
 
   const MAX_TRADE_COUNT = 5; // 최대 거래 가능 수량
   const STOCK_MARKET_PRICE = [0, 4, 6, 8, 10, 12]; // 현재 주가
-  const MY_STOCK = [0, 0, 1, 2, 0, 3]; // 보유 주식 개수
+  const MY_STOCK = [0, 0, 1, 0, 2, 3]; // 보유 주식 개수
 
-  // 선택된 아이템 개수 저장하는 배열 (5 크기)
-  const [selectedCounts, setSelectedCounts] = useState(Array(5).fill(0));
+  // 선택된 아이템 개수 저장하는 배열 (6 크기, 0번 인덱스는 사용 안 함)
+  const [selectedCounts, setSelectedCounts] = useState(Array(6).fill(0));
 
   const [alertText, setAlertText] =
     useState<string>('판매 할 아이템을 선택해주세요!');
 
-  const goToSellStockItem = () => {
-    const stockItemToSell = [0, ...selectedCounts];
-    console.log('판매 할 수량: ', stockItemToSell);
+  // 보유한 아이템들만 필터링
+  const ownedStockItems = MY_STOCK.slice(1)
+    .map((count, index) => {
+      if (count > 0) {
+        return {
+          itemName: itemNameList[index],
+          count,
+        };
+      }
+      return null;
+    })
+    .filter(Boolean);
+
+  // 가로로 중앙 정렬을 위한 위치 계산
+  const spacing = 1.5; // 아이템 간격
+  const startPosition = -(ownedStockItems.length - 1) * (spacing / 2);
+
+  // 예상 판매 수익 계산 함수
+  const calculateTotalRevenue = () => {
+    return selectedCounts.reduce(
+      (total, count, index) => total + count * STOCK_MARKET_PRICE[index],
+      0,
+    );
   };
 
   const handleCountChange = (itemIndex: number, value: number) => {
@@ -38,7 +58,8 @@ export default function MyRoom() {
     const stockIndex = itemNameList.indexOf(
       ownedStockItems[itemIndex].itemName,
     ); // 필터링된 아이템의 원래 인덱스 찾기
-    const newCount = newCounts[stockIndex] + value;
+
+    const newCount = newCounts[stockIndex + 1] + value;
 
     // 총 선택한 수량 계산
     const totalSelectedCount =
@@ -57,40 +78,19 @@ export default function MyRoom() {
       return;
     }
 
-    newCounts[stockIndex] = Math.max(0, newCount); // 수량이 0보다 작아지지 않도록
+    newCounts[stockIndex + 1] = Math.max(0, newCount); // 수량이 0보다 작아지지 않도록
     setSelectedCounts(newCounts);
 
     // 선택한 아이템과 수량 알림 추가
     const selectedItemName = treeItemNameInKorean(itemNameList[stockIndex]);
     setAlertText(
-      `${selectedItemName}을(를) ${newCounts[stockIndex]}개 선택했습니다.`,
+      `${selectedItemName}을(를) ${newCounts[stockIndex + 1]}개 선택했습니다.`,
     );
   };
 
-  // 예상 판매 수익 계산 함수
-  const calculateTotalRevenue = () => {
-    return selectedCounts.reduce(
-      (total, count, index) => total + count * STOCK_MARKET_PRICE[index + 1],
-      0,
-    );
+  const goToSellStockItem = () => {
+    console.log('판매 할 수량: ', selectedCounts);
   };
-
-  // 보유한 아이템들만 필터링
-  const ownedStockItems = MY_STOCK.slice(1)
-    .map((count, index) => {
-      if (count > 0) {
-        return {
-          itemName: itemNameList[index],
-          count,
-        };
-      }
-      return null;
-    })
-    .filter(Boolean);
-
-  // 가로로 중앙 정렬을 위한 위치 계산
-  const spacing = 1.5; // 아이템 간격
-  const startPosition = -(ownedStockItems.length - 1) * (spacing / 2);
 
   return (
     <main className='relative w-full h-screen bg-center bg-cover bg-skyblue'>
@@ -133,6 +133,7 @@ export default function MyRoom() {
         {ownedStockItems.map((item, itemIndex) => {
           const positionX = startPosition + itemIndex * spacing;
           const stockIndex = itemNameList.indexOf(item.itemName); // 필터링된 아이템의 원래 인덱스 찾기
+
           return (
             <group key={item.itemName}>
               <Item
@@ -153,9 +154,9 @@ export default function MyRoom() {
                       text='-'
                       type='count'
                       onClick={() => handleCountChange(itemIndex, -1)}
-                      disabled={selectedCounts[stockIndex] === 0}
+                      disabled={selectedCounts[stockIndex + 1] === 0}
                     />
-                    <p className='mx-4'>{selectedCounts[stockIndex]}개</p>
+                    <p className='mx-4'>{selectedCounts[stockIndex + 1]}개</p>
                     <Button
                       text='+'
                       type='count'
