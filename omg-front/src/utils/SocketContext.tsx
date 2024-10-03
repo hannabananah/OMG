@@ -79,7 +79,7 @@ interface SocketProviderProps {
 export default function SocketProvider({ children }: SocketProviderProps) {
   const { roomId } = useParams<{ roomId: string }>();
   const { nickname, setCharacterType, setPlayerIndex } = useUser();
-  const base_url = 'ws://j11a206.p.ssafy.io/api/omg';
+  const base_url = 'ws://j11a206.p.ssafy.io/omg';
   const {
     gameMessage,
     setRoomMessage,
