@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from 'react';
 export default function Counter() {
   const [count, setCount] = useState(0);
   const [timeLeft, setTimeLeft] = useState(10);
-  const [opponentCount, setOpponentCount] = useState(50);
+  // const [opponentCount, setOpponentCount] = useState(50);
   const maxClicks = 100;
 
   const inc = () => setCount(count => Math.min(count + 1, maxClicks));
@@ -24,7 +24,7 @@ export default function Counter() {
   }, [timeLeft]);
 
   const myProgress = (count / maxClicks) * 100;
-  const opponentProgress = (opponentCount / maxClicks) * 100;
+  // const opponentProgress = (opponentCount / maxClicks) * 100;
 
   return (
     <div className='flex flex-col items-center justify-center w-full h-screen'>
@@ -55,7 +55,7 @@ export default function Counter() {
         <div className='absolute left-0 w-full h-1 bg-gray-300 top-1/2'></div>
         <div
           className='absolute w-10 h-10 transition-transform duration-300 ease-out transform -translate-y-1/2 bg-red-500 rounded-full top-1/2'
-          style={{ left: `${opponentProgress}%` }}
+          // style={{ left: `${opponentProgress}%` }}
         ></div>
       </div>
     </div>

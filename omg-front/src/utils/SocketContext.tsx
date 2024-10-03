@@ -375,7 +375,13 @@ export default function SocketProvider({ children }: SocketProviderProps) {
             } else {
               if (parsedMessage.data.time) {
                 setRoundTimer(parsedMessage.data.time);
-              } else if (parsedMessage.data.round) {
+              } else {
+                setGameRoundMessage({
+                  roundStatus: parsedMessage.data.roundStatus,
+                  message: parsedMessage.data.message,
+                });
+              }
+              if (parsedMessage.data.round) {
                 setPresentRound(parsedMessage.data.round);
               } else {
                 setGameRoundMessage({

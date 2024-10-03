@@ -1,6 +1,7 @@
 import { Suspense, useContext, useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
+import { CharacterInfo } from '@/assets/data/characterInfo';
 import Character from '@/components/character/Character';
 import Button from '@/components/common/Button';
 import ExitButton from '@/components/common/ExitButton';
@@ -40,30 +41,11 @@ const stockTypes = [
   { name: 'socks', id: 5 },
 ];
 
-const CharacterInfo = {
-  santa: {
-    url: '/models/santa/santa.gltf',
-    scale: [2.5, 2.5, 2.5],
-  },
-  elf: {
-    url: '/models/elf/elf.gltf',
-    scale: [1, 1, 1],
-  },
-  snowman: {
-    url: '/models/snowman/snowman.gltf',
-    scale: [1, 1, 1],
-  },
-  gingerbread: {
-    url: '/models/gingerbread/gingerbread.gltf',
-    scale: [1, 1, 1],
-  },
-};
-
 export default function MainMap() {
   const { characterType } = useUser();
   const { socket, online, initGameSetting, allRendered, takeLoan, repayLoan } =
     useContext(SocketContext);
-  const { carryingCount, setCarryingCount } = useGameStore();
+  const { gameData, carryingCount, setCarryingCount } = useGameStore();
 
   const { otherUsers } = useOtherUserStore();
 
@@ -77,6 +59,7 @@ export default function MainMap() {
     gameRoundMessage,
   } = useSocketMessage();
   const { roundTimer, presentRound } = useContext(SocketContext);
+  const { tradableStockCnt } = gameData || {};
 
   const [isVisible, setIsVisible] = useState(false);
   const [isAlertVisible, setIsAlertVisible] = useState(false);
@@ -173,15 +156,15 @@ export default function MainMap() {
       case 'APPLY_PREVIOUS_EVENT':
         displayDuration = 4000;
         break;
-      case 'ROUND_IN_PROGRESS':
-      case 'PREPARING_NEXT_ROUND':
-        displayDuration = 1000;
-        break;
       default:
         break;
     }
 
-    setIsAlertVisible(true);
+    if (gameRoundMessage.message) {
+      setIsAlertVisible(true);
+    } else {
+      setIsAlertVisible(false);
+    }
 
     const timer = setTimeout(() => {
       setIsAlertVisible(false);
@@ -194,13 +177,18 @@ export default function MainMap() {
   const handleClickStock = (stockId: number) => {
     setCarryingCount((prevData: number[]) => {
       const newCarryingCount = [...prevData];
+
+      if (newCarryingCount[stockId] + 1 > tradableStockCnt) {
+        alert('tradableStockCnt를 초과해서 선택할 수 없습니다.');
+        return prevData;
+      }
+
       if (stockId >= 0 && stockId < newCarryingCount.length) {
         newCarryingCount[stockId] += 1;
       }
       return newCarryingCount;
     });
   };
-
   const characterKeys = Object.keys(CharacterInfo) as Array<
     keyof typeof CharacterInfo
   >;
@@ -347,7 +335,7 @@ export default function MainMap() {
       </section>
 
       {/* TODO: 삭제해야됨 */}
-      {isAlertVisible && (
+      {isAlertVisible && gameRoundMessage.message && (
         <div className='absolute z-20 transform -translate-x-1/2 top-14 left-1/2 w-[60%]'>
           <MainAlert text={gameRoundMessage.message} />
         </div>

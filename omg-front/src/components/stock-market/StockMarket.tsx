@@ -13,7 +13,6 @@ export default function StockMarket() {
   const { modals, closeModal } = useModalStore();
   const [currentView, setCurrentView] = useState<StockMarketView>('main');
 
-  // 렌더링 할 컴포넌트 결정
   const renderComponent = () => {
     switch (currentView) {
       case 'buy':
@@ -25,14 +24,12 @@ export default function StockMarket() {
     }
   };
 
-  // 모달 닫기
   const handleCloseStockMarket = (e: React.MouseEvent<HTMLDivElement>) => {
     if (e.target === e.currentTarget && modals.stockMarket) {
       closeModal('stockMarket');
     }
   };
 
-  // 뒤로 가기 버튼
   const handleBackButton = () => {
     if (currentView === 'main') {
       if (modals.stockMarket) {
@@ -55,7 +52,7 @@ export default function StockMarket() {
             className='absolute flex items-center left-10'
             onClick={handleBackButton}
           >
-            <BackButton />
+            <BackButton onClick={handleBackButton} />
           </div>
           <MarketState />
         </section>
