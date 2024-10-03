@@ -127,14 +127,7 @@ export default function Character({
         movePlayer(positionArray, directionArray, localActionToggle);
       }
     }
-  }, [
-    scene,
-    // characterPosition,
-    rotation,
-    allRendered,
-    isOwnCharacter,
-    localActionToggle,
-  ]);
+  }, [scene, rotation, allRendered, isOwnCharacter, localActionToggle]);
 
   // 트리 장식 배열 데이터 (예시)
   const items: { itemName: StockItem; count: number }[] = useMemo(

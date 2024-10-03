@@ -2,7 +2,7 @@ import type { MarketStock, Player } from '@/types';
 import { create } from 'zustand';
 
 interface ExtendedGameData extends GameData {
-  tradableStockCnt: number;
+  tradableStockCnt?: number | null;
 }
 
 interface GameData {
@@ -40,7 +40,14 @@ interface GameStore {
 export const useGameStore = create<GameStore>(set => ({
   gameData: null,
   carryingData: [0, 0, 0, 0, 0, 0],
-  setGameData: (data: ExtendedGameData) => set({ gameData: data }),
+  setGameData: (data: ExtendedGameData) => {
+    set({
+      gameData: {
+        ...data,
+        tradableStockCnt: data.tradableStockCnt ?? 1,
+      },
+    });
+  },
   setCarryingData: (data: number[] | ((prevData: number[]) => number[])) => {
     if (typeof data === 'function') {
       set(prev => ({ carryingData: data(prev.carryingData) }));

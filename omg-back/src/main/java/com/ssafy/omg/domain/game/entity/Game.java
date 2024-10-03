@@ -2,7 +2,11 @@ package com.ssafy.omg.domain.game.entity;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.ssafy.omg.domain.player.entity.Player;
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 import java.util.List;
 
@@ -36,6 +40,7 @@ public class Game {
     // [게임] 정보
     private int currentInterestRate;              // 금리 -> 계산 시 /100으로 %계산 해줘야함
     private int[] economicEvent;                  // 경제 이벤트 카드 -> 금리 변동 (0: 초기값, 1~20:이벤트)
+    private GameEvent currentEvent;               // 이번 라운드에 발생한 경제 이벤트 뉴스 정보
     private int currentStockPriceLevel;           // 현재 주가 수준
 
     // [게임] 게임판 트랙 정보 & 주머니

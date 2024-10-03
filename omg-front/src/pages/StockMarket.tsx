@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useContext, useState } from 'react';
 
 import BackButton from '@/components/common/BackButton';
 import Button from '@/components/common/Button';
@@ -13,6 +13,7 @@ import MarketState from '@/components/stock-market/MarketState';
 import MyAssets from '@/components/stock-market/MyAssets';
 import StockInfoButton from '@/components/stock-market/StockInfoButton';
 import { StockItem } from '@/types';
+import { SocketContext } from '@/utils/SocketContext';
 import { OrbitControls } from '@react-three/drei';
 import { Canvas } from '@react-three/fiber';
 
@@ -41,6 +42,8 @@ interface BasketRange extends Basket {
  */
 
 export default function StockMarket() {
+  const { roundTimer } = useContext(SocketContext);
+
   const maxTradeCount = 5; // 최대 거래 가능 횟수
   const myMoney = 60; // 총 현금
 
@@ -171,7 +174,7 @@ export default function StockMarket() {
         <MarketState />
         <div className='flex flex-col items-end gap-4'>
           <Round presentRound={1} />
-          <Timer />
+          <Timer time={roundTimer} />
           <div className='text-white text-omg-40b'>
             <StockInfoButton />
           </div>
