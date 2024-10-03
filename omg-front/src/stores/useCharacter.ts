@@ -23,12 +23,10 @@ export const useCharacter = ({
   const { scene, animations } = useGLTF(characterURL);
   const mixer = useRef<THREE.AnimationMixer | null>(null);
   const [action, setAction] = useState<THREE.AnimationAction | null>(null);
-  const [movementState, setMovementState] = useState<
+  const [_movementState, setMovementState] = useState<
     'idle' | 'walking' | 'running'
   >('idle');
 
-  // TODO: 삭제 필요: 빌드에러 해결을 위한 임시 콘솔
-  console.log(movementState);
   const [rotation, setRotation] = useState(0);
   const [isMoving, setIsMoving] = useState(false);
   const clock = useRef(new THREE.Clock());
