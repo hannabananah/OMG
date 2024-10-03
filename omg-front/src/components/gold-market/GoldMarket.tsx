@@ -5,9 +5,8 @@ import BackButton from '../common/BackButton';
 import GoldBuy from './GoldBuy';
 
 export default function GoldMarket() {
-  const { modals, closeModal } = useModalStore(); // 모달 상태 및 함수 불러오기
+  const { modals, closeModal } = useModalStore();
 
-  // 모달 닫기
   const handleCloseGoldMarket = (e: React.MouseEvent<HTMLDivElement>) => {
     if (e.target === e.currentTarget && modals.goldMarket) {
       closeModal('goldMarket');
@@ -29,11 +28,8 @@ export default function GoldMarket() {
       <div className='flex flex-col w-[80%] h-[80%] bg-white bg-opacity-80 rounded-30'>
         {/* 시장 수준 */}
         <section className='relative flex items-center justify-center w-full h-[14%] px-10 py-10 text-black text-omg-40b'>
-          <div
-            className='absolute flex items-center left-10'
-            onClick={handleBackButton}
-          >
-            <BackButton />
+          <div className='absolute flex items-center left-10'>
+            <BackButton onClick={handleBackButton} />
           </div>
           <MarketState />
         </section>

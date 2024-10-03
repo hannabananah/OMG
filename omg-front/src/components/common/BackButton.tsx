@@ -1,15 +1,12 @@
 import { IoMdArrowRoundBack } from 'react-icons/io';
-import { useNavigate } from 'react-router-dom';
 
-export default function BackButton() {
-  const navigate = useNavigate();
+interface BackButtonProps {
+  onClick: () => void;
+}
 
-  const goToMainMap = () => {
-    navigate('/mainmap');
-  };
-
+export default function BackButton({ onClick }: BackButtonProps) {
   return (
-    <button onClick={goToMainMap}>
+    <button onClick={onClick}>
       <IoMdArrowRoundBack />
     </button>
   );
