@@ -16,8 +16,9 @@ export default function Button({ text, type, onClick, disabled }: ButtonProps) {
 
   return (
     <button
-      className={`${buttonStyles[type]} ${disabled ? 'opacity-70' : 'opacity-100'}`}
+      className={`${buttonStyles[type]} ${disabled ? 'text-gray-500 opacity-50 cursor-not-allowed' : 'opacity-100'}`}
       onClick={onClick}
+      disabled={disabled}
     >
       {text}
     </button>

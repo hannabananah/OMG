@@ -32,11 +32,11 @@ export const Controls = {
 };
 
 const stockTypes = [
-  { name: '주식 종류1', id: 1 },
-  { name: '주식 종류2', id: 2 },
-  { name: '주식 종류3', id: 3 },
-  { name: '주식 종류4', id: 4 },
-  { name: '주식 종류5', id: 5 },
+  { name: 'candy', id: 1 },
+  { name: 'cupcake', id: 2 },
+  { name: 'gift', id: 3 },
+  { name: 'hat', id: 4 },
+  { name: 'socks', id: 5 },
 ];
 
 const CharacterInfo = {
@@ -60,18 +60,9 @@ const CharacterInfo = {
 
 export default function MainMap() {
   const { characterType } = useUser();
-  const {
-    socket,
-    online,
-    initGameSetting,
-    allRendered,
-    takeLoan,
-    repayLoan,
-    buyStock,
-    sellStock,
-  } = useContext(SocketContext);
-  const { gameData, carryingData, setCarryingData } = useGameStore();
-  const { tradableStockCnt } = gameData || {};
+  const { socket, online, initGameSetting, allRendered, takeLoan, repayLoan } =
+    useContext(SocketContext);
+  const { carryingCount, setCarryingCount } = useGameStore();
 
   const { otherUsers } = useOtherUserStore();
 
@@ -82,8 +73,6 @@ export default function MainMap() {
     loanMessage,
     repayLoanMessage,
     eventCardMessage,
-    buyStockMessage,
-    sellStockMessage,
     gameRoundMessage,
   } = useSocketMessage();
   const { roundTimer, presentRound } = useContext(SocketContext);
@@ -133,28 +122,6 @@ export default function MainMap() {
     }
   }, [goldPurchaseMessage]);
 
-  // 매수
-  useEffect(() => {
-    if (!buyStockMessage.message) return;
-
-    if (buyStockMessage.isCompleted) {
-      alert(buyStockMessage.message);
-    } else if (!buyStockMessage.isCompleted) {
-      alert(buyStockMessage.message);
-    }
-  }, [buyStockMessage]);
-
-  // 매도
-  useEffect(() => {
-    if (!sellStockMessage.message) return;
-
-    if (sellStockMessage.isCompleted) {
-      alert(sellStockMessage.message);
-    } else if (!sellStockMessage.isCompleted) {
-      alert(sellStockMessage.message);
-    }
-  }, [sellStockMessage]);
-
   useEffect(() => {
     if (!loanMessage.message) return;
 
@@ -183,8 +150,8 @@ export default function MainMap() {
 
   // TODO: 삭제해야됨, 주식 매도 집에서 들고갈때
   useEffect(() => {
-    console.log('carryingData has changed:', carryingData);
-  }, [carryingData]);
+    console.log('carryingCount has changed:', carryingCount);
+  }, [carryingCount]);
 
   // TODO: 삭제해야됨, 라운드 알림 모달
   useEffect(() => {
@@ -224,12 +191,12 @@ export default function MainMap() {
 
   // TODO: 삭제해야됨, 주식 매도 집에서 들고갈때
   const handleClickStock = (stockId: number) => {
-    setCarryingData((prevData: number[]) => {
-      const newCarryingData = [...prevData];
-      if (stockId >= 0 && stockId < newCarryingData.length) {
-        newCarryingData[stockId] += 1;
+    setCarryingCount((prevData: number[]) => {
+      const newCarryingCount = [...prevData];
+      if (stockId >= 0 && stockId < newCarryingCount.length) {
+        newCarryingCount[stockId] += 1;
       }
-      return newCarryingData;
+      return newCarryingCount;
     });
   };
 
@@ -297,37 +264,6 @@ export default function MainMap() {
     }
   };
 
-  // 주식 매수
-  const handleClickBuyStock = () => {
-    const totalCarryingStock = carryingData.reduce(
-      (sum, count) => sum + count,
-      0,
-    );
-
-    if (totalCarryingStock > tradableStockCnt) {
-      alert(`${tradableStockCnt}개 이상의 주식을 살 수 없습니다.`);
-      return;
-    }
-
-    buyStock(carryingData);
-    setCarryingData([0, 0, 0, 0, 0, 0]);
-  };
-
-  // 주식 매도
-  const handleClickSellStock = () => {
-    const totalCarryingStock = carryingData.reduce(
-      (sum, count) => sum + count,
-      0,
-    );
-
-    if (totalCarryingStock > tradableStockCnt) {
-      alert(`${tradableStockCnt}개 이상의 주식을 선택할 수 없습니다.`);
-      return;
-    }
-
-    sellStock(carryingData);
-    setCarryingData([0, 0, 0, 0, 0, 0]);
-  };
   return (
     <main className='relative w-full h-screen overflow-hidden'>
       {/* 주식 시장 Modal */}
@@ -336,7 +272,7 @@ export default function MainMap() {
       {/* 금 시장 모달 */}
       {modals.goldMarket && <GoldMarket />}
 
-      {/* 주식 매도/매수 수량 선택(집에서/거래소에서) */}
+      {/* 주식 매도 수량 선택(집에서) */}
       <div className='px-10 py-2'>
         {stockTypes.map(stock => (
           <button
@@ -348,12 +284,6 @@ export default function MainMap() {
           </button>
         ))}
       </div>
-
-      {/* TODO: 삭제해야됨, 주식 매수 매도 버튼 */}
-      {/* <div className='absolute z-30 flex items-center justify-center w-full h-full gap-56'>
-        <ChoiceTransaction type='buy-stock' onClick={handleClickBuyStock} />
-        <ChoiceTransaction type='sell-stock' onClick={handleClickSellStock} />
-      </div> */}
 
       {/* Round & Timer & Chat 고정 위치 렌더링 */}
       <section className='absolute z-10 flex flex-col items-end gap-4 top-10 right-10'>

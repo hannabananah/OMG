@@ -1,35 +1,50 @@
-import { useState } from 'react';
+import { useContext, useEffect } from 'react';
 
 import { itemNameList } from '@/assets/data/stockMarketData';
 import { getTreeItemImagePath } from '@/hooks/useStock';
+import { useGameStore } from '@/stores/useGameStore';
+import { useSocketMessage } from '@/stores/useSocketMessage';
 import { useStockStore } from '@/stores/useStockStore';
+import { SocketContext } from '@/utils/SocketContext';
 
 import Button from '../common/Button';
 import PossessionChart from './PossessionChart';
 
 export default function StockBuy() {
-  // 서버로 부터 주식 데이터 받아오기
+  const { buyStock } = useContext(SocketContext);
   const { stockPrices, leftStocks } = useStockStore();
 
-  const MAX_TRADE_COUNT = 5; // 최대 거래 가능 수량
-  const MY_MONEY = 50; // 보유한 현금
+  const { gameData, selectedCount, setSelectedCount } = useGameStore();
+  const { buyStockMessage } = useSocketMessage();
 
-  // 6짜리 count 배열 (1 ~ 5번 인덱스 활용)
-  const [selectedCounts, setSelectedCounts] = useState(Array(6).fill(0));
+  const { tradableStockCnt } = gameData || {};
+
+  const MAX_TRADE_COUNT = tradableStockCnt || 1;
+  // TODO: 돈 정보 받아와야 함
+  const MY_MONEY = 50;
+
+  useEffect(() => {
+    if (!buyStockMessage.message) return;
+
+    alert(buyStockMessage.message);
+  }, [buyStockMessage]);
 
   // 총 선택된 수량 계산
-  const totalSelectedCount = selectedCounts.reduce(
+  const totalSelectedCount = selectedCount.reduce(
     (acc, count) => acc + count,
     0,
   );
-  // back에 보낼 6짜리 count 배열 세팅
+
   const handleCountChange = (idx: number, value: number) => {
-    const newCounts = [...selectedCounts];
-    const newCount = newCounts[idx + 1] + value;
+    // 현재 수량 업데이트
+    const updatedCounts = [...selectedCount];
+    const newCount = updatedCounts[idx + 1] + value;
+
+    // 수량이 0보다 작아지지 않도록
+    if (newCount < 0) return;
 
     // 최대 거래 가능 수량 넘으면 alert
-    const newTotalCount = totalSelectedCount + value;
-    if (newTotalCount > MAX_TRADE_COUNT) {
+    if (totalSelectedCount + value > MAX_TRADE_COUNT) {
       alert(`최대 거래 가능 수량은 ${MAX_TRADE_COUNT}개 입니다.`);
       return;
     }
@@ -41,19 +56,19 @@ export default function StockBuy() {
       return;
     }
 
-    newCounts[idx + 1] = Math.max(0, newCount); // 수량이 0보다 작아지지 않도록
-    setSelectedCounts(newCounts);
+    updatedCounts[idx + 1] = newCount;
+    setSelectedCount(updatedCounts);
   };
 
   // 총 가격 계산
-  const totalPrice = selectedCounts.reduce(
+  const totalPrice = selectedCount.reduce(
     (acc, count, idx) => acc + count * stockPrices[idx],
     0,
   );
 
-  // 매수 버튼: 서버로 selectedCounts 전송 !
   const handleBuying = () => {
-    console.log('선택된 수량 배열:', selectedCounts);
+    buyStock(selectedCount);
+    setSelectedCount([0, 0, 0, 0, 0, 0]);
   };
 
   return (
@@ -92,8 +107,9 @@ export default function StockBuy() {
                     text='-'
                     type='count'
                     onClick={() => handleCountChange(idx, -1)}
+                    disabled={selectedCount[idx + 1] === 0}
                   />
-                  <p className='mx-4 text-omg-18'>{selectedCounts[idx + 1]}</p>
+                  <p className='mx-4 text-omg-18'>{selectedCount[idx + 1]}</p>
                   <Button
                     text='+'
                     type='count'

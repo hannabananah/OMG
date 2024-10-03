@@ -661,7 +661,7 @@ export default function SocketProvider({ children }: SocketProviderProps) {
       sender: nickname,
       data: { stocks },
     };
-
+    console.log('매도messagePayload', messagePayload);
     socket.publish({
       destination: '/pub/sell-stock',
       body: JSON.stringify(messagePayload),
