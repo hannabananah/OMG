@@ -10,6 +10,7 @@ import com.ssafy.omg.domain.game.dto.StockMarketResponse;
 import com.ssafy.omg.domain.game.dto.StockRequest;
 import com.ssafy.omg.domain.game.entity.Game;
 import com.ssafy.omg.domain.game.service.GameBroadcastService;
+import com.ssafy.omg.domain.game.service.GameScheduler;
 import com.ssafy.omg.domain.game.service.GameService;
 import com.ssafy.omg.domain.socket.dto.StompPayload;
 import lombok.RequiredArgsConstructor;
@@ -31,6 +32,7 @@ import static com.ssafy.omg.config.baseresponse.MessageResponseStatus.OUT_OF_CAS
 @Description("거래소 내부 로직")
 public class IndividualMessageController {
     private final GameService gameService;
+    private final GameScheduler gameScheduler;
     private final GameBroadcastService gameBroadcastService;
     private final SimpMessageSendingOperations messagingTemplate;
     private final GameRepository gameRepository;
@@ -47,7 +49,9 @@ public class IndividualMessageController {
             IndividualMessageDto individualMessage = gameService.getIndividualMessage(roomId, userNickname);
             response = new StompPayload<>("SUCCESS_PURCHASE_GOLD", roomId, userNickname, individualMessage);
             messagingTemplate.convertAndSend("/sub/" + roomId + "/game", response);
-            sendStockMarketResponse(roomId);
+            Game game = gameRepository.findArenaByRoomId(roomId).get().getGame();
+            gameScheduler.updateAndBroadcastMarketInfo(game, "GOLD");
+//            sendStockMarketResponse(roomId);
             return new BaseResponse<>(response);
         } catch (MessageException e) {
             IndividualMessageDto individualMessage = gameService.getIndividualMessage(roomId, userNickname);
@@ -141,13 +145,12 @@ public class IndividualMessageController {
         StompPayload<IndividualMessageDto> response = null;
         try {
             gameService.sellStock(roomId, userNickname, sellStockAmount);
-            IndividualMessageDto individualMessage = gameService.getIndividualMessage(roomId,userNickname);
+            IndividualMessageDto individualMessage = gameService.getIndividualMessage(roomId, userNickname);
             response = new StompPayload<>("SUCCESS_SELL_STOCK", roomId, userNickname, individualMessage);
             messagingTemplate.convertAndSend("/sub/" + roomId + "/game", response);
             sendStockMarketResponse(roomId);
             return new BaseResponse<>(response);
-        }
-        catch (BaseException e) {
+        } catch (BaseException e) {
             return new BaseResponse<>(e.getStatus());
         }
     }
