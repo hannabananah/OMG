@@ -1,4 +1,5 @@
 import { useContext, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 
 import { itemNameList } from '@/assets/data/stockMarketData';
 import BackButton from '@/components/common/BackButton';
@@ -92,11 +93,19 @@ export default function MyRoom() {
     console.log('판매 할 수량: ', selectedCounts);
   };
 
+  const navigate = useNavigate();
+
+  // 뒤로 가기 버튼
+  const handleBackButtonClick = () => {
+    // navigate로 mainmap으로 이동하되, 페이지 새로고침 없이 이동
+    navigate('/mainmap', { replace: true });
+  };
+
   return (
     <main className='relative w-full h-screen bg-center bg-cover bg-skyblue'>
       {/* Header: 뒤로 가기 & Round-Timer 고정 렌더링 */}
       <section className='absolute top-0 left-0 z-10 flex items-start justify-between w-full px-10 py-10 text-black text-omg-40b'>
-        <BackButton />
+        <BackButton onClick={handleBackButtonClick} />
         <div className='flex flex-col items-end gap-4'>
           <Round presentRound={presentRound} />
           <Timer time={roundTimer} />
