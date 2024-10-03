@@ -44,7 +44,7 @@ export default function MainMap() {
   const { characterType } = useUser();
   const { socket, online, initGameSetting, allRendered, takeLoan, repayLoan } =
     useContext(SocketContext);
-  const { carryingCount, setCarryingCount } = useGameStore();
+  const { gameData, carryingCount, setCarryingCount } = useGameStore();
 
   const { otherUsers } = useOtherUserStore();
 
@@ -58,6 +58,7 @@ export default function MainMap() {
     gameRoundMessage,
   } = useSocketMessage();
   const { roundTimer, presentRound } = useContext(SocketContext);
+  const { tradableStockCnt } = gameData || {};
 
   const [isVisible, setIsVisible] = useState(false);
   const [isAlertVisible, setIsAlertVisible] = useState(false);
@@ -175,13 +176,18 @@ export default function MainMap() {
   const handleClickStock = (stockId: number) => {
     setCarryingCount((prevData: number[]) => {
       const newCarryingCount = [...prevData];
+
+      if (newCarryingCount[stockId] + 1 > tradableStockCnt) {
+        alert('tradableStockCnt를 초과해서 선택할 수 없습니다.');
+        return prevData;
+      }
+
       if (stockId >= 0 && stockId < newCarryingCount.length) {
         newCarryingCount[stockId] += 1;
       }
       return newCarryingCount;
     });
   };
-
   const characterKeys = Object.keys(CharacterInfo) as Array<
     keyof typeof CharacterInfo
   >;
