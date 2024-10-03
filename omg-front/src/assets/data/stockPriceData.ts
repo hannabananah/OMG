@@ -1,4 +1,4 @@
-import { StockDataItem, StockItem } from '@/types';
+import { StockItem } from '@/types';
 
 // 백엔드에서 받은 2차원 데이터를 가정
 export const backendData: number[][] = [
@@ -43,35 +43,8 @@ export const itemNameList: StockItem[] = [
   'socks',
 ];
 
-// [변환] 백엔드 데이터 => 프론트 차트
-export const chartData = (
-  backendData: number[][],
-  itemNameList: StockItem[],
-): StockDataItem[] => {
-  // 첫 번째 행(무의미한 데이터) 제외하고 1 ~ 5번째 사용
-  return backendData.slice(1, 6).map((itemData, index) => {
-    const data = itemData.map((price, time) => ({
-      x: time,
-      y: price,
-    }));
-
-    return {
-      id: itemNameList[index],
-      data,
-    };
-  });
-};
-
 // 지분 처리 위해 각 플레이어 이름 & 트리 장식 이름 구분
 export const players = ['nickname 1', 'nickname 2', 'nickname 3', 'nickname 4'];
-
-export const treeItemNameList: StockItem[] = [
-  'candy',
-  'cupcake',
-  'gift',
-  'hat',
-  'socks',
-];
 
 // 각 주식의 플레이어 별 보유 개수
 export const treeItemPossessionInfo: number[][] = [
