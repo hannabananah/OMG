@@ -7,11 +7,16 @@ import {
   itemNameList,
 } from '@/assets/data/stockPriceData';
 import { getStockPriceData } from '@/hooks/useStock';
+import { StockMarketView } from '@/types';
 
 import Button from '../common/Button';
 import LineChart from './LineChart';
 
-export default function StockMain() {
+interface StockMainProps {
+  setCurrentView: React.Dispatch<React.SetStateAction<StockMarketView>>;
+}
+
+export default function StockMain({ setCurrentView }: StockMainProps) {
   // chartData 받아오기
   const reversedItemNameList = [...itemNameList].reverse();
   const stockData = chartData(backendData, reversedItemNameList);
@@ -19,8 +24,18 @@ export default function StockMain() {
   // 주가와 등락 계산
   const stockPriceData = getStockPriceData(stockData);
 
+  // 매도 컴포넌트 렌더링
+  const renderStockBuyComponent = () => {
+    setCurrentView('buy');
+  };
+
+  // 매수 컴포넌트 렌더링
+  const renderStockSellComponent = () => {
+    setCurrentView('sell');
+  };
+
   return (
-    <section className='flex w-full h-[88%]'>
+    <>
       {/* 주가 차트 */}
       <LineChart stockData={stockData} />
 
@@ -41,7 +56,7 @@ export default function StockMain() {
                   </div>
 
                   {/* 주가 */}
-                  <p className='flex items-center w-24 h-full text-omg-30'>
+                  <p className='flex items-center w-24 h-full text-omg-28'>
                     ${item.price}
                   </p>
 
@@ -67,11 +82,19 @@ export default function StockMain() {
 
           {/* 매수/매도 버튼 */}
           <div className='flex justify-center w-full gap-5'>
-            <Button text='매수' type='stock-trade' />
-            <Button text='매도' type='stock-trade' />
+            <Button
+              text='매수'
+              type='stock-trade'
+              onClick={renderStockBuyComponent}
+            />
+            <Button
+              text='매도'
+              type='stock-trade'
+              onClick={renderStockSellComponent}
+            />
           </div>
         </div>
       </div>
-    </section>
+    </>
   );
 }
