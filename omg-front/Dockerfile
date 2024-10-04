@@ -12,13 +12,15 @@ COPY package-lock.json .
 RUN npm i
 
 # 환경 변수 설정
-# ARG VITE_SERVER_URL
-# ENV VITE_SERVER_URL=${VITE_SERVER_URL}
+ARG VITE_APP_BASE_URL
+ARG VITE_APP_SOCKET_URL
 
-# 소스코드 복사
+# 환경 변수를 설정하여 빌드 시 주입
+ENV VITE_APP_BASE_URL=${VITE_APP_BASE_URL}
+ENV VITE_APP_SOCKET_URL=${VITE_APP_SOCKET_URL}
+
+# 소스 코드 복사
 COPY . /app
-
-# .env => 얘를 그냥 내용을 바꿈
 
 # 소스 코드 빌드
 RUN npm run build
