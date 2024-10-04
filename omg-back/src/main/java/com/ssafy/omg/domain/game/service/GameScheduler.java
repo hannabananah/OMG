@@ -3,8 +3,16 @@ package com.ssafy.omg.domain.game.service;
 import com.ssafy.omg.config.baseresponse.BaseException;
 import com.ssafy.omg.domain.arena.entity.Arena;
 import com.ssafy.omg.domain.game.GameRepository;
-import com.ssafy.omg.domain.game.dto.*;
-import com.ssafy.omg.domain.game.entity.*;
+import com.ssafy.omg.domain.game.dto.GameEventDto;
+import com.ssafy.omg.domain.game.dto.GameNotificationDto;
+import com.ssafy.omg.domain.game.dto.RoundStartNotificationDto;
+import com.ssafy.omg.domain.game.dto.StockFluctuationResponse;
+import com.ssafy.omg.domain.game.dto.TimeNotificationDto;
+import com.ssafy.omg.domain.game.entity.Game;
+import com.ssafy.omg.domain.game.entity.GameEvent;
+import com.ssafy.omg.domain.game.entity.GameStatus;
+import com.ssafy.omg.domain.game.entity.RoundStatus;
+import com.ssafy.omg.domain.game.entity.StockState;
 import com.ssafy.omg.domain.socket.dto.StompPayload;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -20,8 +28,18 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import static com.ssafy.omg.config.baseresponse.BaseResponseStatus.*;
-import static com.ssafy.omg.domain.game.entity.RoundStatus.*;
+import static com.ssafy.omg.config.baseresponse.BaseResponseStatus.ARENA_NOT_FOUND;
+import static com.ssafy.omg.config.baseresponse.BaseResponseStatus.INVALID_MARKET_INFO;
+import static com.ssafy.omg.config.baseresponse.BaseResponseStatus.INVALID_ROUND_STATUS;
+import static com.ssafy.omg.config.baseresponse.BaseResponseStatus.ROUND_STATUS_ERROR;
+import static com.ssafy.omg.domain.game.entity.RoundStatus.APPLY_PREVIOUS_EVENT;
+import static com.ssafy.omg.domain.game.entity.RoundStatus.ECONOMIC_EVENT_NEWS;
+import static com.ssafy.omg.domain.game.entity.RoundStatus.GAME_FINISHED;
+import static com.ssafy.omg.domain.game.entity.RoundStatus.PREPARING_NEXT_ROUND;
+import static com.ssafy.omg.domain.game.entity.RoundStatus.ROUND_END;
+import static com.ssafy.omg.domain.game.entity.RoundStatus.ROUND_IN_PROGRESS;
+import static com.ssafy.omg.domain.game.entity.RoundStatus.ROUND_START;
+import static com.ssafy.omg.domain.game.entity.RoundStatus.STOCK_FLUCTUATION;
 
 @Slf4j
 @Component
@@ -279,6 +297,7 @@ public class GameScheduler {
     public void updateAndBroadcastMarketInfo(Game game, String marketType) throws BaseException {
         int remainingTime = (game.getTime() == 119) ? 120 : game.getTime();
         gameService.setStockPriceChangeInfo(game, game.getRound(), remainingTime);
+        gameService.setGoldPriceChartInfo(game, game.getRound(), remainingTime);
 
         switch (marketType) {
             case "STOCK":
