@@ -74,6 +74,7 @@ public class GameServiceImpl implements GameService {
 
         return IndividualMessageDto.builder()
                 .loanProducts(player.getLoanProducts())
+                .loanPrincipal(player.getRecentLoanPrincipal())
                 .cash(player.getCash())
                 .stock(player.getStock())
                 .goldOwned(player.getGoldOwned())
@@ -791,7 +792,6 @@ public class GameServiceImpl implements GameService {
         validateRequest(roomId, sender);
         int range = calculateLoanLimit(roomId, sender);
 
-        // 대출금을 자산에 반영
         Arena arena = gameRepository.findArenaByRoomId(roomId).orElseThrow(() -> new BaseException(ARENA_NOT_FOUND));
         Player player = findPlayer(arena, sender);
 
@@ -801,6 +801,7 @@ public class GameServiceImpl implements GameService {
         }
 
         player.getLoanProducts().add(new LoanProduct(arena.getGame().getCurrentInterestRate(), amount, 0));
+        player.setRecentLoanPrincipal(amount);
         player.setCash(player.getCash() + amount);
 
         gameRepository.saveArena(roomId, arena);
