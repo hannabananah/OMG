@@ -365,7 +365,7 @@ export default function MainMap() {
               <Character
                 characterURL={selectedCharacter.url}
                 characterScale={selectedCharacter.scale}
-                position={selectedCharacter.position}
+                // position={selectedCharacter.position}
                 isOwnCharacter={true}
               />
 
