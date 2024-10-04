@@ -1133,6 +1133,7 @@ public class GameServiceImpl implements GameService {
         for (int i = 1; i < 6; i++) {
             if (stocksToBuy[i] > 0) {
                 player.getCarryingStocks()[i] += stocksToBuy[i];
+                player.getStock()[i] += stocksToBuy[i];
             }
         }
     }
