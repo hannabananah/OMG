@@ -100,18 +100,28 @@ public class GameBattleService {
         Thread waitingTimer = Thread.ofVirtual().start(() -> {
             try {
                 Thread.sleep(6000);
-                cancelWaitingTimer(roomId, requester, receiver);
-            } catch (InterruptedException e) {
+                updatePlayerStateAndCancelWaitingTimer(roomId, requester, receiver);
+            } catch (InterruptedException | BaseException e) {
                 Thread.currentThread().interrupt();
             }
         });
+
         waitingTimers.put(timerKey, waitingTimer);
     }
 
-    // TODO 플레이어 상태 복구
-    private void cancelWaitingTimer(String roomId, Player requester, Player receiver) {
-        String timerKey = getTimerKey(roomId, requester, receiver);
+    private void updatePlayerStateAndCancelWaitingTimer(String roomId, Player requester, Player receiver) throws BaseException {
+        Arena arena = gameRepository.findArenaByRoomId(roomId).orElseThrow(() -> new BaseException(ARENA_NOT_FOUND));
 
+        List<Player> players = arena.getGame().getPlayers();
+        Player updatedRequester = findPlayerByNickname(players, requester.getNickname());
+        Player updatedReceiver  = findPlayerByNickname(players, requester.getNickname());
+
+        updatedRequester.setBattleState(false);
+        updatedReceiver.setBattleState(false);
+
+        gameRepository.saveArena(roomId, arena);
+
+        String timerKey = getTimerKey(roomId, requester, receiver);
         if(waitingTimers.containsKey(timerKey)) {
             Thread waitingTimer = waitingTimers.get(timerKey);
             waitingTimer.interrupt();
