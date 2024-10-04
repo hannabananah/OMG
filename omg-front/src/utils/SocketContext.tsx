@@ -2,6 +2,7 @@ import { ReactNode, createContext, useEffect, useMemo, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 
 import { useGameStore } from '@/stores/useGameStore';
+import { useGoldStore } from '@/stores/useGoldStore';
 import { useLoanStore } from '@/stores/useLoanStore';
 import { useOtherUserStore } from '@/stores/useOtherUserState';
 import { useSocketMessage } from '@/stores/useSocketMessage';
@@ -97,6 +98,7 @@ export default function SocketProvider({ children }: SocketProviderProps) {
   } = useSocketMessage();
   const { setGameData } = useGameStore();
   const { setStockMarketData } = useStockStore();
+  const { setGoldMarketData } = useGoldStore();
 
   const [socket, setSocket] = useState<Client | null>(null);
   const [online, setOnline] = useState(false);
@@ -290,7 +292,7 @@ export default function SocketProvider({ children }: SocketProviderProps) {
           case 'SUCCESS_PURCHASE_GOLD':
             if (currentUser === nickname) {
               setGoldPurchaseMessage({
-                message: parsedMessage.data.goldOwned,
+                message: `금괴를 성공적으로 구매했습니다! 현재 소유 금괴 수량: ${parsedMessage.data.goldOwned}`,
                 isCompleted: true,
               });
             }
@@ -452,6 +454,11 @@ export default function SocketProvider({ children }: SocketProviderProps) {
           case 'STOCK_MARKET_INFO':
             setStockMarketData(parsedMessage.data);
             console.log('주식 시장 데이터 업데이트', parsedMessage.data);
+            break;
+
+          case 'GOLD_MARKET_INFO':
+            setGoldMarketData(parsedMessage.data);
+            console.log('금괴 시장 데이터 업데이트', parsedMessage.data);
             break;
 
           case 'SUCCESS_CALCULATE_LOANLIMIT':

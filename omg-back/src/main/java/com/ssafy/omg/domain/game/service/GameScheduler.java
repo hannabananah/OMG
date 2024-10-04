@@ -5,6 +5,7 @@ import com.ssafy.omg.domain.arena.entity.Arena;
 import com.ssafy.omg.domain.game.GameRepository;
 import com.ssafy.omg.domain.game.dto.GameEventDto;
 import com.ssafy.omg.domain.game.dto.GameNotificationDto;
+import com.ssafy.omg.domain.game.dto.MainMessageDto;
 import com.ssafy.omg.domain.game.dto.RoundStartNotificationDto;
 import com.ssafy.omg.domain.game.dto.StockFluctuationResponse;
 import com.ssafy.omg.domain.game.dto.TimeNotificationDto;
@@ -202,6 +203,7 @@ public class GameScheduler {
                 );
 
                 messagingTemplate.convertAndSend("/sub/" + game.getGameId() + "/game", payload);
+                notifyMainMessage(game.getGameId(), "GAME_MANAGER");
 
                 // 트랜잭션 체킹용 sout
                 log.debug("경제 이벤트가 반영됨!");
@@ -333,6 +335,8 @@ public class GameScheduler {
             StockFluctuationResponse response = new StockFluctuationResponse(stockState.getStockLevelCards()[game.getCurrentStockPriceLevel()][0]);
             StompPayload<StockFluctuationResponse> payload = new StompPayload<>("STOCK_FLUCTUATION", game.getGameId(), "GAME_MANAGER", response);
             messagingTemplate.convertAndSend("/sub/" + game.getGameId() + "/game", payload);
+
+            notifyMainMessage(game.getGameId(), "GAME_MANAGER");
         } else {
 //            if (game.getPauseTime() > 0) {
 //                game.setPauseTime(game.getPauseTime() - 1);
@@ -404,6 +408,12 @@ public class GameScheduler {
 
         StompPayload<RoundStartNotificationDto> payload = new StompPayload<>("GAME_NOTIFICATION", gameId, "GAME_MANAGER", roundStartNotificationDto);
         messagingTemplate.convertAndSend("/sub/" + gameId + "/game", payload);
+    }
+
+    public void notifyMainMessage(String gameId, String sender) throws BaseException {
+        MainMessageDto mainMessageDto = gameService.getMainMessage(gameId, sender);
+        StompPayload<MainMessageDto> mainMessagePayload = new StompPayload<>("MAIN_MESSAGE_NOTIFICATION", gameId, "GAME_MANAGER", mainMessageDto);
+        messagingTemplate.convertAndSend("/sub/" + gameId + "/game", mainMessagePayload);
     }
 
     private void notifyPlayers(String gameId, RoundStatus roundStatus, String message) {

@@ -149,6 +149,11 @@ public class IndividualMessageController {
             response = new StompPayload<>("SUCCESS_SELL_STOCK", roomId, userNickname, individualMessage);
             messagingTemplate.convertAndSend("/sub/" + roomId + "/game", response);
             sendStockMarketResponse(roomId);
+            try {
+                gameScheduler.notifyMainMessage(roomId, "GAME_MANAGER");
+            } catch (BaseException e) {
+                log.error("Error while notifying main message: " + e.getStatus().getMessage());
+            }
             return new BaseResponse<>(response);
         } catch (BaseException e) {
             return new BaseResponse<>(e.getStatus());
@@ -167,6 +172,7 @@ public class IndividualMessageController {
             response = new StompPayload<>("SUCCESS_BUY_STOCK", roomId, userNickname, individualMessage);
             messagingTemplate.convertAndSend("/sub/" + roomId + "/game", response);
             sendStockMarketResponse(roomId);
+            gameScheduler.notifyMainMessage(roomId, "GAME_MANAGER");
         } catch (MessageException e) {
             IndividualMessageDto individualMessage = gameService.getIndividualMessage(roomId, userNickname);
             response = new StompPayload<>(e.getStatus().name(), roomId, userNickname, individualMessage);

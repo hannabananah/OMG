@@ -52,12 +52,8 @@ export default function MainMap() {
 
   const { modals, openModal } = useModalStore();
 
-  const {
-    goldPurchaseMessage,
-    repayLoanMessage,
-    eventCardMessage,
-    gameRoundMessage,
-  } = useSocketMessage();
+  const { repayLoanMessage, eventCardMessage, gameRoundMessage } =
+    useSocketMessage();
   const { roundTimer, presentRound } = useContext(SocketContext);
   const { tradableStockCnt } = gameData || {};
 
@@ -106,18 +102,6 @@ export default function MainMap() {
       return () => clearTimeout(timer);
     }
   }, [gameRoundMessage]);
-
-  useEffect(() => {
-    if (!goldPurchaseMessage.message) return;
-
-    if (goldPurchaseMessage.isCompleted) {
-      alert(
-        `금괴를 성공적으로 구매했습니다! 현재 소유 금괴 수량: ${goldPurchaseMessage.message}`,
-      );
-    } else if (!goldPurchaseMessage.isCompleted) {
-      alert(goldPurchaseMessage.message);
-    }
-  }, [goldPurchaseMessage]);
 
   useEffect(() => {
     if (repayLoanMessage.message === null) return;

@@ -57,4 +57,9 @@ public class StockState {
     private final int[][] stockLevelCards = {
             {1, 5}, {1, 6}, {2, 6}, {2, 7}, {3, 7}, {3, 8}, {4, 9}, {4, 10}, {5, 11}, {5, 12}
     };
+
+    public int getTradableCount(int currentStockPriceLevel) {
+        int currentStockLevelCard[] = stockLevelCards[currentStockPriceLevel];
+        return currentStockLevelCard[0];
+    }
 }
