@@ -179,7 +179,7 @@ export default function MainMap() {
       const newCarryingCount = [...prevData];
 
       if (newCarryingCount[stockId] + 1 > tradableStockCnt) {
-        alert('tradableStockCnt를 초과해서 선택할 수 없습니다.');
+        alert(`${tradableStockCnt}를 초과해서 선택할 수 없습니다.`);
         return prevData;
       }
 
