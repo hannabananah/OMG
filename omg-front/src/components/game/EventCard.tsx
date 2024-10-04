@@ -86,9 +86,11 @@ export default function EventCard() {
             </span>
           )}
           <p className='font-omg-body text-omg-20'>{eventCardContent}</p>
-          <p className='underline font-omg-body text-omg-14'>
-            *해당 뉴스는 다음 라운드의 금리 변동에 영향을 줍니다.
-          </p>
+          {eventRoundStatus === 'ECONOMIC_EVENT_NEWS' && (
+            <p className='underline font-omg-body text-omg-14'>
+              *해당 뉴스는 다음 라운드의 금리 변동에 영향을 줍니다.
+            </p>
+          )}
         </div>
       </animated.div>
     </div>

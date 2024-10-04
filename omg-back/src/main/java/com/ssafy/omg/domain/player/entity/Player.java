@@ -28,11 +28,8 @@ public class Player {
     private int carryingGolds;
 
     // 거래소 관련
-//    private int hasLoan;               // 대출 유무
-//    private int loanPrincipal;         // 대출원금
-//    private int loanInterest;          // 이자
-//    private int totalDebt;             // 갚아야 할 금액
     private TreeSet<LoanProduct> loanProducts = new TreeSet<>();
+    private int recentLoanPrincipal;
     private int cash;                  // 현금
     private int[] stock = new int[6];  // 보유 주식 개수
     private int goldOwned;             // 보유 금괴 개수
@@ -44,11 +41,6 @@ public class Player {
     public void addCash(int amount) {
         this.cash += amount;
     }
-
-//    public void repayLoan(int amount) {
-//        this.totalDebt -= amount;
-//        this.cash -= amount;
-//    }
 
     public boolean sendActionToggle() {
         if(this.actionToggle) {
