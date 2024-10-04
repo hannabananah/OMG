@@ -143,7 +143,8 @@ public class GameServiceImpl implements GameService {
 
         return IndividualMessageDto.builder()
                 .loanProducts(player.getLoanProducts())
-                .loanPrincipal(player.getRecentLoanPrincipal())
+                .totalDebt(player.getTotalDebt())
+                .loanLimit(0)
                 .cash(player.getCash())
                 .stock(player.getStock())
                 .goldOwned(player.getGoldOwned())
@@ -821,7 +822,7 @@ public class GameServiceImpl implements GameService {
 
         // 3. 대출 한도 산정
         double marketInterestRate = game.getCurrentInterestRate() / 100.0;
-        int loanLimit = (int) (availableRepaymentCapacity / marketInterestRate);
+        int loanLimit = (int) (((game.getCurrentStockPriceLevel() + 1) * availableRepaymentCapacity / 10.0 * 7) / marketInterestRate);
 
         // 4. 금괴, 주식 가치 대출 한도에 반영
         loanLimit += (int) (player.getGoldOwned() * game.getGoldPrice() * 0.7);
@@ -891,7 +892,7 @@ public class GameServiceImpl implements GameService {
         }
 
         player.getLoanProducts().add(new LoanProduct(arena.getGame().getCurrentInterestRate(), amount, 0));
-        player.setRecentLoanPrincipal(amount);
+        player.setTotalDebt(player.getTotalDebt() + amount);
         player.setCash(player.getCash() + amount);
 
         gameRepository.saveArena(roomId, arena);
@@ -910,41 +911,46 @@ public class GameServiceImpl implements GameService {
         validateRequest(roomId, sender);
 
         Arena arena = gameRepository.findArenaByRoomId(roomId).orElseThrow(() -> new BaseException(ARENA_NOT_FOUND));
-        Game game = arena.getGame();
         Player player = findPlayer(arena, sender);
 
         // 상환액이 총 부채보다 많을 경우, MessageException 발생
         TreeSet<LoanProduct> loanProducts = player.getLoanProducts();
-        int totalDebt = loanProducts.stream()
-                .mapToInt(loanProduct -> loanProduct.getLoanPrincipal() + loanProduct.getLoanInterest())
-                .sum();
+        int totalDebt = player.getTotalDebt();
 
-        if (totalDebt > amount || amount <= 0) {
-            throw new MessageException(roomId, sender, INVALID_REPAY_AMOUNT);
+        // 상환액이 총 부채금보다 많을 경우 MessageException 발생
+        if (totalDebt < amount || amount <= 0) {
+            throw new MessageException(roomId, sender, AMOUNT_EXCEED_DEBT);
         }
+
+        // 상환액이 내 현금자산 보다 많을 경우 MessageException 발생
+        if (amount > player.getCash()) {
+            throw new MessageException(roomId, sender, AMOUNT_EXCEED_CASH);
+        }
+
+        // 내 현금 자산에서 amount 빼기
+        player.setCash(player.getCash() - amount);
+
+        // totalDebt에서 amount 빼기
+        player.setTotalDebt(totalDebt - amount);
 
         // LoanProducts 돌면서 '이자 -> 대출원금' 상환
         for (LoanProduct loanProduct : loanProducts) {
-            // 이자 == 0 && 대출원금 == 0일 경우, loanProducts에서 삭제
-            // 상환 금액이 0이 되면 break
 
             // 이자 상환
             if (loanProduct.getLoanInterest() <= amount) {
-                loanProduct.setLoanInterest(0);
                 amount -= loanProduct.getLoanInterest();
+                loanProduct.setLoanInterest(0);
             } else {
                 loanProduct.setLoanInterest(loanProduct.getLoanInterest() - amount);
-                amount = 0;
                 break;
             }
 
             // 대출 원금 상환
             if (loanProduct.getLoanPrincipal() <= amount) {
-                loanProduct.setLoanPrincipal(0);
                 amount -= loanProduct.getLoanPrincipal();
+                loanProducts.remove(loanProduct);
             } else {
                 loanProduct.setLoanPrincipal(loanProduct.getLoanPrincipal() - amount);
-                amount = 0;
                 break;
             }
 
@@ -952,9 +958,24 @@ public class GameServiceImpl implements GameService {
                 break;
             }
         }
+
         gameRepository.saveArena(roomId, arena);
     }
 
+    @Override
+    public void addInterestToTotalDebtAndLoanProducts(Game game) {
+        List<Player> players = game.getPlayers();
+
+        for (Player player : players) {
+            int totalInterest = 0;
+            for (LoanProduct loanProduct : player.getLoanProducts()) {
+                int interest = (int) (loanProduct.getLoanPrincipal() * loanProduct.getInterestRate()/100.0);
+                totalInterest += interest;
+                loanProduct.setLoanInterest(loanProduct.getLoanInterest() + interest);
+            }
+            player.setTotalDebt(player.getTotalDebt() + totalInterest);
+        }
+    }
 
     // 주식 매도
     @Override
