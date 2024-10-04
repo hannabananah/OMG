@@ -11,6 +11,7 @@ import SpeechBubble from '@/components/common/SpeechBubble';
 import Timer from '@/components/common/Timer';
 import Item from '@/components/stock-market/Item';
 import { treeItemNameInKorean } from '@/hooks/useStock';
+import { useGameStore } from '@/stores/useGameStore';
 import useModalStore from '@/stores/useModalStore';
 import { SocketContext } from '@/utils/SocketContext';
 import { Html, OrbitControls } from '@react-three/drei';
@@ -19,8 +20,11 @@ import { Canvas } from '@react-three/fiber';
 export default function MyRoom() {
   const { modals, closeModal } = useModalStore();
   const { roundTimer, presentRound } = useContext(SocketContext);
+  const { gameData } = useGameStore();
 
-  const MAX_TRADE_COUNT = 5; // 최대 거래 가능 수량
+  const { tradableStockCnt } = gameData || {};
+
+  const MAX_TRADE_COUNT = tradableStockCnt; // 최대 거래 가능 수량
   const STOCK_MARKET_PRICE = [0, 4, 6, 8, 10, 12]; // 현재 주가
   const MY_STOCK = [0, 0, 1, 0, 2, 3]; // 보유 주식 개수
 
