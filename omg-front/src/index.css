@@ -88,4 +88,8 @@ button:disabled {
   .animate-shake {
     animation: shake 0.2s ease-in-out infinite;
   }
+
+  .modal-container {
+    @apply flex flex-col w-[80%] h-[80%] bg-white bg-opacity-80 rounded-[30px];
+  }
 }
