@@ -30,8 +30,8 @@ interface GameData {
 
 interface GameStore {
   gameData: ExtendedGameData | null;
-  carryingCount: number[]; // 기존 carryingCount를 carryingCount로 변경
-  selectedCount: number[]; // 새로운 selectedCount 추가
+  carryingCount: number[];
+  selectedCount: number[];
   setGameData: (data: ExtendedGameData) => void;
   setCarryingCount: (
     data: number[] | ((prevData: number[]) => number[]),

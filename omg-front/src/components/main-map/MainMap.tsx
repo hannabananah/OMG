@@ -89,10 +89,23 @@ export default function MainMap() {
 
     const timer = setTimeout(() => {
       setIsVisible(false);
-      setIsTimerVisible(true);
     }, 5000);
     return () => clearTimeout(timer);
   }, [eventCardMessage]);
+
+  useEffect(() => {
+    if (gameRoundMessage.message === '1' || gameRoundMessage.message === '10') {
+      const timer = setTimeout(() => {
+        setIsTimerVisible(true);
+      }, 5000);
+      return () => clearTimeout(timer);
+    } else {
+      const timer = setTimeout(() => {
+        setIsTimerVisible(true);
+      }, 10000);
+      return () => clearTimeout(timer);
+    }
+  }, [gameRoundMessage]);
 
   useEffect(() => {
     if (!goldPurchaseMessage.message) return;
@@ -142,9 +155,6 @@ export default function MainMap() {
         break;
       case 'GAME_FINISHED':
         setIsRoundVisible(false);
-        break;
-      case 'APPLY_PREVIOUS_EVENT':
-        displayDuration = 4000;
         break;
       default:
         break;
