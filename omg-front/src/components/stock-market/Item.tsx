@@ -6,7 +6,7 @@ import { ThreeEvent } from '@react-three/fiber';
 interface ItemProps {
   itemName: StockItem;
   position: { x: number; y: number; z: number };
-  onClick: (event: ThreeEvent<PointerEvent>) => void;
+  onClick?: (event: ThreeEvent<PointerEvent>) => void;
   disabled: boolean;
 }
 

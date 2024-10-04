@@ -120,14 +120,7 @@ export default function Character({
         movePlayer(positionArray, directionArray, localActionToggle);
       }
     }
-  }, [
-    scene,
-    characterPosition,
-    rotation,
-    allRendered,
-    isOwnCharacter,
-    localActionToggle,
-  ]);
+  }, [scene, rotation, allRendered, isOwnCharacter, localActionToggle]);
 
   const items: { itemName: StockItem; count: number }[] = useMemo(
     () => [

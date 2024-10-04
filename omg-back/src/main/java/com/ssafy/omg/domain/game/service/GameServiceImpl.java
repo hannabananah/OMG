@@ -4,14 +4,8 @@ import com.ssafy.omg.config.baseresponse.BaseException;
 import com.ssafy.omg.config.baseresponse.MessageException;
 import com.ssafy.omg.domain.arena.entity.Arena;
 import com.ssafy.omg.domain.game.GameRepository;
-import com.ssafy.omg.domain.game.dto.IndividualMessageDto;
-import com.ssafy.omg.domain.game.dto.PlayerMoveRequest;
-import com.ssafy.omg.domain.game.dto.StockRequest;
-import com.ssafy.omg.domain.game.entity.Game;
-import com.ssafy.omg.domain.game.entity.GameEvent;
-import com.ssafy.omg.domain.game.entity.GameStatus;
-import com.ssafy.omg.domain.game.entity.StockInfo;
-import com.ssafy.omg.domain.game.entity.StockState;
+import com.ssafy.omg.domain.game.dto.*;
+import com.ssafy.omg.domain.game.entity.*;
 import com.ssafy.omg.domain.game.repository.GameEventRepository;
 import com.ssafy.omg.domain.player.entity.Player;
 import com.ssafy.omg.domain.player.entity.PlayerStatus;
@@ -19,38 +13,17 @@ import com.ssafy.omg.domain.socket.dto.StompPayload;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Random;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
-import static com.ssafy.omg.config.baseresponse.BaseResponseStatus.ARENA_NOT_FOUND;
-import static com.ssafy.omg.config.baseresponse.BaseResponseStatus.EVENT_NOT_FOUND;
-import static com.ssafy.omg.config.baseresponse.BaseResponseStatus.EXCEEDS_DIFF_RANGE;
-import static com.ssafy.omg.config.baseresponse.BaseResponseStatus.IMPOSSIBLE_STOCK_CNT;
-import static com.ssafy.omg.config.baseresponse.BaseResponseStatus.INSUFFICIENT_STOCK;
-import static com.ssafy.omg.config.baseresponse.BaseResponseStatus.INVALID_BLACK_TOKEN;
-import static com.ssafy.omg.config.baseresponse.BaseResponseStatus.INVALID_ROUND;
-import static com.ssafy.omg.config.baseresponse.BaseResponseStatus.INVALID_SELL_STOCKS;
-import static com.ssafy.omg.config.baseresponse.BaseResponseStatus.INVALID_STOCK_LEVEL;
-import static com.ssafy.omg.config.baseresponse.BaseResponseStatus.PLAYER_NOT_FOUND;
-import static com.ssafy.omg.config.baseresponse.BaseResponseStatus.PLAYER_STATE_ERROR;
-import static com.ssafy.omg.config.baseresponse.BaseResponseStatus.REQUEST_ERROR;
-import static com.ssafy.omg.config.baseresponse.MessageResponseStatus.AMOUNT_EXCEED_CASH;
-import static com.ssafy.omg.config.baseresponse.MessageResponseStatus.AMOUNT_EXCEED_DEBT;
+import static com.ssafy.omg.config.baseresponse.BaseResponseStatus.*;
 import static com.ssafy.omg.config.baseresponse.MessageResponseStatus.AMOUNT_OUT_OF_RANGE;
-import static com.ssafy.omg.config.baseresponse.MessageResponseStatus.INSUFFICIENT_CASH;
-import static com.ssafy.omg.config.baseresponse.MessageResponseStatus.LOAN_ALREADY_TAKEN;
-import static com.ssafy.omg.config.baseresponse.MessageResponseStatus.OUT_OF_CASH;
-import static com.ssafy.omg.config.baseresponse.MessageResponseStatus.STOCK_NOT_AVAILABLE;
-import static com.ssafy.omg.domain.game.entity.RoundStatus.ROUND_START;
+import static com.ssafy.omg.config.baseresponse.MessageResponseStatus.*;
 import static com.ssafy.omg.domain.game.entity.RoundStatus.STOCK_FLUCTUATION;
+import static com.ssafy.omg.domain.game.entity.RoundStatus.TUTORIAL;
 import static com.ssafy.omg.domain.player.entity.PlayerStatus.COMPLETED;
 import static com.ssafy.omg.domain.player.entity.PlayerStatus.NOT_STARTED;
 import static org.hibernate.query.sqm.tree.SqmNode.log;
@@ -101,10 +74,10 @@ public class GameServiceImpl implements GameService {
         Player player = findPlayer(arena, sender);
 
         return IndividualMessageDto.builder()
-                .hasLoan(player.getHasLoan())
-                .loanPrincipal(player.getLoanPrincipal())
-                .loanInterest(player.getLoanInterest())
-                .totalDebt(player.getTotalDebt())
+//                .hasLoan(player.getHasLoan())
+//                .loanPrincipal(player.getLoanPrincipal())
+//                .loanInterest(player.getLoanInterest())
+//                .totalDebt(player.getTotalDebt())
                 .cash(player.getCash())
                 .stock(player.getStock())
                 .goldOwned(player.getGoldOwned())
@@ -112,6 +85,78 @@ public class GameServiceImpl implements GameService {
                 .carryingGolds(player.getCarryingGolds())
                 .action(player.getAction())
                 .state(player.getState())
+                .build();
+    }
+
+    /**
+     * 주식 거래소 정보 생성
+     *
+     * @param game
+     * @return StockMarketInfo
+     */
+    @Override
+    public StockMarketResponse createStockMarketInfo(Game game) {
+        List<Player> players = game.getPlayers();
+        String[] playerNicknames = players.stream()
+                .map(Player::getNickname)
+                .toList().toArray(new String[0]);
+
+        StockInfo[] marketStocks = game.getMarketStocks();
+        int[][] playerStockShares = new int[6][4];
+        int[] leftStocks = new int[6];
+        int[] stockPrices = new int[6];
+//        int[] recentStockPriceChanges = new int[6];
+
+        for (int i = 1; i < 6; i++) {
+            // 플레이어 별 보유 주식 개수 (r: 주식 종류 , c: 플레이어 , value: 주식 개수)
+            for (int j = 0; j < 4; j++) {
+                playerStockShares[i][j] = players.get(j).getStock()[i];
+            }
+
+            // 주식 별 남은 주식 개수
+            leftStocks[i] = marketStocks[i].getCnt();
+
+            // 주가
+            stockPrices[i] = getStockPrice(marketStocks, i);
+
+            // 최근 거래 변동값
+//            recentStockPriceChanges[i] = marketStocks[i].getRecentTransaction();
+        }
+
+        return StockMarketResponse.builder()
+                .stockPriceChangeInfo(game.getStockPriceChangeInfo())
+                .playerNicknames(playerNicknames)
+                .playerStockShares(playerStockShares)
+                .leftStocks(leftStocks)
+                .stockPrices(stockPrices)
+                .build();
+    }
+
+    /**
+     * @param game
+     * @return
+     * @throws BaseException
+     */
+    @Override
+    public GoldMarketInfoResponse createGoldMarketInfo(Game game) throws BaseException {
+        List<Player> players = game.getPlayers();
+        String[] playerNicknames = players.stream()
+                .map(Player::getNickname)
+                .toList().toArray(new String[0]);
+
+        int[] playerGoldCounts = players.stream()
+                .map(Player::getGoldOwned)
+                .mapToInt(Integer::intValue)
+                .toArray();
+
+        int goldPrice = game.getGoldPrice();
+        int goldPriceIncreaseCnt = game.getGoldPriceIncreaseCnt();
+
+        return GoldMarketInfoResponse.builder()
+                .playerNicknames(playerNicknames)
+                .playerGoldCounts(playerGoldCounts)
+                .goldPrice(goldPrice)
+                .goldPriceIncreaseCnt(goldPriceIncreaseCnt)
                 .build();
     }
 
@@ -176,10 +221,11 @@ public class GameServiceImpl implements GameService {
                         .carryingStocks(new int[]{0, 0, 0, 0, 0, 0})
                         .carryingGolds(0)
 
-                        .hasLoan(0)                       // 대출 유무
-                        .loanPrincipal(0)                 // 대출원금
-                        .loanInterest(0)                  // 이자
-                        .totalDebt(0)                     // 갚아야 할 금액
+//                        .hasLoan(0)                       // 대출 유무
+//                        .loanPrincipal(0)                 // 대출원금
+//                        .loanInterest(0)                  // 이자
+//                        .totalDebt(0)                     // 갚아야 할 금액
+                        .loanProducts(new TreeSet<LoanProduct>())
                         .cash(100)                        // 현금
                         .stock(randomStock)               // 보유 주식 개수
                         .goldOwned(0)                     // 보유 금괴 개수
@@ -201,10 +247,11 @@ public class GameServiceImpl implements GameService {
 
                     .time(20)
                     .round(1)                                     // 시작 라운드 1
-                    .roundStatus(ROUND_START)
+                    .roundStatus(TUTORIAL)
 
                     .currentInterestRate(5)                       // 예: 초기 금리 5%로 설정
                     .economicEvent(randomEvent)                   // 초기 경제 이벤트 없음
+                    .currentEvent(null)                           // 적용할 경제이벤트 없음
                     .currentStockPriceLevel(0)                    // 주가 수준
 
                     .stockTokensPocket(pocket)                    // 주머니 초기화
@@ -231,10 +278,10 @@ public class GameServiceImpl implements GameService {
 
     private StockInfo[] initializeMarket() {
         StockInfo[] market = new StockInfo[6];
-        market[0] = new StockInfo(0, new int[]{0, 0}, 0);
+        market[0] = new StockInfo(0, new int[]{0, 0});
 
         for (int i = 1; i < 6; i++) {
-            market[i] = new StockInfo(8, new int[]{12, 3}, 0);
+            market[i] = new StockInfo(8, new int[]{12, 3});
         }
 
         return market;
@@ -248,19 +295,20 @@ public class GameServiceImpl implements GameService {
      * @throws BaseException
      */
     @Override
-    public GameEvent createGameEventandInterestChange(String roomId) throws BaseException {
-        String roomKey = ROOM_PREFIX + roomId;
-        Arena arena = redisTemplate.opsForValue().get(roomKey);
+    public GameEvent createGameEventNews(String roomId) throws BaseException {
+        Arena arena = gameRepository.findArenaByRoomId(roomId)
+                .orElseThrow(() -> new BaseException(ARENA_NOT_FOUND));
         Game game = arena.getGame();
 
         int currentRound = game.getRound();
-        if (currentRound < 2 || currentRound > 10) {
-            log.info("경제 이벤트는 2라운드 부터 발생합니다.");
-            throw new BaseException(INVALID_ROUND);
+        if (currentRound < 1 || currentRound >= 10) {
+            log.info("경제 뉴스는 1라운드부터 9라운드까지 발생합니다.");
+            throw new BaseException(EVENT_NOT_FOUND);
         }
 
         int[] economicEvent = game.getEconomicEvent();
         if (economicEvent == null) {
+            log.error("경제 이벤트 배열이 null이거나 현재 라운드에 해당하는 이벤트가 없습니다.");
             throw new BaseException(EVENT_NOT_FOUND);
         }
 
@@ -268,20 +316,169 @@ public class GameServiceImpl implements GameService {
         GameEvent gameEvent = gameEventRepository.findById(eventId)
                 .orElseThrow(() -> new BaseException(EVENT_NOT_FOUND));
 
-        // 금리 변동 반영
+        // 현재 발생한(다음 라운드에 반영될) 경제 뉴스를 currentEvent로 설정
+
+        System.out.println("======================발행할 때=====================");
+        System.out.println("적용할 이벤트 : " + gameEvent.getTitle());
+        System.out.println("=================================================");
+
+        // 현재 발생한(다음 라운드에 반영될) 경제 뉴스를 currentEvent로 설정
+        game.setCurrentEvent(gameEvent);
+
+        // Arena 객체에 수정된 Game 객체를 다시 설정
+        arena.setGame(game);
+
+        // 수정된 Arena를 Redis에 저장
+        gameRepository.saveArena(roomId, arena);
+
+        // 저장 후 즉시 다시 조회하여 확인
+        Arena savedArena = gameRepository.findArenaByRoomId(roomId)
+                .orElseThrow(() -> new BaseException(ARENA_NOT_FOUND));
+        GameEvent savedEvent = savedArena.getGame().getCurrentEvent();
+        System.out.println("Saved currentEvent: " + (savedEvent != null ? savedEvent.getTitle() : "null"));
+
+        return game.getCurrentEvent();
+    }
+
+    /**
+     * 전 라운드의 경제 이벤트를 현 라운드에 적용 ( 금리 및 주가 변동 )
+     *
+     * @param roomId
+     * @return appliedEvent
+     * @throws BaseException
+     */
+    @Transactional
+    @Override
+    public Game applyEconomicEvent(String roomId) throws BaseException {
+        Arena arena = gameRepository.findArenaByRoomId(roomId)
+                .orElseThrow(() -> new BaseException(ARENA_NOT_FOUND));
+        Game game = arena.getGame();
+
+        int currentRound = game.getRound();
+        if (currentRound < 2 || currentRound > 10) {
+            log.info("경제 이벤트 적용은 2라운드부터 10라운드까지 발생합니다.");
+            throw new BaseException(INVALID_ROUND);
+        }
+
+        GameEvent currentEvent = game.getCurrentEvent();
+        if (currentEvent == null) {
+            log.warn("현재 이벤트가 null입니다.");
+            throw new BaseException(EVENT_NOT_FOUND);
+        }
+
+        // 현재 상태 로깅
+        logCurrentState(game);
+
+        // 금리 변동 적용
+        applyInterestRateChange(game, currentEvent);
+
+        // 주가 변동 적용
+        applyStockPriceChange(game, currentEvent);
+
+        // 변경된 게임 상태를 Arena에 설정
+        arena.setGame(game);
+
+        // 변경사항 저장
+        gameRepository.saveArena(roomId, arena);
+
+        // 저장 후 상태 확인
+        Arena savedArena = gameRepository.findArenaByRoomId(roomId)
+                .orElseThrow(() -> new BaseException(ARENA_NOT_FOUND));
+        Game savedGame = savedArena.getGame();
+
+        // 최종 상태 로깅
+        logFinalState(savedGame);
+
+        return savedGame;
+    }
+
+    private void logCurrentState(Game game) {
+        log.info("====================================");
+        log.info("=========뉴스로 인한 변동값 보기==========");
+        log.info("원래 금리 : " + game.getCurrentInterestRate());
+        List<Integer> prices = Arrays.stream(game.getMarketStocks())
+                .map(stockInfo -> {
+                    int[] state = stockInfo.getState();
+                    return stockState.getStockStandard()[state[0]][state[1]].getPrice();
+                })
+                .collect(Collectors.toList());
+        log.info("원래 주가 : " + prices);
+    }
+
+    // 금리 변동
+    private void applyInterestRateChange(Game game, GameEvent currentEvent) {
         int currentInterestRate = game.getCurrentInterestRate();
-        currentInterestRate += gameEvent.getValue();
+        currentInterestRate += currentEvent.getValue();
         if (currentInterestRate < 1) {
             currentInterestRate = 1;
         } else if (currentInterestRate > 10) {
             currentInterestRate = 10;
         }
         game.setCurrentInterestRate(currentInterestRate);
+        log.info("바뀐 금리 : " + game.getCurrentInterestRate());
+    }
 
-        arena.setGame(game);
-        gameRepository.saveArena(roomId, arena);
+    // 주가 변동
+    private void applyStockPriceChange(Game game, GameEvent currentEvent) throws BaseException {
+        StockInfo[] marketStocks = Arrays.stream(game.getMarketStocks())
+                .map(si -> new StockInfo(si.getCnt(), Arrays.copyOf(si.getState(), 2)))
+                .toArray(StockInfo[]::new);
+        String affectedStockGroup = currentEvent.getAffectedStockGroup();
+        int eventValue = currentEvent.getValue();
 
-        return gameEvent;
+        switch (affectedStockGroup) {
+            case "ALL":
+                for (int i = 1; i < marketStocks.length; i++) {
+                    modifyStockPrice(marketStocks[i], eventValue);
+                }
+                break;
+            case "FOOD":
+                for (int i = 1; i <= 2; i++) {
+                    modifyStockPrice(marketStocks[i], eventValue);
+                }
+                break;
+            case "GIFT":
+                modifyStockPrice(marketStocks[3], eventValue);
+                break;
+            case "CLOTHES":
+                for (int i = 4; i <= 5; i++) {
+                    modifyStockPrice(marketStocks[i], eventValue);
+                }
+                break;
+            case "NULL":
+                break;
+            default:
+                throw new BaseException(INVALID_STOCK_GROUP);
+        }
+
+        game.setMarketStocks(marketStocks);
+        List<Integer> newPrices = Arrays.stream(game.getMarketStocks())
+                .map(stockInfo -> {
+                    int[] state = stockInfo.getState();
+                    return stockState.getStockStandard()[state[0]][state[1]].getPrice();
+                })
+                .collect(Collectors.toList());
+        log.info("바뀐 주가 : " + newPrices);
+    }
+
+    // 저장 확인용 금리/주가 상태
+    private void logFinalState(Game game) {
+        log.info("금리 저장됐나요: " + game.getCurrentInterestRate());
+        List<Integer> finalPrices = Arrays.stream(game.getMarketStocks())
+                .map(stockInfo -> {
+                    int[] state = stockInfo.getState();
+                    return stockState.getStockStandard()[state[0]][state[1]].getPrice();
+                })
+                .collect(Collectors.toList());
+        log.info("최종 주가 : " + finalPrices);
+    }
+
+    private void modifyStockPrice(StockInfo stockInfo, int eventValue) throws BaseException {
+        if (eventValue > 0) {
+            stockInfo.increaseState();
+        } else if (eventValue < 0) {
+            stockInfo.decreaseState();
+        }
     }
 
     private int[] putRandomStockIntoMarket(int[] pocket, StockInfo[] market) throws BaseException {
@@ -350,7 +547,7 @@ public class GameServiceImpl implements GameService {
     private int[] generateRandomEvent() throws BaseException {
         Set<Integer> selectedEconomicEvents = new HashSet<>();
         int[] result = new int[11];
-        for (int i = 2; i < result.length; i++) {
+        for (int i = 1; i < result.length - 1; i++) {
             int eventIdx;
             int attempts = 0;
             do {
@@ -384,6 +581,7 @@ public class GameServiceImpl implements GameService {
         int totalCost = currentGoldPrice * goldBuyCount;
 
         if (player.getState() == COMPLETED) {
+            log.debug("이미 금괴 매입을 완료한 플레이어입니다!");
             throw new BaseException(PLAYER_STATE_ERROR);
         }
 
@@ -511,69 +709,115 @@ public class GameServiceImpl implements GameService {
     }
 
     // 대출
-
-    /**
-     * [preLoan] 대출 가능 여부 판단 후, 대출 금액 범위 리턴
-     *
-     * @param roomId
-     * @param sender
-     * @return 대출 금액 범위
-     * @throws BaseException 1. 이미 대출을 받은 적이 있는 경우 2. 유효하지 않은 주가수준인 경우
-     */
-    public int preLoan(String roomId, String sender) throws BaseException, MessageException {
-
-        // 입력값 오류
-        validateRequest(roomId, sender);
+    @Override
+    public int calculateLoanLimit(String roomId, String sender) throws BaseException, MessageException {
 
         Arena arena = gameRepository.findArenaByRoomId(roomId).orElseThrow(() -> new BaseException(ARENA_NOT_FOUND));
         Player player = findPlayer(arena, sender);
 
-        // 이미 대출을 받은 적이 있는 경우
-        if (player.getHasLoan() == 1) {
-            throw new MessageException(roomId, sender, LOAN_ALREADY_TAKEN);
+        Game game = arena.getGame();
+
+        // 1. 현금 자산 대비 DSR 목표 금액 계산
+        double desiredDsr = isRichestPlayer(game, player) ? 0.04 : 0.03; // 가장 부유한 플레이어는 DesiredDSR가 40%, 그 외 30%
+        int maxLoanPayment = (int) (player.getCash() * desiredDsr);
+
+        // 2. 기존 부채 상환액 차감
+        // 2-1. 기존 부채 상환액 계산
+        int existingDebt = 0;
+        int leftRoundCnt = 10 - game.getRound();
+        for (LoanProduct loanProduct : player.getLoanProducts()) {
+            int loanPrincipal = loanProduct.getLoanPrincipal();
+            double interestRate = loanProduct.getInterestRate() / 100.0;
+            int loanInterest = loanProduct.getLoanInterest();
+            existingDebt +=
+                    (int) (((loanPrincipal * interestRate * Math.pow(1 + interestRate, leftRoundCnt))
+                            / Math.pow(1 + interestRate, leftRoundCnt) - 1) + loanInterest / leftRoundCnt);
+        }
+        // 2-2. DSR 목표 금액에서 기존 부채 상환액 차감
+        int availableRepaymentCapacity = maxLoanPayment - existingDebt;
+        if (availableRepaymentCapacity < 0) {
+            throw new MessageException(roomId, sender, REPAYMENT_CAPACITY_LACK);
         }
 
-        int stockPriceLevel = arena.getGame().getCurrentStockPriceLevel();
+        // 3. 대출 한도 산정
+        double marketInterestRate = game.getCurrentInterestRate() / 100.0;
+        int loanLimit = (int) (availableRepaymentCapacity / marketInterestRate);
 
-        // 주가 수준에 따른 가능 대출 범위 리턴
-        // 유효하지 않은 주가수준일 경우
-        if (stockPriceLevel < 0 || stockPriceLevel > 9) {
-            throw new BaseException(INVALID_STOCK_LEVEL);
-        } else if (stockPriceLevel <= 2) {
-            return 0;
-        } else if (stockPriceLevel <= 5) {
-            return 1;
-        } else {
-            return 2;
+        // 4. 금괴, 주식 가치 대출 한도에 반영
+        loanLimit += (int) (player.getGoldOwned() * game.getGoldPrice() * 0.7);
+        loanLimit += (int) (getStockValue(player.getStock(), game.getMarketStocks()) * 0.4);
+
+        return loanLimit;
+    }
+
+    private boolean isRichestPlayer(Game game, Player player) {
+        int totalValue;
+        int maxValue = 0;
+        Player richestPlayer = null;
+        int goldPrice = game.getGoldPrice();
+        StockInfo[] marketStocks = game.getMarketStocks();
+
+        for (Player inGamePlayer : game.getPlayers()) {
+            // 현금 자산
+            totalValue = inGamePlayer.getCash();
+
+            // 금괴 가치
+            totalValue += inGamePlayer.getGoldOwned() * goldPrice;
+
+            // 주식 가치
+            totalValue += getStockValue(inGamePlayer.getStock(), marketStocks);
+
+            if (totalValue > maxValue || (totalValue == maxValue && inGamePlayer == player)) {
+                maxValue = totalValue;
+                richestPlayer = inGamePlayer;
+            }
         }
+
+        return richestPlayer == player;
+    }
+
+    private int getStockValue(int[] stocks, StockInfo[] marketStocks) {
+        int stockValue = 0;
+        for (int i = 1; i < 6; i++) {
+            stockValue += getStockPrice(marketStocks, i) * stocks[i];
+        }
+        return stockValue;
+    }
+
+    public int getStockPrice(StockInfo[] marketStocks, int index) {
+        StockInfo stockInfo = marketStocks[index];
+        return stockState.getStockStandard()[stockInfo.getState()[0]][stockInfo.getState()[1]].getPrice();
     }
 
     /**
      * [takeLoan] 대출 후 자산반영, 메세지 전송
      *
+     * @param roomId
+     * @param sender
      * @throws BaseException 요청 금액이 대출 한도를 넘어가는 경우
      */
     @Override
     public void takeLoan(String roomId, String sender, int amount) throws BaseException, MessageException {
 
         validateRequest(roomId, sender);
-        int range = preLoan(roomId, sender);
+        int range = calculateLoanLimit(roomId, sender);
 
         // 대출금을 자산에 반영
         Arena arena = gameRepository.findArenaByRoomId(roomId).orElseThrow(() -> new BaseException(ARENA_NOT_FOUND));
         Player player = findPlayer(arena, sender);
 
         // 요청 금액이 대출 한도를 이내인지 검사
-        if (amount < LOAN_RANGE[range][0] || LOAN_RANGE[range][1] < amount) {
+        if (0 < LOAN_RANGE[range][0] || LOAN_RANGE[range][1] < amount) {
             throw new MessageException(roomId, sender, AMOUNT_OUT_OF_RANGE);
         }
 
         int interest = (int) (amount * (arena.getGame().getCurrentInterestRate() / 100.0));
 
-        player.setHasLoan(1);
-        player.setLoanPrincipal(amount);
-        player.setLoanInterest(interest);
-        player.setTotalDebt(amount);
+//        player.setHasLoan(1);
+//        player.setLoanPrincipal(amount);
+//        player.setLoanInterest(interest);
+//        player.setTotalDebt(amount);
+        player.getLoanProducts().add(new LoanProduct(arena.getGame().getCurrentInterestRate(), amount, 0));
         player.setCash(player.getCash() + amount);
 
         gameRepository.saveArena(roomId, arena);
@@ -581,34 +825,34 @@ public class GameServiceImpl implements GameService {
 
     // 상환
 
-    /**
-     * [repayLoan] 상환 후 자산 반영, 메세지 전송
-     *
-     * @throws BaseException 상환 금액이 유효하지 않은 값일 때
-     */
-    @Override
-    public void repayLoan(String roomId, String sender, int amount) throws BaseException, MessageException {
-
-        validateRequest(roomId, sender);
-
-        Arena arena = gameRepository.findArenaByRoomId(roomId).orElseThrow(() -> new BaseException(ARENA_NOT_FOUND));
-        Player player = findPlayer(arena, sender);
-
-        int totalDebt = player.getTotalDebt();
-        int cash = player.getCash();
-
-        if (amount > totalDebt) {
-            throw new MessageException(roomId, sender, AMOUNT_EXCEED_DEBT);
-        }
-        if (amount > cash) {
-            throw new MessageException(roomId, sender, AMOUNT_EXCEED_CASH);
-        }
-
-        // 상환 후 자산에 반영(갚아야 할 금액 차감, 현금 차감)
-        player.repayLoan(amount);
-
-        gameRepository.saveArena(roomId, arena);
-    }
+//    /**
+//     * [repayLoan] 상환 후 자산 반영, 메세지 전송
+//     *
+//     * @throws BaseException 상환 금액이 유효하지 않은 값일 때
+//     */
+//    @Override
+//    public void repayLoan(String roomId, String sender, int amount) throws BaseException, MessageException {
+//
+//        validateRequest(roomId, sender);
+//
+//        Arena arena = gameRepository.findArenaByRoomId(roomId).orElseThrow(() -> new BaseException(ARENA_NOT_FOUND));
+//        Player player = findPlayer(arena, sender);
+//
+//        int totalDebt = player.getTotalDebt();
+//        int cash = player.getCash();
+//
+//        if (amount > totalDebt) {
+//            throw new MessageException(roomId, sender, AMOUNT_EXCEED_DEBT);
+//        }
+//        if (amount > cash) {
+//            throw new MessageException(roomId, sender, AMOUNT_EXCEED_CASH);
+//        }
+//
+//        // 상환 후 자산에 반영(갚아야 할 금액 차감, 현금 차감)
+//        player.repayLoan(amount);
+//
+//        gameRepository.saveArena(roomId, arena);
+//    }
 
 
     // 주식 매도
@@ -632,11 +876,18 @@ public class GameServiceImpl implements GameService {
         // 1. stocks 유효성 검사 (각 숫자가 0 이상/합산한 개수가 0 초과 주가 수준 거래 가능 토큰 개수 이하)
         validateStocks(stocksToSell, currentStockPriceLevel);
 
+        // stocksToSell이 내가 보유한 주식의 개수보다 작은지 판별
+        for (int i = 1; i < 6; i++) {
+            if (stocksToSell[i] > ownedStocks[i]) {
+                throw new BaseException(INVALID_SELL_STOCKS);
+            }
+        }
+
         // 2. 주식 매도 가격 계산
         int salePrice = 0;  // 주식 매도 대금
         int stockPrice;
         for (int i = 1; i < 6; i++) {
-            stockPrice = stockState.getStockStandard()[marketStocks[i].getState()[0]][marketStocks[i].getState()[1]].getPrice();
+            stockPrice = getStockPrice(marketStocks, i);
             salePrice += stockPrice * stocksToSell[i];
             ownedStocks[i] -= stocksToSell[i];
             marketStocks[i].addCnt(stocksToSell[i]);
@@ -694,10 +945,9 @@ public class GameServiceImpl implements GameService {
 
     // 주식 매수
 
-    // 금괴 매입
-
     // 주가 변동
-    public void changeStockPrice(Game game, int stockPriceLevel) throws BaseException {
+    public void changeStockPrice(Game game) throws BaseException {
+        int stockPriceLevel = game.getCurrentStockPriceLevel();
 
         int[] stockTokensPocket = game.getStockTokensPocket();
 
@@ -752,26 +1002,20 @@ public class GameServiceImpl implements GameService {
 
             // 3-2. 뽑은 주식 토큰 中, 각 색깔의 주가 토큰 개수가 표시된 위치로 이동(*주가 조정 참조표* 참고)
             for (int i = 1; i < 6; i++) {
+
                 int stockCntDiff = selectedStockCnts[i] - selectedStockCnts[0];
+
                 if (stockCntDiff < -6) {
                     throw new BaseException(INVALID_BLACK_TOKEN);
+                } else if (stockCntDiff < 0) {
+                    marketStocks[i].setStockPriceInRange(stockCntDiff + 13);
+                } else if (stockCntDiff < 7) {
+                    marketStocks[i].setStockPriceInRange(stockCntDiff);
                 }
-                int[] stockPriceState = marketStocks[i].getState();
-
-                if (0 <= stockCntDiff && stockCntDiff < 7) {
-                    stockPriceState[0] += stockState.getStockDr()[stockCntDiff];
-                    stockPriceState[1] += stockState.getStockDc()[stockCntDiff];
-                }
-                // 3-3. 7개 이상 뽑았다면, 참조표에 표시된 6까지 이동 후 -> 초과한 숫자만큼 위로 한 칸씩 이동
-                else if (7 <= stockCntDiff && stockCntDiff <= 12) {
-                    stockPriceState[0] += stockState.getStockDr()[6];
-                    stockPriceState[1] += stockState.getStockDc()[6];
-                    for (int j = 0; j < stockCntDiff - 6; j++) {
-                        if (stockPriceState[0] == 0) {
-                            break;
-                        }
-                        stockPriceState[0] -= 1;
-                    }
+                // 토큰 개수이 차이가 6을 초과했다면(최대 12 가능)
+                else if (stockCntDiff <= 12) {
+                    marketStocks[i].setStockPriceInRange(6);
+                    marketStocks[i].ascendAndDescendState(-(stockCntDiff - 6));
                 } else {
                     throw new BaseException(EXCEEDS_DIFF_RANGE);
                 }
@@ -780,10 +1024,11 @@ public class GameServiceImpl implements GameService {
                 marketStocks[i].addCnt(selectedStockCnts[i]);
 
                 // 5. 주가 상승: 여전히 주식 시장에 주식 토큰이 없는 색깔은 주가를 위쪽으로 한 칸 이동
-                if (marketStocks[i].getCnt() == 0) stockPriceState[0] -= 1;
+                if (marketStocks[i].getCnt() == 0) marketStocks[i].ascendAndDescendState(-1);
 
                 // 6. 주가 수준 변동 조건 확인 후, 필요 시 주가 수준 변동
-                int newLevel = stockState.getStockStandard()[stockPriceState[0]][stockPriceState[1]].getLevel();
+                int newLevel = stockState.getStockStandard()[marketStocks[i].getState()[0]][marketStocks[i].getState()[1]].getLevel();
+
                 // 새로운 주가수준이 상위영역에 처음 진입했는지
                 if (stockPriceLevel < newLevel) {
                     game.setCurrentStockPriceLevel(newLevel);
@@ -802,7 +1047,7 @@ public class GameServiceImpl implements GameService {
 
         Arena arena = gameRepository.findArenaByRoomId(roomId).orElseThrow(() -> new BaseException(ARENA_NOT_FOUND));
 
-        synchronized(arena) {
+        synchronized (arena) {
             Player player = findPlayer(arena, payload.getSender());
             PlayerMoveRequest playerMoveRequest = payload.getData();
             player.setDirection(playerMoveRequest.direction());
@@ -918,7 +1163,7 @@ public class GameServiceImpl implements GameService {
         }
 
         if (totalStockInTrack == 5) {
-            changeStockPrice(game, stockPriceLevel);
+            changeStockPrice(game);
         }
     }
 
@@ -932,8 +1177,10 @@ public class GameServiceImpl implements GameService {
     }
 
     @Override
-    public void setStockPriceChangeInfoAndSendMessage(Game game, int round, int remainTime) {
+    public void setStockPriceChangeInfo(Game game, int round, int remainTime) {
+
         int x_value = ((round - 1) * 120 + (120 - remainTime)) / 20;
+
         StockInfo[] marketStocks = game.getMarketStocks();
         for (int i = 1; i < 6; i++) {
             int r = marketStocks[i].getState()[0];
@@ -964,14 +1211,14 @@ public class GameServiceImpl implements GameService {
     /**
      * 주식 매수/매도 시 거래 요청한 주식의 검사
      *
-     * @param stocksToSell : 플레이어가 파려고 하는 주식들
+     * @param stocksToSell    : 플레이어가 파려고 하는 주식들
      * @param stockPriceLevel : 주가 수준
      * @throws BaseException : 아래 두 조건을 만족하지 않는 경우
      *                       - 각 숫자가 0 미만인 동시에 거래 주식 개수가 0 초과 거래가능토큰개수(주가수준 기준) 이하
      *                       - 주식 종류별 내가 보유한 주식 개수 이하
      */
     private void validateStocks(int[] stocksToSell, int stockPriceLevel) throws BaseException {
-        // 각 숫자가 0 이상 && 합산한 개수가 0 초과 주가 수준 거래 가능 토큰 개수 이하 && 내가 보유한 주식 개수 이하
+        // 각 숫자가 0 이상 && 합산한 개수가 0 초과 주가 수준 거래 가능 토큰 개수 이하
         int stockCnt = 0;
         for (int i = 1; i < 6; i++) {
             if (stocksToSell[i] < 0) {
