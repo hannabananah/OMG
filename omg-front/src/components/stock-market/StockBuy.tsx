@@ -15,7 +15,7 @@ export default function StockBuy() {
   const { stockPrices, leftStocks } = useStockStore();
 
   const { gameData, selectedCount, setSelectedCount } = useGameStore();
-  const { buyStockMessage } = useSocketMessage();
+  const { buyStockMessage, setBuyMessage } = useSocketMessage();
 
   const { tradableStockCnt } = gameData || {};
 
@@ -24,9 +24,10 @@ export default function StockBuy() {
   const MY_MONEY = 50;
 
   useEffect(() => {
-    if (!buyStockMessage.message) return;
-
-    alert(buyStockMessage.message);
+    if (buyStockMessage.message) {
+      alert(buyStockMessage.message);
+      setBuyMessage({ message: '', isCompleted: false });
+    }
   }, [buyStockMessage]);
 
   // 총 선택된 수량 계산

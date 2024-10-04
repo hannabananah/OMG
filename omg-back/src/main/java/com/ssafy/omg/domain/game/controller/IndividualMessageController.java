@@ -6,7 +6,6 @@ import com.ssafy.omg.config.baseresponse.BaseResponse;
 import com.ssafy.omg.config.baseresponse.MessageException;
 import com.ssafy.omg.domain.game.GameRepository;
 import com.ssafy.omg.domain.game.dto.IndividualMessageDto;
-import com.ssafy.omg.domain.game.dto.StockMarketResponse;
 import com.ssafy.omg.domain.game.dto.StockRequest;
 import com.ssafy.omg.domain.game.entity.Game;
 import com.ssafy.omg.domain.game.service.GameBroadcastService;
@@ -21,7 +20,6 @@ import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.messaging.simp.SimpMessageSendingOperations;
 import org.springframework.web.bind.annotation.CrossOrigin;
 
-import static com.ssafy.omg.config.baseresponse.BaseResponseStatus.ARENA_NOT_FOUND;
 import static com.ssafy.omg.config.baseresponse.BaseResponseStatus.PLAYER_STATE_ERROR;
 import static com.ssafy.omg.config.baseresponse.MessageResponseStatus.OUT_OF_CASH;
 
@@ -151,6 +149,11 @@ public class IndividualMessageController {
             messagingTemplate.convertAndSend("/sub/" + roomId + "/game", response);
             Game game = gameRepository.findArenaByRoomId(roomId).get().getGame();
             gameScheduler.updateAndBroadcastMarketInfo(game, "STOCK");
+            try {
+                gameScheduler.notifyMainMessage(roomId, "GAME_MANAGER");
+            } catch (BaseException e) {
+                log.error("Error while notifying main message: " + e.getStatus().getMessage());
+            }
             return new BaseResponse<>(response);
         } catch (BaseException e) {
             return new BaseResponse<>(e.getStatus());
@@ -170,6 +173,7 @@ public class IndividualMessageController {
             messagingTemplate.convertAndSend("/sub/" + roomId + "/game", response);
             Game game = gameRepository.findArenaByRoomId(roomId).get().getGame();
             gameScheduler.updateAndBroadcastMarketInfo(game, "STOCK");
+            gameScheduler.notifyMainMessage(roomId, "GAME_MANAGER");
         } catch (MessageException e) {
             IndividualMessageDto individualMessage = gameService.getIndividualMessage(roomId, userNickname);
             response = new StompPayload<>(e.getStatus().name(), roomId, userNickname, individualMessage);
