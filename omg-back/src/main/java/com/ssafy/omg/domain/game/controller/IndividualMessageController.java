@@ -155,7 +155,7 @@ public class IndividualMessageController {
     }
 
     @MessageMapping("/request-battle")
-    public void requestBattle(@Payload StompPayload<BattleRequestDto> payload) throws BaseException {
+    public void sendBattleRequest(@Payload StompPayload<BattleRequestDto> payload) throws BaseException {
         String roomId = payload.getRoomId();
         String userNickname = payload.getSender();
         StompPayload<?> response = null;
@@ -166,6 +166,14 @@ public class IndividualMessageController {
             response = new StompPayload<>(e.getStatus().name(), roomId, userNickname, null);
             messagingTemplate.convertAndSend("/sub/" + roomId + "/game", response);
         }
+    }
+
+    @MessageMapping("/reject-battle")
+    public void rejectBattle(@Payload StompPayload<BattleRequestDto> payload) throws BaseException {
+        // TODO sender가 receiver
+        String roomId = payload.getRoomId();
+        String userNickname = payload.getSender();
+        gameBattleService.rejectBattleRequest(payload);
     }
 
 }

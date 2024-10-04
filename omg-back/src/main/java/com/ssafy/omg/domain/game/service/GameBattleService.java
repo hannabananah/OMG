@@ -39,7 +39,7 @@ public class GameBattleService {
 
     public void handleBattleRequest(StompPayload<BattleRequestDto> payload) throws BaseException, MessageException {
         String requesterNickname = payload.getSender();
-        String receiverNickname = payload.getData().receiverNickname();
+        String receiverNickname = payload.getData().opponentPlayer();
         String roomId = payload.getRoomId();
 
         log.info("배틀 요청 처리 중: {}가 {}에게 배틀 요청, 방 ID: {}", requesterNickname, receiverNickname, roomId);
@@ -56,12 +56,12 @@ public class GameBattleService {
 
         log.debug("요청자: {}, 상대자: {}", requester.getNickname(), receiver.getNickname());
 
-        validateReceiverState(receiver, roomId, requesterNickname);
+        validateReceiverState(requester, receiver, roomId, requesterNickname);
         setPlayersToBattleState(requester, receiver, arena, roomId);
 
         notifyBattleRequest(roomId, requesterNickname, receiverNickname);
 
-        startWaitingTimer(roomId, requester, receiver);
+        startWaitingTimer(roomId, requesterNickname, receiverNickname);
 
         log.info("배틀 요청 처리 완료, 방 ID: {}", roomId);
     }
@@ -82,18 +82,25 @@ public class GameBattleService {
         log.info("플레이어 상태 저장 완료, 방 ID: {}", roomId);
     }
 
-    private void validateReceiverState(Player receiver, String roomId, String requesterNickname) throws MessageException {
+    private void validateReceiverState(Player requester, Player receiver, String roomId, String requesterNickname) throws MessageException {
         log.debug("상대자의 배틀 상태 확인: {} (방 ID: {})", receiver.getNickname(), roomId);
+
         if (receiver.isBattleState()) {
             log.warn("플레이어 {}는 이미 배틀 중입니다 (방 ID: {})", receiver.getNickname(), roomId);
             throw new MessageException(roomId, requesterNickname, ALREADY_IN_BATTLE);
         }
 
         if (receiver.getCarryingGolds() == 0 && Arrays.equals(receiver.getCarryingStocks(), emptyStocks)) {
-            log.warn("플레이어 {}는 자산이 없습니다 (방 ID: {})", receiver.getNickname(), roomId);
+            log.warn("상대 플레이어 {}는 자산이 없습니다 (방 ID: {})", receiver.getNickname(), roomId);
+            throw new MessageException(roomId, requesterNickname, PLAYER_WITH_NO_ASSETS);
+        }
+
+        if (requester.getCarryingGolds() == 0 && Arrays.equals(requester.getCarryingStocks(), emptyStocks)) {
+            log.warn("요청자 플레이어 {}는 자산이 없습니다 (방 ID: {})", requester.getNickname(), roomId);
             throw new MessageException(roomId, requesterNickname, PLAYER_WITH_NO_ASSETS);
         }
     }
+
 
     private void validateGameTime(Game game, String roomId, String requesterNickname) throws BaseException, MessageException {
         int currentTime = game.getTime();
@@ -115,15 +122,15 @@ public class GameBattleService {
                 });
     }
 
-    private void startWaitingTimer(String roomId, Player requester, Player receiver) {
-        String timerKey = getTimerKey(roomId, requester, receiver);
-        log.info("대기 타이머 시작: 방 ID {}, {}와 {}", roomId, requester.getNickname(), receiver.getNickname());
+    private void startWaitingTimer(String roomId, String requesterNickname, String receiverNickname) {
+        String timerKey = getTimerKey(roomId, requesterNickname, receiverNickname);
+        log.info("대기 타이머 시작: 방 ID {}, {}와 {}", roomId, requesterNickname, receiverNickname);
 
         Thread waitingTimer = Thread.ofVirtual().start(() -> {
             try {
-                log.debug("6초 대기 중, 배틀: {}와 {}", requester.getNickname(), receiver.getNickname());
+                log.debug("6초 대기 중, 배틀: {}와 {}", requesterNickname, receiverNickname);
                 Thread.sleep(6000);
-                updatePlayerStateAndCancelWaitingTimer(roomId, requester, receiver);
+                updatePlayerStateAndCancelWaitingTimer(roomId, requesterNickname, receiverNickname);
             } catch (InterruptedException | BaseException e) {
                 log.error("타이머가 중단되었거나 에러 발생, 방 ID: {}. 이유: {}", roomId, e.getMessage());
                 Thread.currentThread().interrupt();
@@ -133,21 +140,21 @@ public class GameBattleService {
         waitingTimers.put(timerKey, waitingTimer);
     }
 
-    private void updatePlayerStateAndCancelWaitingTimer(String roomId, Player requester, Player receiver) throws BaseException {
-        log.info("플레이어 상태 업데이트 및 타이머 취소: 방 ID {}, {}와 {}", roomId, requester.getNickname(), receiver.getNickname());
+    private void updatePlayerStateAndCancelWaitingTimer(String roomId, String requesterNickname, String receiverNickname) throws BaseException {
+        log.info("플레이어 상태 업데이트 및 타이머 취소: 방 ID {}, {}와 {}", roomId, requesterNickname, receiverNickname);
 
         Arena arena = gameRepository.findArenaByRoomId(roomId).orElseThrow(() -> new BaseException(ARENA_NOT_FOUND));
 
         List<Player> players = arena.getGame().getPlayers();
-        Player updatedRequester = findPlayerByNickname(players, requester.getNickname());
-        Player updatedReceiver  = findPlayerByNickname(players, receiver.getNickname());
+        Player updatedRequester = findPlayerByNickname(players, requesterNickname);
+        Player updatedReceiver  = findPlayerByNickname(players, receiverNickname);
 
         updatedRequester.setBattleState(false);
         updatedReceiver.setBattleState(false);
 
         gameRepository.saveArena(roomId, arena);
 
-        String timerKey = getTimerKey(roomId, requester, receiver);
+        String timerKey = getTimerKey(roomId, requesterNickname, receiverNickname);
         if (waitingTimers.containsKey(timerKey)) {
             Thread waitingTimer = waitingTimers.get(timerKey);
             waitingTimer.interrupt();
@@ -157,7 +164,18 @@ public class GameBattleService {
         log.info("플레이어 상태 초기화 및 타이머 취소 완료, 방 ID: {}", roomId);
     }
 
-    private String getTimerKey(String roomId, Player requester, Player receiver) {
-        return roomId + "-" + requester + "-" + receiver;
+    private String getTimerKey(String roomId, String requesterNickname, String receiverNickname) {
+        return roomId + "-" + requesterNickname + "-" + receiverNickname;
+    }
+
+    public void rejectBattleRequest(StompPayload<BattleRequestDto> payload) throws BaseException {
+        String receiverNickname = payload.getSender();
+        String requesterNickname = payload.getData().opponentPlayer();
+        String roomId = payload.getRoomId();
+        updatePlayerStateAndCancelWaitingTimer(roomId, requesterNickname, receiverNickname);
+        StompPayload<BattleRequestDto> response = new StompPayload<>(
+                "BATTLE_REQUEST_IS_REJECTED", roomId, requesterNickname, new BattleRequestDto(receiverNickname)
+        );
+        messagingTemplate.convertAndSend("/sub/" + roomId + "/game", response);
     }
 }
