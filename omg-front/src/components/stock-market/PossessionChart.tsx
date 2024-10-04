@@ -1,9 +1,5 @@
 import { itemNameList } from '@/assets/data/stockMarketData';
-import {
-  getPossessionData,
-  getTreeItemImagePath,
-  shortenName,
-} from '@/hooks/useStock';
+import { getPossessionData, getTreeItemImagePath } from '@/hooks/useStock';
 import { useStockStore } from '@/stores/useStockStore';
 import { StockItem } from '@/types';
 import { AxisTickProps } from '@nivo/axes';
@@ -38,7 +34,7 @@ export default function PossessionChart() {
   );
 
   // 플레이어 이름 목록
-  const nickNameList = [...playerNicknames].map(shortenName);
+  const nickNameList = [...playerNicknames];
 
   return (
     <ResponsiveBar
