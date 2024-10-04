@@ -27,6 +27,9 @@ export type StockMarketView = 'main' | 'buy' | 'sell';
 export type StockItem = 'candy' | 'cupcake' | 'gift' | 'hat' | 'socks';
 export type StockItemInKorean = '사탕' | '컵케이크' | '선물' | '모자' | '양말';
 
+// 대출
+export type LoanMarketView = 'main' | 'take' | 'repay';
+
 // 주식 차트 데이터
 export interface StockDataItem {
   id: StockItem;
