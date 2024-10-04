@@ -23,6 +23,7 @@ import { Physics } from '@react-three/rapier';
 import IntroCamera from '../camera/IntroCamera';
 import ChatButton from '../common/ChatButton';
 import GoldMarket from '../gold-market/GoldMarket';
+import LoanMarket from '../loan-market/LoanMarket';
 import MyRoom from '../my-room/MyRoom';
 
 export const Controls = {
@@ -43,7 +44,7 @@ const stockTypes = [
 
 export default function MainMap() {
   const { characterType } = useUser();
-  const { socket, online, initGameSetting, allRendered, takeLoan, repayLoan } =
+  const { socket, online, initGameSetting, allRendered, repayLoan } =
     useContext(SocketContext);
   const { gameData, carryingCount, setCarryingCount } = useGameStore();
 
@@ -53,7 +54,6 @@ export default function MainMap() {
 
   const {
     goldPurchaseMessage,
-    loanMessage,
     repayLoanMessage,
     eventCardMessage,
     gameRoundMessage,
@@ -89,10 +89,23 @@ export default function MainMap() {
 
     const timer = setTimeout(() => {
       setIsVisible(false);
-      setIsTimerVisible(true);
     }, 5000);
     return () => clearTimeout(timer);
   }, [eventCardMessage]);
+
+  useEffect(() => {
+    if (gameRoundMessage.message === '1' || gameRoundMessage.message === '10') {
+      const timer = setTimeout(() => {
+        setIsTimerVisible(true);
+      }, 5000);
+      return () => clearTimeout(timer);
+    } else {
+      const timer = setTimeout(() => {
+        setIsTimerVisible(true);
+      }, 10000);
+      return () => clearTimeout(timer);
+    }
+  }, [gameRoundMessage]);
 
   useEffect(() => {
     if (!goldPurchaseMessage.message) return;
@@ -105,16 +118,6 @@ export default function MainMap() {
       alert(goldPurchaseMessage.message);
     }
   }, [goldPurchaseMessage]);
-
-  useEffect(() => {
-    if (!loanMessage.message) return;
-
-    if (loanMessage.isCompleted) {
-      alert(`대출 신청이 완료되었습니다! 대출액: ${loanMessage.message}`);
-    } else if (!loanMessage.isCompleted) {
-      alert(loanMessage.message);
-    }
-  }, [loanMessage]);
 
   useEffect(() => {
     if (repayLoanMessage.message === null) return;
@@ -152,9 +155,6 @@ export default function MainMap() {
         break;
       case 'GAME_FINISHED':
         setIsRoundVisible(false);
-        break;
-      case 'APPLY_PREVIOUS_EVENT':
-        displayDuration = 4000;
         break;
       default:
         break;
@@ -220,16 +220,6 @@ export default function MainMap() {
     alert('게임 미션 모달 띄워주기');
   };
 
-  const handleClickTakeLoan = () => {
-    const loanAmount = Number(prompt('대출할 액수를 입력하세요.').trim());
-    if (loanAmount == 0) {
-      alert('대출할 액수를 다시 입력해주세요.');
-      return;
-    }
-
-    takeLoan(loanAmount);
-  };
-
   const handleClickRepayLoan = () => {
     const repayLoanAmount = Number(
       prompt('상환할 대출 액수를 입력하세요.').trim(),
@@ -259,6 +249,12 @@ export default function MainMap() {
     }
   };
 
+  const openLoanMarketModal = () => {
+    if (!modals.loanMarket) {
+      openModal('loanMarket');
+    }
+  };
+
   return (
     <main className='relative w-full h-screen overflow-hidden'>
       {/* 내 방 Modal */}
@@ -269,6 +265,9 @@ export default function MainMap() {
 
       {/* 금 시장 모달 */}
       {modals.goldMarket && <GoldMarket />}
+
+      {/* 대출 시장 모달 */}
+      {modals.loanMarket && <LoanMarket />}
 
       {/* 주식 매도 수량 선택(집에서) */}
       <div className='px-10 py-2'>
@@ -309,12 +308,6 @@ export default function MainMap() {
           type='mainmap'
           onClick={openPersonalMissionModal}
         />
-        {/* TODO: 삭제해야됨, 임시 대출신청 버튼 */}
-        <Button
-          text='임시 대출신청 버튼'
-          type='mainmap'
-          onClick={handleClickTakeLoan}
-        />
         {/* TODO: 삭제해야됨, 임시 대출상환 버튼 */}
         <Button
           text='임시 대출상환 버튼'
@@ -338,6 +331,12 @@ export default function MainMap() {
           text='임시 금 시장 버튼'
           type='mainmap'
           onClick={openGoldMarketModal}
+        />
+        {/* TODO: 삭제해야됨, 임시 대출 시장 버튼 */}
+        <Button
+          text='임시 대출 시장 버튼'
+          type='mainmap'
+          onClick={openLoanMarketModal}
         />
       </section>
 
