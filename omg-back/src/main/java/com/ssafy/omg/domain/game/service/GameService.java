@@ -43,7 +43,7 @@ public interface GameService {
 
     void takeLoan(String roomId, String userNickname, int amount) throws BaseException, MessageException;
 
-//    void repayLoan(String roomId, String userNickname, int amount) throws BaseException, MessageException;
+    void repayLoan(String roomId, String userNickname, int amount) throws BaseException, MessageException;
 
     void sellStock(String roomId, String userNickname, int[] amount) throws BaseException;
 
