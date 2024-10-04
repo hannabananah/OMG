@@ -29,7 +29,7 @@ public class Player {
 
     // 거래소 관련
     private TreeSet<LoanProduct> loanProducts = new TreeSet<>();
-    private int recentLoanPrincipal;
+    private int totalDebt;             // 총 부채
     private int cash;                  // 현금
     private int[] stock = new int[6];  // 보유 주식 개수
     private int goldOwned;             // 보유 금괴 개수

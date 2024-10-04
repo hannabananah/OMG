@@ -329,7 +329,8 @@ public class GameScheduler {
         log.debug("handleRoundEnd 진입. 현재 시간: {}", game.getTime());
 
         if (game.getTime() == 2) {
-            notifyPlayers(game.getGameId(), ROUND_END, game.getRound() + "라운드가 종료되었습니다!");
+            notifyPlayers(game.getGameId(), ROUND_END, game.getRound() + "라운드가 종료되었습니다! 대출상품에 대한 이자가 추가됩니다!");
+            gameService.addInterestToTotalDebtAndLoanProducts(game);
         } else if (game.getTime() == 0) {
             game.setRoundStatus(PREPARING_NEXT_ROUND);
             game.setTime(5);
