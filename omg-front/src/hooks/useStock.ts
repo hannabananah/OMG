@@ -15,17 +15,20 @@ export const chartData = (
   itemNameList: StockItem[],
 ): StockDataItem[] => {
   // 첫 번째 행(무의미한 데이터) 제외하고 1 ~ 5번째 사용
-  return backendData.slice(1, 6).map((itemData, index) => {
-    const data = itemData.map((price, time) => ({
-      x: time,
-      y: price,
-    }));
+  return backendData
+    .slice(1, 6)
+    .reverse()
+    .map((itemData, index) => {
+      const data = itemData.map((price, time) => ({
+        x: time,
+        y: price,
+      }));
 
-    return {
-      id: itemNameList[index],
-      data,
-    };
-  });
+      return {
+        id: itemNameList[index],
+        data,
+      };
+    });
 };
 
 // 2) 현재까지의 데이터만 필터링 (가격 0인 지점 이후는 무시)
