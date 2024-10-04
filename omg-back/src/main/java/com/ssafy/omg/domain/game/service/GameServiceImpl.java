@@ -6,6 +6,7 @@ import com.ssafy.omg.domain.arena.entity.Arena;
 import com.ssafy.omg.domain.game.GameRepository;
 import com.ssafy.omg.domain.game.dto.GoldMarketInfoResponse;
 import com.ssafy.omg.domain.game.dto.IndividualMessageDto;
+import com.ssafy.omg.domain.game.dto.MainMessageDto;
 import com.ssafy.omg.domain.game.dto.PlayerMoveRequest;
 import com.ssafy.omg.domain.game.dto.StockMarketResponse;
 import com.ssafy.omg.domain.game.dto.StockRequest;
@@ -48,8 +49,8 @@ import static com.ssafy.omg.config.baseresponse.BaseResponseStatus.PLAYER_NOT_FO
 import static com.ssafy.omg.config.baseresponse.BaseResponseStatus.PLAYER_STATE_ERROR;
 import static com.ssafy.omg.config.baseresponse.BaseResponseStatus.REQUEST_ERROR;
 import static com.ssafy.omg.config.baseresponse.MessageResponseStatus.AMOUNT_OUT_OF_RANGE;
-import static com.ssafy.omg.config.baseresponse.MessageResponseStatus.INVALID_REPAY_AMOUNT;
 import static com.ssafy.omg.config.baseresponse.MessageResponseStatus.INSUFFICIENT_CASH;
+import static com.ssafy.omg.config.baseresponse.MessageResponseStatus.INVALID_REPAY_AMOUNT;
 import static com.ssafy.omg.config.baseresponse.MessageResponseStatus.OUT_OF_CASH;
 import static com.ssafy.omg.config.baseresponse.MessageResponseStatus.REPAYMENT_CAPACITY_LACK;
 import static com.ssafy.omg.config.baseresponse.MessageResponseStatus.STOCK_NOT_AVAILABLE;
@@ -86,6 +87,43 @@ public class GameServiceImpl implements GameService {
                 .map(Arena::getGame)
                 .filter(game -> game != null && game.getGameStatus() == GameStatus.IN_GAME)
                 .collect(Collectors.toList());
+    }
+
+    /**
+     * 메인판 정보 반환
+     *
+     * @param roomId
+     * @param sender
+     * @return
+     * @throws BaseException
+     */
+    @Override
+    public MainMessageDto getMainMessage(String roomId, String sender) throws BaseException {
+        Arena arena = gameRepository.findArenaByRoomId(roomId)
+                .orElseThrow(() -> new BaseException(ARENA_NOT_FOUND));
+        Game game = arena.getGame();
+
+        int[] stockPrices = Arrays.stream(game.getMarketStocks())
+                .map(stockInfo -> {
+                    int[] state = stockInfo.getState();
+                    return stockState.getStockStandard()[state[0]][state[1]].getPrice();
+                })
+                .mapToInt(Integer::intValue)
+                .toArray();
+        int goldPrice = game.getGoldPrice();
+        int currentInterestRate = game.getCurrentInterestRate();
+        int stockPriceLevel = game.getCurrentStockPriceLevel();
+        int tradableCount = stockState.getTradableCount(stockPriceLevel);
+        int remainingUntilChange = 20 * (10 - Arrays.stream(game.getStockSellTrack()).skip(1).limit(5).sum());
+
+        return MainMessageDto.builder()
+                .stockPrices(stockPrices)
+                .goldPrice(goldPrice)
+                .currentInterestRate(currentInterestRate)
+                .currentStockPriceLevel(stockPriceLevel)
+                .tradableStockCnt(tradableCount)
+                .remainingUntilChange(remainingUntilChange)
+                .build();
     }
 
     /**
