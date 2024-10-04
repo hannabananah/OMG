@@ -4,8 +4,17 @@ import com.ssafy.omg.config.baseresponse.BaseException;
 import com.ssafy.omg.config.baseresponse.MessageException;
 import com.ssafy.omg.domain.arena.entity.Arena;
 import com.ssafy.omg.domain.game.GameRepository;
-import com.ssafy.omg.domain.game.dto.*;
-import com.ssafy.omg.domain.game.entity.*;
+import com.ssafy.omg.domain.game.dto.GoldMarketInfoResponse;
+import com.ssafy.omg.domain.game.dto.IndividualMessageDto;
+import com.ssafy.omg.domain.game.dto.PlayerMoveRequest;
+import com.ssafy.omg.domain.game.dto.StockMarketResponse;
+import com.ssafy.omg.domain.game.dto.StockRequest;
+import com.ssafy.omg.domain.game.entity.Game;
+import com.ssafy.omg.domain.game.entity.GameEvent;
+import com.ssafy.omg.domain.game.entity.GameStatus;
+import com.ssafy.omg.domain.game.entity.LoanProduct;
+import com.ssafy.omg.domain.game.entity.StockInfo;
+import com.ssafy.omg.domain.game.entity.StockState;
 import com.ssafy.omg.domain.game.repository.GameEventRepository;
 import com.ssafy.omg.domain.player.entity.Player;
 import com.ssafy.omg.domain.player.entity.PlayerStatus;
@@ -15,13 +24,34 @@ import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Random;
+import java.util.Set;
+import java.util.TreeSet;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
-import static com.ssafy.omg.config.baseresponse.BaseResponseStatus.*;
+import static com.ssafy.omg.config.baseresponse.BaseResponseStatus.ARENA_NOT_FOUND;
+import static com.ssafy.omg.config.baseresponse.BaseResponseStatus.EVENT_NOT_FOUND;
+import static com.ssafy.omg.config.baseresponse.BaseResponseStatus.EXCEEDS_DIFF_RANGE;
+import static com.ssafy.omg.config.baseresponse.BaseResponseStatus.IMPOSSIBLE_STOCK_CNT;
+import static com.ssafy.omg.config.baseresponse.BaseResponseStatus.INSUFFICIENT_STOCK;
+import static com.ssafy.omg.config.baseresponse.BaseResponseStatus.INVALID_BLACK_TOKEN;
+import static com.ssafy.omg.config.baseresponse.BaseResponseStatus.INVALID_ROUND;
+import static com.ssafy.omg.config.baseresponse.BaseResponseStatus.INVALID_SELL_STOCKS;
+import static com.ssafy.omg.config.baseresponse.BaseResponseStatus.INVALID_STOCK_GROUP;
+import static com.ssafy.omg.config.baseresponse.BaseResponseStatus.PLAYER_NOT_FOUND;
+import static com.ssafy.omg.config.baseresponse.BaseResponseStatus.PLAYER_STATE_ERROR;
+import static com.ssafy.omg.config.baseresponse.BaseResponseStatus.REQUEST_ERROR;
 import static com.ssafy.omg.config.baseresponse.MessageResponseStatus.AMOUNT_OUT_OF_RANGE;
-import static com.ssafy.omg.config.baseresponse.MessageResponseStatus.*;
+import static com.ssafy.omg.config.baseresponse.MessageResponseStatus.INSUFFICIENT_CASH;
+import static com.ssafy.omg.config.baseresponse.MessageResponseStatus.OUT_OF_CASH;
+import static com.ssafy.omg.config.baseresponse.MessageResponseStatus.REPAYMENT_CAPACITY_LACK;
+import static com.ssafy.omg.config.baseresponse.MessageResponseStatus.STOCK_NOT_AVAILABLE;
 import static com.ssafy.omg.domain.game.entity.RoundStatus.STOCK_FLUCTUATION;
 import static com.ssafy.omg.domain.game.entity.RoundStatus.TUTORIAL;
 import static com.ssafy.omg.domain.player.entity.PlayerStatus.COMPLETED;
@@ -149,6 +179,9 @@ public class GameServiceImpl implements GameService {
                 .mapToInt(Integer::intValue)
                 .toArray();
 
+        int[] marketGoldChart = game.getGoldPriceChart();
+
+
         int goldPrice = game.getGoldPrice();
         int goldPriceIncreaseCnt = game.getGoldPriceIncreaseCnt();
 
@@ -157,6 +190,7 @@ public class GameServiceImpl implements GameService {
                 .playerGoldCounts(playerGoldCounts)
                 .goldPrice(goldPrice)
                 .goldPriceIncreaseCnt(goldPriceIncreaseCnt)
+                .goldPriceChart(marketGoldChart)
                 .build();
     }
 
@@ -220,7 +254,6 @@ public class GameServiceImpl implements GameService {
                         .direction(new double[]{0, 0, 0}) // TODO 임시로 (0,0,0)으로 해뒀습니다 고쳐야함
                         .carryingStocks(new int[]{0, 0, 0, 0, 0, 0})
                         .carryingGolds(0)
-
 //                        .hasLoan(0)                       // 대출 유무
 //                        .loanPrincipal(0)                 // 대출원금
 //                        .loanInterest(0)                  // 이자
@@ -238,6 +271,24 @@ public class GameServiceImpl implements GameService {
             }
 
             int[] randomEvent = generateRandomEvent();
+            int[][] stockPriceChangeInfo = new int[6][61];
+
+            int[] initialStockPrices = Arrays.stream(market)
+                    .map(stockInfo -> {
+                        int[] state = stockInfo.getState();
+                        return stockState.getStockStandard()[state[0]][state[1]].getPrice();
+                    })
+                    .mapToInt(Integer::intValue)
+                    .toArray();
+            System.out.println("++++++++++++++++++++++++++++++++++");
+            System.out.println(Arrays.toString(initialStockPrices));
+            System.out.println("++++++++++++++++++++++++++++++++++");
+
+            for (int i = 1; i < 6; i++) {
+                stockPriceChangeInfo[i][0] = initialStockPrices[i - 1];
+            }
+            int[] goldPriceChart = new int[61];
+            goldPriceChart[0] = 20;
 
             Game newGame = Game.builder()
                     .gameId(roomId)
@@ -263,7 +314,8 @@ public class GameServiceImpl implements GameService {
                     .goldPrice(20)                                // 초기 금 가격 20
                     .goldPriceIncreaseCnt(0)                      // 초기 금괴 매입 개수 0
 
-                    .stockPriceChangeInfo(new int[6][61])
+                    .stockPriceChangeInfo(stockPriceChangeInfo)
+                    .goldPriceChart(goldPriceChart)
                     .build();
 
             arena.setGame(newGame);
@@ -1187,6 +1239,13 @@ public class GameServiceImpl implements GameService {
             int c = marketStocks[i].getState()[1];
             game.getStockPriceChangeInfo()[i][x_value] = stockState.getStockStandard()[r][c].getPrice();
         }
+    }
+
+    @Override
+    public void setGoldPriceChartInfo(Game game, int round, int remainTime) throws BaseException {
+        int idx = (round - 1) * 6 + (120 - remainTime) / 20;
+        int[] goldPriceChart = game.getGoldPriceChart();
+        game.getGoldPriceChart()[idx] = game.getGoldPrice();
     }
 
     private Player findPlayer(Arena arena, String nickname) throws BaseException {
