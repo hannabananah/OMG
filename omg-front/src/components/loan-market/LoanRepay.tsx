@@ -1,12 +1,13 @@
-import { useContext, useEffect } from 'react';
+// import { useContext, useEffect } from 'react';
+import { useEffect } from 'react';
 
 import { useSocketMessage } from '@/stores/useSocketMessage';
-import { SocketContext } from '@/utils/SocketContext';
 
+// import { SocketContext } from '@/utils/SocketContext';
 import Button from '../common/Button';
 
 export default function LoanRepay() {
-  const { sellStock } = useContext(SocketContext);
+  // const { sellStock } = useContext(SocketContext);
   const { sellStockMessage } = useSocketMessage();
 
   useEffect(() => {
