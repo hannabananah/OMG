@@ -258,10 +258,12 @@ public class GameScheduler {
                     messagingTemplate.convertAndSend("/sub/" + game.getGameId() + "/game", payload);
                 }
             } catch (BaseException e) {
-                log.error("경제 이벤트 생성 중 에러 발생: {}", e.getMessage());
-                if (game.getRound() == 10) return;
-                game.setRoundStatus(ECONOMIC_EVENT_NEWS);
-                game.setTime(5);
+                log.error("경제 이벤트 생성 중 에러 발생: {}", e.getStatus().getMessage());
+                if (game.getRound() == 10) {
+                    game.setRoundStatus(ROUND_IN_PROGRESS);
+                    game.setTime(120);
+                    return;
+                }
             }
         } else if (game.getTime() == 0) {
             game.setRoundStatus(ROUND_IN_PROGRESS);
