@@ -2,6 +2,7 @@ import { ReactNode, createContext, useEffect, useMemo, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 
 import { useGameStore } from '@/stores/useGameStore';
+import { useLoanStore } from '@/stores/useLoanStore';
 import { useOtherUserStore } from '@/stores/useOtherUserState';
 import { useSocketMessage } from '@/stores/useSocketMessage';
 import { useStockStore } from '@/stores/useStockStore';
@@ -39,6 +40,7 @@ interface SocketContextType {
   sellStock: (stocks: number[]) => void;
   roundTimer: number;
   presentRound: number;
+  enterLoan: () => void;
 }
 
 const defaultContextValue: SocketContextType = {
@@ -65,6 +67,7 @@ const defaultContextValue: SocketContextType = {
   repayLoan: () => {},
   buyStock: () => {},
   sellStock: () => {},
+  enterLoan: () => {},
   roundTimer: 120,
   presentRound: 1,
 };
@@ -447,6 +450,12 @@ export default function SocketProvider({ children }: SocketProviderProps) {
             setStockMarketData(parsedMessage.data);
             console.log('주식 시장 데이터 업데이트', parsedMessage.data);
             break;
+
+          case 'SUCCESS_CALCULATE_LOANLIMIT':
+            const { setLoanLimit } = useLoanStore.getState();
+            setLoanLimit(parsedMessage.data);
+            console.log('대출 한도 업데이트', parsedMessage.data);
+            break;
         }
       },
       { id: subGameId },
@@ -549,7 +558,7 @@ export default function SocketProvider({ children }: SocketProviderProps) {
       sender: string;
       data: null | object;
     } = {
-      type: 'test',
+      type: 'GAME_INIT',
       roomId,
       sender: nickname,
       data: null,
@@ -674,6 +683,26 @@ export default function SocketProvider({ children }: SocketProviderProps) {
     });
   };
 
+  // 대출방 진입
+  const enterLoan = () => {
+    if (!isSocketConnected()) return;
+    const messagePayload: {
+      roomId: string;
+      type: string;
+      sender: string;
+      data: null | number;
+    } = {
+      type: 'TAKE_LOAN',
+      roomId,
+      sender: nickname,
+      data: null,
+    };
+    socket.publish({
+      destination: '/pub/calculate-loanlimit',
+      body: JSON.stringify(messagePayload),
+    });
+  };
+
   const contextValue = useMemo(
     () => ({
       socket,
@@ -701,6 +730,7 @@ export default function SocketProvider({ children }: SocketProviderProps) {
       sellStock,
       roundTimer,
       presentRound,
+      enterLoan,
     }),
     [
       socket,
@@ -718,6 +748,7 @@ export default function SocketProvider({ children }: SocketProviderProps) {
       sellStock,
       roundTimer,
       presentRound,
+      enterLoan,
     ],
   );
 
