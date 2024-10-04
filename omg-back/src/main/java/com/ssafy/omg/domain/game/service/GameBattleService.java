@@ -9,6 +9,7 @@ import com.ssafy.omg.domain.game.entity.Game;
 import com.ssafy.omg.domain.player.entity.Player;
 import com.ssafy.omg.domain.socket.dto.StompPayload;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.messaging.simp.SimpMessageSendingOperations;
 import org.springframework.stereotype.Service;
 
@@ -23,6 +24,7 @@ import static com.ssafy.omg.config.baseresponse.MessageResponseStatus.ALREADY_IN
 import static com.ssafy.omg.config.baseresponse.MessageResponseStatus.INVALID_GAME_TIME;
 import static com.ssafy.omg.config.baseresponse.MessageResponseStatus.PLAYER_WITH_NO_ASSETS;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class GameBattleService {
@@ -40,13 +42,19 @@ public class GameBattleService {
         String receiverNickname = payload.getData().receiverNickname();
         String roomId = payload.getRoomId();
 
+        log.info("배틀 요청 처리 중: {}가 {}에게 배틀 요청, 방 ID: {}", requesterNickname, receiverNickname, roomId);
+
         Arena arena = gameRepository.findArenaByRoomId(roomId).orElseThrow(() -> new BaseException(ARENA_NOT_FOUND));
+        log.debug("방 ID {}에 대한 아레나 조회 성공", roomId);
+
         Game game = arena.getGame();
         validateGameTime(game, roomId, requesterNickname);
 
         List<Player> players = game.getPlayers();
         Player receiver = findPlayerByNickname(players, receiverNickname);
         Player requester = findPlayerByNickname(players, receiverNickname);
+
+        log.debug("요청자: {}, 상대자: {}", requester.getNickname(), receiver.getNickname());
 
         validateReceiverState(receiver, roomId, requesterNickname);
         setPlayersToBattleState(requester, receiver, arena, roomId);
@@ -55,9 +63,11 @@ public class GameBattleService {
 
         startWaitingTimer(roomId, requester, receiver);
 
+        log.info("배틀 요청 처리 완료, 방 ID: {}", roomId);
     }
 
     private void notifyBattleRequest(String roomId, String requesterNickname, String receiverNickname) {
+        log.info("배틀 요청 알림: {} -> {} (방 ID: {})", requesterNickname, receiverNickname, roomId);
         StompPayload<BattleRequestDto> response = new StompPayload<>(
                 "BATTLE_REQUEST", roomId, requesterNickname, new BattleRequestDto(receiverNickname)
         );
@@ -65,43 +75,57 @@ public class GameBattleService {
     }
 
     private void setPlayersToBattleState(Player requester, Player receiver, Arena arena, String roomId) {
+        log.debug("플레이어 상태 설정: {}와 {}를 배틀 상태로 전환 (방 ID: {})", requester.getNickname(), receiver.getNickname(), roomId);
         receiver.setBattleState(true);
         requester.setBattleState(true);
         gameRepository.saveArena(roomId, arena);
+        log.info("플레이어 상태 저장 완료, 방 ID: {}", roomId);
     }
 
     private void validateReceiverState(Player receiver, String roomId, String requesterNickname) throws MessageException {
+        log.debug("상대자의 배틀 상태 확인: {} (방 ID: {})", receiver.getNickname(), roomId);
         if (receiver.isBattleState()) {
+            log.warn("플레이어 {}는 이미 배틀 중입니다 (방 ID: {})", receiver.getNickname(), roomId);
             throw new MessageException(roomId, requesterNickname, ALREADY_IN_BATTLE);
         }
 
         if (receiver.getCarryingGolds() == 0 && Arrays.equals(receiver.getCarryingStocks(), emptyStocks)) {
+            log.warn("플레이어 {}는 자산이 없습니다 (방 ID: {})", receiver.getNickname(), roomId);
             throw new MessageException(roomId, requesterNickname, PLAYER_WITH_NO_ASSETS);
         }
     }
 
     private void validateGameTime(Game game, String roomId, String requesterNickname) throws BaseException, MessageException {
         int currentTime = game.getTime();
+        log.debug("게임 시간 확인: {}초 (방 ID: {})", currentTime, roomId);
         if (currentTime <= MIN_TIME_LIMIT) {
+            log.warn("유효하지 않은 게임 시간: {}초 (방 ID: {})", currentTime, roomId);
             throw new MessageException(roomId, requesterNickname, INVALID_GAME_TIME);
         }
     }
 
     private Player findPlayerByNickname(List<Player> players, String nickname) throws BaseException {
+        log.debug("플레이어 조회: 닉네임 {}", nickname);
         return players.stream()
                 .filter(player -> player.getNickname().equals(nickname))
                 .findFirst()
-                .orElseThrow(() -> new BaseException(PLAYER_NOT_FOUND));
+                .orElseThrow(() -> {
+                    log.error("플레이어를 찾을 수 없음: 닉네임 {}", nickname);
+                    return new BaseException(PLAYER_NOT_FOUND);
+                });
     }
 
     private void startWaitingTimer(String roomId, Player requester, Player receiver) {
         String timerKey = getTimerKey(roomId, requester, receiver);
+        log.info("대기 타이머 시작: 방 ID {}, {}와 {}", roomId, requester.getNickname(), receiver.getNickname());
 
         Thread waitingTimer = Thread.ofVirtual().start(() -> {
             try {
+                log.debug("6초 대기 중, 배틀: {}와 {}", requester.getNickname(), receiver.getNickname());
                 Thread.sleep(6000);
                 updatePlayerStateAndCancelWaitingTimer(roomId, requester, receiver);
             } catch (InterruptedException | BaseException e) {
+                log.error("타이머가 중단되었거나 에러 발생, 방 ID: {}. 이유: {}", roomId, e.getMessage());
                 Thread.currentThread().interrupt();
             }
         });
@@ -110,11 +134,13 @@ public class GameBattleService {
     }
 
     private void updatePlayerStateAndCancelWaitingTimer(String roomId, Player requester, Player receiver) throws BaseException {
+        log.info("플레이어 상태 업데이트 및 타이머 취소: 방 ID {}, {}와 {}", roomId, requester.getNickname(), receiver.getNickname());
+
         Arena arena = gameRepository.findArenaByRoomId(roomId).orElseThrow(() -> new BaseException(ARENA_NOT_FOUND));
 
         List<Player> players = arena.getGame().getPlayers();
         Player updatedRequester = findPlayerByNickname(players, requester.getNickname());
-        Player updatedReceiver  = findPlayerByNickname(players, requester.getNickname());
+        Player updatedReceiver  = findPlayerByNickname(players, receiver.getNickname());
 
         updatedRequester.setBattleState(false);
         updatedReceiver.setBattleState(false);
@@ -122,15 +148,16 @@ public class GameBattleService {
         gameRepository.saveArena(roomId, arena);
 
         String timerKey = getTimerKey(roomId, requester, receiver);
-        if(waitingTimers.containsKey(timerKey)) {
+        if (waitingTimers.containsKey(timerKey)) {
             Thread waitingTimer = waitingTimers.get(timerKey);
             waitingTimer.interrupt();
             waitingTimers.remove(timerKey);
         }
+
+        log.info("플레이어 상태 초기화 및 타이머 취소 완료, 방 ID: {}", roomId);
     }
 
     private String getTimerKey(String roomId, Player requester, Player receiver) {
         return roomId + "-" + requester + "-" + receiver;
     }
-
 }
