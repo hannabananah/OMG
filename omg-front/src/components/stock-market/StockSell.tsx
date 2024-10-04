@@ -10,12 +10,13 @@ import PossessionChart from './PossessionChart';
 export default function StockSell() {
   const { sellStock } = useContext(SocketContext);
   const { carryingCount, setCarryingCount } = useGameStore();
-  const { sellStockMessage } = useSocketMessage();
+  const { sellStockMessage, setSellMessage } = useSocketMessage();
 
   useEffect(() => {
-    if (!sellStockMessage.message) return;
-
-    alert(sellStockMessage.message);
+    if (sellStockMessage.message) {
+      alert(sellStockMessage.message);
+      setSellMessage({ message: '', isCompleted: false });
+    }
   }, [sellStockMessage]);
 
   const handleSelling = () => {

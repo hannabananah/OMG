@@ -1,5 +1,8 @@
-import { useContext, useState } from 'react';
+import { useContext, useEffect, useState } from 'react';
 
+import { useGameStore } from '@/stores/useGameStore';
+import { useGoldStore } from '@/stores/useGoldStore';
+import { useSocketMessage } from '@/stores/useSocketMessage';
 import { SocketContext } from '@/utils/SocketContext';
 
 import Button from '../common/Button';
@@ -7,20 +10,29 @@ import LineChart from './LineChart';
 import PossessionChart from './PossessionChart';
 
 export default function GoldBuy() {
-  // TODO: 서버로 부터 데이터 받아오기
-
   const { purchaseGold } = useContext(SocketContext);
+  const { goldPurchaseMessage, setGoldPurchaseMessage } = useSocketMessage();
 
-  const MAX_TRADE_COUNT = 5; // 최대 거래 가능 수량
-  const MY_MONEY = 60; // 보유한 현금
+  const { goldPrice } = useGoldStore();
 
-  const GOLD_PRICE = 20; // (임시) 현재 금 가격
-  const GOLD_UPDOWN = 4; // (임시) 이전 타임 대비 등락
+  const { gameData } = useGameStore();
+  const { tradableStockCnt } = gameData || {};
+  const MAX_TRADE_COUNT = tradableStockCnt || 1; // 최대 거래 가능 수량
+
+  const MY_MONEY = 100; // TODO: 돈 정보 받아와야 함 (개인 판 정보로 부터)
+  const GOLD_PRICE = goldPrice;
 
   // 선택한 금 개수
   const [goldCount, setGoldCount] = useState(0);
 
-  // back에 보낼 6짜리 count 배열 세팅
+  useEffect(() => {
+    if (goldPurchaseMessage.message) {
+      alert(goldPurchaseMessage.message);
+      setGoldPurchaseMessage({ message: '', isCompleted: false });
+    }
+  }, [goldPurchaseMessage]);
+
+  // back에 보낼 금 매입 개수 세팅
   const handleGoldCount = (value: number) => {
     const newGoldCount = goldCount + value;
 
@@ -56,8 +68,7 @@ export default function GoldBuy() {
         {/* 금 시세 차트 & 현재 금 가격 & 등락 */}
         <div className='flex justify-center flex-col items-center w-full bg-skyblue h-[70%]'>
           <LineChart />
-          <p>(임시) 현재 금 가격: ${GOLD_PRICE}</p>
-          <p>(임시) 등락: ${GOLD_UPDOWN}</p>
+          <p>현재 금 가격: ${GOLD_PRICE}</p>
         </div>
 
         {/* 플레이어 별 지분 차트 */}
