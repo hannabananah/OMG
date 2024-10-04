@@ -50,7 +50,8 @@ import static com.ssafy.omg.config.baseresponse.BaseResponseStatus.PLAYER_STATE_
 import static com.ssafy.omg.config.baseresponse.BaseResponseStatus.REQUEST_ERROR;
 import static com.ssafy.omg.config.baseresponse.MessageResponseStatus.AMOUNT_OUT_OF_RANGE;
 import static com.ssafy.omg.config.baseresponse.MessageResponseStatus.INSUFFICIENT_CASH;
-import static com.ssafy.omg.config.baseresponse.MessageResponseStatus.INVALID_REPAY_AMOUNT;
+import static com.ssafy.omg.config.baseresponse.MessageResponseStatus.AMOUNT_EXCEED_CASH;
+import static com.ssafy.omg.config.baseresponse.MessageResponseStatus.AMOUNT_EXCEED_DEBT;
 import static com.ssafy.omg.config.baseresponse.MessageResponseStatus.OUT_OF_CASH;
 import static com.ssafy.omg.config.baseresponse.MessageResponseStatus.REPAYMENT_CAPACITY_LACK;
 import static com.ssafy.omg.config.baseresponse.MessageResponseStatus.STOCK_NOT_AVAILABLE;
