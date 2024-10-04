@@ -6,13 +6,15 @@ interface LoanState {
   totalDebt: number;
   cash: number;
   loanLimit: number;
+  interestRate: number;
   setLoanData: (data: {
-    loanPrincipal: number;
-    loanInterest: number;
+    loanPrincipal?: number;
+    loanInterest?: number;
     totalDebt: number;
     cash: number;
+    loanLimit?: number;
+    interestRate?: number;
   }) => void;
-  setLoanLimit: (limit: number) => void;
 }
 
 export const useLoanStore = create<LoanState>(set => ({
@@ -21,19 +23,22 @@ export const useLoanStore = create<LoanState>(set => ({
   totalDebt: 0,
   cash: 0,
   loanLimit: 0,
+  interestRate: 0,
 
-  // 대출 관련 데이터 업데이트
-  setLoanData: ({ loanPrincipal, loanInterest, totalDebt, cash }) =>
+  setLoanData: ({
+    loanPrincipal,
+    loanInterest,
+    totalDebt,
+    cash,
+    loanLimit,
+    interestRate,
+  }) =>
     set(() => ({
       loanPrincipal,
       loanInterest,
       totalDebt,
       cash,
-    })),
-
-  // 대출 한도 업데이트
-  setLoanLimit: (limit: number) =>
-    set(() => ({
-      loanLimit: limit,
+      loanLimit,
+      interestRate,
     })),
 }));
