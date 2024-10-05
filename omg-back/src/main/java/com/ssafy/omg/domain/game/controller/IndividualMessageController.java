@@ -5,10 +5,11 @@ import com.ssafy.omg.config.baseresponse.BaseException;
 import com.ssafy.omg.config.baseresponse.BaseResponse;
 import com.ssafy.omg.config.baseresponse.MessageException;
 import com.ssafy.omg.domain.game.GameRepository;
+import com.ssafy.omg.domain.game.dto.BattleClickDto;
 import com.ssafy.omg.domain.game.dto.BattleRequestDto;
 import com.ssafy.omg.domain.game.dto.IndividualMessageDto;
 import com.ssafy.omg.domain.game.dto.StockRequest;
-import com.ssafy.omg.domain.game.service.GameBattleService;
+import com.ssafy.omg.domain.game.service.battle.GameBattleService;
 import com.ssafy.omg.domain.game.service.GameBroadcastService;
 import com.ssafy.omg.domain.game.service.GameService;
 import com.ssafy.omg.domain.socket.dto.StompPayload;
@@ -171,9 +172,16 @@ public class IndividualMessageController {
     @MessageMapping("/reject-battle")
     public void rejectBattle(@Payload StompPayload<BattleRequestDto> payload) throws BaseException {
         // TODO sender가 receiver
-        String roomId = payload.getRoomId();
-        String userNickname = payload.getSender();
         gameBattleService.rejectBattleRequest(payload);
     }
 
+    @MessageMapping("/accept-battle")
+    public void acceptBattle(@Payload StompPayload<BattleRequestDto> payload) {
+        gameBattleService.acceptBattleRequest(payload);
+    }
+
+    @MessageMapping("/click-button")
+    public void clickButton(@Payload StompPayload<BattleClickDto> payload) {
+        gameBattleService.updateClickCount(payload);
+    }
 }
