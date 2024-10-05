@@ -33,13 +33,10 @@ export default function PossessionChart() {
       itemNameList.indexOf(a.treeItemName),
   );
 
-  // 플레이어 이름 목록
-  const nickNameList = [...playerNicknames];
-
   return (
     <ResponsiveBar
       data={data}
-      keys={nickNameList}
+      keys={[...playerNicknames]}
       indexBy='treeItemName'
       margin={{ top: 0, right: 10, bottom: 130, left: 120 }}
       padding={0.3}

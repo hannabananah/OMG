@@ -1,16 +1,23 @@
-import { useState } from 'react';
+import { useContext, useEffect, useState } from 'react';
 
 import LoanMain from '@/components/loan-market/LoanMain';
 import useModalStore from '@/stores/useModalStore';
 import { LoanMarketView } from '@/types';
+import { SocketContext } from '@/utils/SocketContext';
 
 import BackButton from '../common/BackButton';
 import LoanRepay from './LoanRepay';
 import LoanTake from './LoanTake';
 
 export default function LoanMarket() {
+  const { enterLoan } = useContext(SocketContext);
+
   const { modals, closeModal } = useModalStore();
   const [currentView, setCurrentView] = useState<LoanMarketView>('main');
+
+  useEffect(() => {
+    enterLoan();
+  }, []);
 
   const renderComponent = () => {
     switch (currentView) {
