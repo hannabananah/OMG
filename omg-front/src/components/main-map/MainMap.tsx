@@ -1,92 +1,86 @@
-import { Suspense, useContext, useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { Suspense, useContext, useEffect, useMemo, useState } from 'react';
 
+import { CharacterInfo } from '@/assets/data/characterInfo';
 import Character from '@/components/character/Character';
 import Button from '@/components/common/Button';
-import ChoiceTransaction from '@/components/common/ChoiceTransaction';
 import ExitButton from '@/components/common/ExitButton';
 import MainAlert from '@/components/common/MainAlert';
 import Round from '@/components/common/Round';
 import Timer from '@/components/common/Timer';
 import EventCard from '@/components/game/EventCard';
 import Map from '@/components/main-map/Map';
+import StockMarket from '@/components/stock-market/StockMarket';
 import { useGameStore } from '@/stores/useGameStore';
+import useModalStore from '@/stores/useModalStore';
 import { useOtherUserStore } from '@/stores/useOtherUserState';
 import { useSocketMessage } from '@/stores/useSocketMessage';
 import useUser from '@/stores/useUser';
 import { SocketContext } from '@/utils/SocketContext';
-import {
-  KeyboardControls,
-  OrbitControls,
-  PerspectiveCamera,
-} from '@react-three/drei';
+import { KeyboardControls, OrbitControls } from '@react-three/drei';
 import { Canvas } from '@react-three/fiber';
 import { Physics } from '@react-three/rapier';
 
 import IntroCamera from '../camera/IntroCamera';
 import ChatButton from '../common/ChatButton';
+import GoldMarket from '../gold-market/GoldMarket';
+import LoanMarket from '../loan-market/LoanMarket';
+import MainBoard from '../main-board/MainBoard';
+import MyRoom from '../my-room/MyRoom';
+
+export const Controls = {
+  forward: 'forward',
+  back: 'back',
+  left: 'left',
+  right: 'right',
+  pickup: 'pickup',
+};
 
 const stockTypes = [
-  { name: '주식 종류1', id: 1 },
-  { name: '주식 종류2', id: 2 },
-  { name: '주식 종류3', id: 3 },
-  { name: '주식 종류4', id: 4 },
-  { name: '주식 종류5', id: 5 },
+  { name: 'candy', id: 1 },
+  { name: 'cupcake', id: 2 },
+  { name: 'gift', id: 3 },
+  { name: 'hat', id: 4 },
+  { name: 'socks', id: 5 },
 ];
-
-const CharacterInfo = {
-  santa: {
-    url: '/models/santa/santa.gltf',
-    scale: [2, 2, 2],
-  },
-  elf: {
-    url: '/models/elf/elf.gltf',
-    scale: [1, 1, 1],
-  },
-  snowman: {
-    url: '/models/snowman/snowman.gltf',
-    scale: [1, 1, 1],
-  },
-  gingerbread: {
-    url: '/models/gingerbread/gingerbread.gltf',
-    scale: [1, 1, 1],
-  },
-};
 
 export default function MainMap() {
   const { characterType } = useUser();
-  const {
-    socket,
-    online,
-    initGameSetting,
-    allRendered,
-    purchaseGold,
-    takeLoan,
-    repayLoan,
-    buyStock,
-    sellStock,
-  } = useContext(SocketContext);
-  const { carryingData, setCarryingData } = useGameStore();
+  const { socket, online, initGameSetting, allRendered } =
+    useContext(SocketContext);
+  const { gameData, carryingCount, setCarryingCount } = useGameStore();
+
   const { otherUsers } = useOtherUserStore();
-  const {
-    goldPurchaseMessage,
-    loanMessage,
-    repayLoanMessage,
-    eventCardMessage,
-    buyStockMessage,
-    sellStockMessage,
-  } = useSocketMessage();
+
+  const { modals, openModal } = useModalStore();
+
+  const { eventCardMessage, gameRoundMessage } = useSocketMessage();
+  const { roundTimer, presentRound } = useContext(SocketContext);
+  const { tradableStockCnt } = gameData || {};
 
   const [isVisible, setIsVisible] = useState(false);
+  const [isAlertVisible, setIsAlertVisible] = useState(false);
+  const [isTimerVisible, setIsTimerVisible] = useState(false);
+  const [isRoundVisible, setIsRoundVisible] = useState(false);
+
+  const keyboardMap = useMemo(
+    () => [
+      { name: Controls.forward, keys: ['ArrowUp'] },
+      { name: Controls.back, keys: ['ArrowDown'] },
+      { name: Controls.left, keys: ['ArrowLeft'] },
+      { name: Controls.right, keys: ['ArrowRight'] },
+      { name: Controls.pickup, keys: ['Space'] },
+    ],
+    [],
+  );
 
   useEffect(() => {
     if (socket && online && allRendered) {
       initGameSetting();
     }
-  }, [initGameSetting, allRendered, socket, online]);
+  }, [allRendered]);
 
   useEffect(() => {
-    if (!eventCardMessage.title) return;
+    if (!eventCardMessage.title && !eventCardMessage.content) return;
     setIsVisible(true);
 
     const timer = setTimeout(() => {
@@ -96,81 +90,73 @@ export default function MainMap() {
   }, [eventCardMessage]);
 
   useEffect(() => {
-    if (!goldPurchaseMessage.message) return;
-
-    if (goldPurchaseMessage.isCompleted) {
-      alert(
-        `금괴를 성공적으로 구매했습니다! 현재 소유 금괴 수량: ${goldPurchaseMessage.message}`,
-      );
-    } else if (!goldPurchaseMessage.isCompleted) {
-      alert(goldPurchaseMessage.message);
+    if (gameRoundMessage.message === '1' || gameRoundMessage.message === '10') {
+      const timer = setTimeout(() => {
+        setIsTimerVisible(true);
+      }, 5000);
+      return () => clearTimeout(timer);
+    } else {
+      const timer = setTimeout(() => {
+        setIsTimerVisible(true);
+      }, 10000);
+      return () => clearTimeout(timer);
     }
-  }, [goldPurchaseMessage]);
-
-  // 매수
-  useEffect(() => {
-    if (!buyStockMessage.message) return;
-
-    if (buyStockMessage.isCompleted) {
-      alert(buyStockMessage.message);
-    } else if (!buyStockMessage.isCompleted) {
-      alert(buyStockMessage.message);
-    }
-  }, [buyStockMessage]);
-
-  // 매도
-  useEffect(() => {
-    if (!sellStockMessage.message) return;
-
-    if (sellStockMessage.isCompleted) {
-      alert(sellStockMessage.message);
-    } else if (!sellStockMessage.isCompleted) {
-      alert(sellStockMessage.message);
-    }
-  }, [sellStockMessage]);
-
-  useEffect(() => {
-    if (!loanMessage.message) return;
-
-    if (loanMessage.isCompleted) {
-      alert(`대출 신청이 완료되었습니다! 대출액: ${loanMessage.message}`);
-    } else if (!loanMessage.isCompleted) {
-      alert(loanMessage.message);
-    }
-  }, [loanMessage]);
-
-  useEffect(() => {
-    if (repayLoanMessage.message === null) return;
-
-    if (repayLoanMessage.isCompleted) {
-      if (repayLoanMessage.message == '0') {
-        alert('대출금을 모두 상환했습니다!');
-      } else {
-        alert(
-          `대출 상환이 완료되었습니다! 남은 대출액: ${repayLoanMessage.message}`,
-        );
-      }
-    } else if (!repayLoanMessage.isCompleted) {
-      alert(repayLoanMessage.message);
-    }
-  }, [repayLoanMessage]);
+  }, [gameRoundMessage]);
 
   // TODO: 삭제해야됨, 주식 매도 집에서 들고갈때
   useEffect(() => {
-    console.log('carryingData has changed:', carryingData);
-  }, [carryingData]);
+    console.log('carryingCount has changed:', carryingCount);
+  }, [carryingCount]);
+
+  // TODO: 삭제해야됨, 라운드 알림 모달
+  useEffect(() => {
+    if (!gameRoundMessage.message) return;
+
+    let displayDuration = 2000;
+
+    switch (gameRoundMessage.roundStatus) {
+      case 'ROUND_END':
+        setIsTimerVisible(false);
+        break;
+      case 'ROUND_START':
+        setIsRoundVisible(true);
+        break;
+      case 'GAME_FINISHED':
+        setIsRoundVisible(false);
+        break;
+      default:
+        break;
+    }
+
+    if (gameRoundMessage.message) {
+      setIsAlertVisible(true);
+    } else {
+      setIsAlertVisible(false);
+    }
+
+    const timer = setTimeout(() => {
+      setIsAlertVisible(false);
+    }, displayDuration);
+
+    return () => clearTimeout(timer);
+  }, [gameRoundMessage]);
 
   // TODO: 삭제해야됨, 주식 매도 집에서 들고갈때
   const handleClickStock = (stockId: number) => {
-    setCarryingData((prevData: number[]) => {
-      const newCarryingData = [...prevData];
-      if (stockId >= 0 && stockId < newCarryingData.length) {
-        newCarryingData[stockId] += 1;
+    setCarryingCount((prevData: number[]) => {
+      const newCarryingCount = [...prevData];
+
+      if (newCarryingCount[stockId] + 1 > tradableStockCnt) {
+        alert(`${tradableStockCnt}를 초과해서 선택할 수 없습니다.`);
+        return prevData;
       }
-      return newCarryingData;
+
+      if (stockId >= 0 && stockId < newCarryingCount.length) {
+        newCarryingCount[stockId] += 1;
+      }
+      return newCarryingCount;
     });
   };
-
   const characterKeys = Object.keys(CharacterInfo) as Array<
     keyof typeof CharacterInfo
   >;
@@ -186,33 +172,14 @@ export default function MainMap() {
       ...CharacterInfo[userCharacterKey],
       position: user.position,
       direction: user.direction,
+      actionToggle: user.actionToggle,
     };
   });
 
-  const Controls = {
-    forward: 'forward',
-    back: 'back',
-    left: 'left',
-    right: 'right',
-    pickup: 'pickup',
-  };
-
-  const keyboardMap = [
-    { name: Controls.forward, keys: ['ArrowUp'] },
-    { name: Controls.back, keys: ['ArrowDown'] },
-    { name: Controls.left, keys: ['ArrowLeft'] },
-    { name: Controls.right, keys: ['ArrowRight'] },
-    { name: Controls.pickup, keys: ['Space'] },
-  ];
-
-  const navigate = useNavigate();
-
-  const goToStockMarket = () => {
-    navigate('/stockmarket');
-  };
-
   const openMainSettingsModal = () => {
-    alert('메인 판 모달 띄워주기');
+    if (!modals.mainBoard) {
+      openModal('mainBoard');
+    }
   };
 
   const openPersonalSettingsModal = () => {
@@ -223,53 +190,48 @@ export default function MainMap() {
     alert('게임 미션 모달 띄워주기');
   };
 
-  // TODO: 삭제해야됨
-  const handleClickPurchaseGold = () => {
-    const goldPurchaseCount = Number(
-      prompt('금괴 매입 수량을 입력하세요.').trim(),
-    );
-    if (goldPurchaseCount == 0) {
-      alert('매입 수량을 다시 입력해주세요.');
-      return;
+  const openMyRoomModal = () => {
+    if (!modals.myRoom) {
+      openModal('myRoom');
     }
-
-    purchaseGold(goldPurchaseCount);
   };
 
-  const handleClickTakeLoan = () => {
-    const loanAmount = Number(prompt('대출할 액수를 입력하세요.').trim());
-    if (loanAmount == 0) {
-      alert('대출할 액수를 다시 입력해주세요.');
-      return;
+  const openStockMarketModal = () => {
+    if (!modals.stockMarket) {
+      openModal('stockMarket');
     }
-
-    takeLoan(loanAmount);
   };
 
-  const handleClickRepayLoan = () => {
-    const repayLoanAmount = Number(
-      prompt('상환할 대출 액수를 입력하세요.').trim(),
-    );
-    if (repayLoanAmount == 0) {
-      alert('상환액을 다시 입력해주세요.');
-      return;
+  const openGoldMarketModal = () => {
+    if (!modals.goldMarket) {
+      openModal('goldMarket');
     }
-    repayLoan(repayLoanAmount);
   };
 
-  const handleClickBuyStock = () => {
-    buyStock(carryingData);
-    setCarryingData([0, 0, 0, 0, 0, 0]);
-  };
-
-  const handleClickSellStock = () => {
-    sellStock(carryingData);
-    setCarryingData([0, 0, 0, 0, 0, 0]);
+  const openLoanMarketModal = () => {
+    if (!modals.loanMarket) {
+      openModal('loanMarket');
+    }
   };
 
   return (
     <main className='relative w-full h-screen overflow-hidden'>
-      {/* 주식 매도/매수 수량 선택(집에서/거래소에서) */}
+      {/* 메인판 Modal */}
+      {modals.mainBoard && <MainBoard />}
+
+      {/* 내 방 Modal */}
+      {modals.myRoom && <MyRoom />}
+
+      {/* 주식 시장 Modal */}
+      {modals.stockMarket && <StockMarket />}
+
+      {/* 금 시장 모달 */}
+      {modals.goldMarket && <GoldMarket />}
+
+      {/* 대출 시장 모달 */}
+      {modals.loanMarket && <LoanMarket />}
+
+      {/* 주식 매도 수량 선택(집에서) */}
       <div className='px-10 py-2'>
         {stockTypes.map(stock => (
           <button
@@ -282,23 +244,19 @@ export default function MainMap() {
         ))}
       </div>
 
-      {/* TODO: 삭제해야됨, 주식 매수 매도 버튼 */}
-      <div className='absolute z-30 flex items-center justify-center w-full h-full gap-56'>
-        <ChoiceTransaction type='buy-stock' onClick={handleClickBuyStock} />
-        <ChoiceTransaction type='sell-stock' onClick={handleClickSellStock} />
-      </div>
-
       {/* Round & Timer & Chat 고정 위치 렌더링 */}
       <section className='absolute z-10 flex flex-col items-end gap-4 top-10 right-10'>
-        <Round presentRound={1} />
-        <Timer />
+        {isRoundVisible && <Round presentRound={presentRound} />}
+        {isTimerVisible && <Timer time={roundTimer} />}
       </section>
+
       {/* TODO: 삭제해야됨, EventCard 모달 위치 */}
       {isVisible && (
         <div className='absolute z-30 flex items-center justify-center w-full h-full'>
           <EventCard />
         </div>
       )}
+
       {/* 모달 모음 */}
       <section className='absolute z-10 flex flex-col items-start gap-4 left-10 top-10'>
         <Button text='메인 판' type='mainmap' onClick={openMainSettingsModal} />
@@ -312,51 +270,60 @@ export default function MainMap() {
           type='mainmap'
           onClick={openPersonalMissionModal}
         />
-        {/* TODO: 삭제해야됨, 임시 금괴매입 버튼 */}
+        {/* TODO: 삭제해야됨, 임시 내 방 버튼 */}
         <Button
-          text='임시 금괴매입 버튼'
+          text='임시 내 방 버튼'
           type='mainmap'
-          onClick={handleClickPurchaseGold}
+          onClick={openMyRoomModal}
         />
-        {/* TODO: 삭제해야됨, 임시 대출신청 버튼 */}
+        {/* TODO: 삭제해야됨, 임시 주식 시장 버튼 */}
         <Button
-          text='임시 대출신청 버튼'
+          text='임시 주식 시장 버튼'
           type='mainmap'
-          onClick={handleClickTakeLoan}
+          onClick={openStockMarketModal}
         />
-        {/* TODO: 삭제해야됨, 임시 대출상환 버튼 */}
+        {/* TODO: 삭제해야됨, 임시 금 시장 버튼 */}
         <Button
-          text='임시 대출상환 버튼'
+          text='임시 금 시장 버튼'
           type='mainmap'
-          onClick={handleClickRepayLoan}
+          onClick={openGoldMarketModal}
+        />
+        {/* TODO: 삭제해야됨, 임시 대출 시장 버튼 */}
+        <Button
+          text='임시 대출 시장 버튼'
+          type='mainmap'
+          onClick={openLoanMarketModal}
         />
       </section>
 
-      {/* MainAlert 고정 위치 렌더링 */}
-      <div
-        className='absolute z-20 transform -translate-x-1/2 bottom-14 left-1/2 w-[60%]'
-        onClick={goToStockMarket}
-      >
-        <MainAlert text='클릭하면 임시 주식방으로' />
-      </div>
+      {/* TODO: 삭제해야됨 */}
+      {isAlertVisible && gameRoundMessage.message && (
+        <div className='absolute z-20 transform -translate-x-1/2 top-14 left-1/2 w-[60%]'>
+          <MainAlert text={gameRoundMessage.message} />
+        </div>
+      )}
 
       {/* 채팅 및 종료 버튼 고정 렌더링 */}
       <section className='absolute bottom-0 left-0 z-10 flex items-center justify-between w-full text-white py-14 px-14 text-omg-40b'>
         <ChatButton isWhite={true} />
         <ExitButton />
       </section>
+
       <KeyboardControls map={keyboardMap}>
         <Canvas>
           <Suspense>
             <OrbitControls />
             <axesHelper args={[800]} />
             <IntroCamera />
-            <Physics>
+            <Physics timeStep='vary' colliders={false} debug>
               <ambientLight />
               <directionalLight />
+
               <Map />
-              <PerspectiveCamera />
+
+              {/* <PerspectiveCamera /> */}
               {/* 본인 캐릭터 */}
+
               <Character
                 characterURL={selectedCharacter.url}
                 characterScale={selectedCharacter.scale}
@@ -371,6 +338,7 @@ export default function MainMap() {
                   characterScale={userCharacter.scale}
                   position={userCharacter.position}
                   direction={userCharacter.direction}
+                  actionToggle={userCharacter.actionToggle}
                   isOwnCharacter={false}
                 />
               ))}

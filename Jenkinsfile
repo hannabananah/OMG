@@ -4,6 +4,8 @@ pipeline {
     environment {
         BACKEND_IMAGE = 'backend'
         FRONTEND_IMAGE = 'frontend'
+        VITE_APP_BASE_URL = 'http://j11a206.p.ssafy.io/api/'
+        VITE_APP_SOCKET_URL = 'ws://j11a206.p.ssafy.io/omg'
     }
 
     stages {
@@ -26,7 +28,14 @@ pipeline {
                     dir('omg-front') {
                         sh 'pwd'  // 현재 디렉토리 출력
                         sh 'ls -al'  // 디렉토리 내 파일 목록 확인
-                        sh 'docker build --no-cache -t docker-image/$FRONTEND_IMAGE .'
+
+                        // Frontend build with environment variables
+                        sh """
+                            docker build --no-cache \
+                            --build-arg VITE_APP_BASE_URL=${VITE_APP_BASE_URL} \
+                            --build-arg VITE_APP_SOCKET_URL=${VITE_APP_SOCKET_URL} \
+                            -t docker-image/$FRONTEND_IMAGE .
+                        """
                     }
                     echo '********** Frontend Build End **********'
                 }

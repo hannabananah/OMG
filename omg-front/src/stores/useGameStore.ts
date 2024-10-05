@@ -2,7 +2,9 @@ import type { MarketStock, Player } from '@/types';
 import { create } from 'zustand';
 
 interface ExtendedGameData extends GameData {
-  tradableStockCnt: number;
+  tradableStockCnt?: number | null;
+  remainingUntilChange?: number | null;
+  stockPrices: number[] | null;
 }
 
 interface GameData {
@@ -30,22 +32,43 @@ interface GameData {
 
 interface GameStore {
   gameData: ExtendedGameData | null;
-  carryingData: number[];
+  carryingCount: number[];
+  selectedCount: number[];
   setGameData: (data: ExtendedGameData) => void;
-  setCarryingData: (
+  setCarryingCount: (
+    data: number[] | ((prevData: number[]) => number[]),
+  ) => void;
+  setSelectedCount: (
     data: number[] | ((prevData: number[]) => number[]),
   ) => void;
 }
 
 export const useGameStore = create<GameStore>(set => ({
   gameData: null,
-  carryingData: [0, 0, 0, 0, 0, 0],
-  setGameData: (data: ExtendedGameData) => set({ gameData: data }),
-  setCarryingData: (data: number[] | ((prevData: number[]) => number[])) => {
+  carryingCount: [0, 0, 0, 0, 0, 0],
+  selectedCount: [0, 0, 0, 0, 0, 0],
+  setGameData: (data: ExtendedGameData) => {
+    set({
+      gameData: {
+        ...data,
+        tradableStockCnt: data.tradableStockCnt ?? 1,
+        remainingUntilChange: data.remainingUntilChange ?? 0,
+        stockPrices: data.stockPrices ?? [0, 0, 0, 0, 0, 0],
+      },
+    });
+  },
+  setCarryingCount: (data: number[] | ((prevData: number[]) => number[])) => {
     if (typeof data === 'function') {
-      set(prev => ({ carryingData: data(prev.carryingData) }));
+      set(prev => ({ carryingCount: data(prev.carryingCount) }));
     } else {
-      set({ carryingData: data });
+      set({ carryingCount: data });
+    }
+  },
+  setSelectedCount: (data: number[] | ((prevData: number[]) => number[])) => {
+    if (typeof data === 'function') {
+      set(prev => ({ selectedCount: data(prev.selectedCount) }));
+    } else {
+      set({ selectedCount: data });
     }
   },
 }));

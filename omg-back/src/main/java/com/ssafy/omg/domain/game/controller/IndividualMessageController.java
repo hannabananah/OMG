@@ -1,5 +1,6 @@
 package com.ssafy.omg.domain.game.controller;
 
+import com.fasterxml.jackson.databind.ser.Serializers;
 import com.ssafy.omg.config.MessageController;
 import com.ssafy.omg.config.baseresponse.BaseException;
 import com.ssafy.omg.config.baseresponse.BaseResponse;
@@ -10,7 +11,9 @@ import com.ssafy.omg.domain.game.dto.BattleRequestDto;
 import com.ssafy.omg.domain.game.dto.IndividualMessageDto;
 import com.ssafy.omg.domain.game.dto.StockRequest;
 import com.ssafy.omg.domain.game.service.battle.GameBattleService;
+import com.ssafy.omg.domain.game.entity.Game;
 import com.ssafy.omg.domain.game.service.GameBroadcastService;
+import com.ssafy.omg.domain.game.service.GameScheduler;
 import com.ssafy.omg.domain.game.service.GameService;
 import com.ssafy.omg.domain.socket.dto.StompPayload;
 import lombok.RequiredArgsConstructor;
@@ -31,6 +34,7 @@ import static com.ssafy.omg.config.baseresponse.MessageResponseStatus.OUT_OF_CAS
 @Description("거래소 내부 로직")
 public class IndividualMessageController {
     private final GameService gameService;
+    private final GameScheduler gameScheduler;
     private final GameBroadcastService gameBroadcastService;
     private final SimpMessageSendingOperations messagingTemplate;
     private final GameRepository gameRepository;
@@ -48,6 +52,8 @@ public class IndividualMessageController {
             IndividualMessageDto individualMessage = gameService.getIndividualMessage(roomId, userNickname);
             response = new StompPayload<>("SUCCESS_PURCHASE_GOLD", roomId, userNickname, individualMessage);
             messagingTemplate.convertAndSend("/sub/" + roomId + "/game", response);
+            Game game = gameRepository.findArenaByRoomId(roomId).get().getGame();
+            gameScheduler.updateAndBroadcastMarketInfo(game, "GOLD");
             return new BaseResponse<>(response);
         } catch (MessageException e) {
             IndividualMessageDto individualMessage = gameService.getIndividualMessage(roomId, userNickname);
@@ -63,6 +69,28 @@ public class IndividualMessageController {
         }
     }
 
+    @MessageMapping("/calculate-loanlimit")
+    public BaseResponse<?> calculateLoanLimit(@Payload StompPayload<?> userActionPayload) throws BaseException {
+        String roomId = userActionPayload.getRoomId();
+        String userNickname = userActionPayload.getSender();
+
+        StompPayload<IndividualMessageDto> response = null;
+        try {
+            IndividualMessageDto individualMessage = gameService.getIndividualMessage(roomId, userNickname);
+            individualMessage.setLoanLimit(gameService.calculateLoanLimit(roomId, userNickname));
+            response = new StompPayload<>("SUCCESS_CALCULATE_LOANLIMIT", roomId, userNickname, individualMessage);
+            messagingTemplate.convertAndSend("/sub/" + roomId + "/game", response);
+            return new BaseResponse<>(response);
+        } catch (MessageException e) {
+            response = new StompPayload<>(e.getStatus().name(), roomId, userNickname, null);
+            messagingTemplate.convertAndSend("/sub/" + roomId + "/game", response);
+            log.debug(e.getStatus().getMessage());
+            return new BaseResponse<>(e.getStatus());
+        } catch (BaseException e) {
+            return new BaseResponse<>(e.getStatus());
+        }
+    }
+
     @MessageMapping("/take-loan")
     public BaseResponse<?> takeLoan(@Payload StompPayload<Integer> userActionPayload) throws BaseException {
         String roomId = userActionPayload.getRoomId();
@@ -73,6 +101,7 @@ public class IndividualMessageController {
         try {
             gameService.takeLoan(roomId, userNickname, takeLoanAmount);
             IndividualMessageDto individualMessage = gameService.getIndividualMessage(roomId, userNickname);
+            individualMessage.setLoanLimit(gameService.calculateLoanLimit(roomId, userNickname));
             response = new StompPayload<>("SUCCESS_TAKE_LOAN", roomId, userNickname, individualMessage);
             messagingTemplate.convertAndSend("/sub/" + roomId + "/game", response);
             return new BaseResponse<>(response);
@@ -97,6 +126,7 @@ public class IndividualMessageController {
         try {
             gameService.repayLoan(roomId, userNickname, repayLoanAmount);
             IndividualMessageDto individualMessage = gameService.getIndividualMessage(roomId, userNickname);
+            individualMessage.setLoanLimit(gameService.calculateLoanLimit(roomId, userNickname));
             response = new StompPayload<>("SUCCESS_REPAY_LOAN", roomId, userNickname, individualMessage);
             messagingTemplate.convertAndSend("/sub/" + roomId + "/game", response);
             return new BaseResponse<>(response);
@@ -111,30 +141,48 @@ public class IndividualMessageController {
         }
     }
 
+    @MessageMapping("/carry-stock")
+    public BaseResponse<?> setStocksOnCarryingStocks(@Payload StompPayload<StockRequest> payload) throws BaseException {
+        String roomId = payload.getRoomId();
+        String userNickname = payload.getSender();
+        int[] stocksToCarry = payload.getData().stocks();
+
+        StompPayload<IndividualMessageDto> response = null;
+        try {
+            gameService.setStocksOnCarryingStocks(roomId, userNickname, stocksToCarry);
+            IndividualMessageDto individualMessage = gameService.getIndividualMessage(roomId, userNickname);
+            response = new StompPayload<>("SUCCESS_CARRYING_STOCKS", roomId, userNickname, individualMessage);
+            messagingTemplate.convertAndSend("/sub/" + roomId + "/game", response);
+            return new BaseResponse<>(response);
+        } catch (MessageException e) {
+            IndividualMessageDto individualMessage = gameService.getIndividualMessage(roomId, userNickname);
+            response = new StompPayload<>(e.getStatus().name(), roomId, userNickname, individualMessage);
+            messagingTemplate.convertAndSend("/sub/" + roomId + "/game", response);
+            log.debug(e.getStatus().getMessage());
+            return new BaseResponse<>(e.getStatus());
+        }
+    }
+
     @MessageMapping("/sell-stock")
-    public BaseResponse<?> sellStock(@Payload StompPayload<StockRequest> userActionPayload) {
+    public BaseResponse<?> sellStock(@Payload StompPayload<StockRequest> userActionPayload) throws BaseException {
         String roomId = userActionPayload.getRoomId();
         String userNickname = userActionPayload.getSender();
         int[] sellStockAmount = userActionPayload.getData().stocks();
 
         StompPayload<IndividualMessageDto> response = null;
+
+        gameService.sellStock(roomId, userNickname, sellStockAmount);
+        IndividualMessageDto individualMessage = gameService.getIndividualMessage(roomId, userNickname);
+        response = new StompPayload<>("SUCCESS_SELL_STOCK", roomId, userNickname, individualMessage);
+        messagingTemplate.convertAndSend("/sub/" + roomId + "/game", response);
+        Game game = gameRepository.findArenaByRoomId(roomId).get().getGame();
+        gameScheduler.updateAndBroadcastMarketInfo(game, "STOCK");
         try {
-            gameService.sellStock(roomId, userNickname, sellStockAmount);
-            IndividualMessageDto individualMessage = gameService.getIndividualMessage(roomId,userNickname);
-            response = new StompPayload<>("SUCCESS_SELL_STOCK", roomId, userNickname, individualMessage);
-            messagingTemplate.convertAndSend("/sub/" + roomId + "/game", response);
-            return new BaseResponse<>(response);
+            gameScheduler.notifyMainMessage(roomId, "GAME_MANAGER");
+        } catch (BaseException e) {
+            log.error("Error while notifying main message: " + e.getStatus().getMessage());
         }
-//        catch (MessageException e) {
-//            IndividualMessageDto individualMessage = gameService.getIndividualMessage(roomId, userNickname);
-//            response = new StompPayload<>(e.getStatus().name(), roomId, userNickname, individualMessage);
-//            messagingTemplate.convertAndSend("/sub/" + roomId + "/game", response);
-//            log.debug(e.getStatus().getMessage());
-//            return new BaseResponse<>(e.getStatus());
-//        }
-        catch (BaseException e) {
-            return new BaseResponse<>(e.getStatus());
-        }
+        return new BaseResponse<>(response);
     }
 
     @MessageMapping("/buy-stock")
@@ -148,6 +196,9 @@ public class IndividualMessageController {
             IndividualMessageDto individualMessage = gameService.getIndividualMessage(roomId, userNickname);
             response = new StompPayload<>("SUCCESS_BUY_STOCK", roomId, userNickname, individualMessage);
             messagingTemplate.convertAndSend("/sub/" + roomId + "/game", response);
+            Game game = gameRepository.findArenaByRoomId(roomId).get().getGame();
+            gameScheduler.updateAndBroadcastMarketInfo(game, "STOCK");
+            gameScheduler.notifyMainMessage(roomId, "GAME_MANAGER");
         } catch (MessageException e) {
             IndividualMessageDto individualMessage = gameService.getIndividualMessage(roomId, userNickname);
             response = new StompPayload<>(e.getStatus().name(), roomId, userNickname, individualMessage);

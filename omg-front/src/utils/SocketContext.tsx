@@ -2,8 +2,11 @@ import { ReactNode, createContext, useEffect, useMemo, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 
 import { useGameStore } from '@/stores/useGameStore';
+import { useGoldStore } from '@/stores/useGoldStore';
+import { useLoanStore } from '@/stores/useLoanStore';
 import { useOtherUserStore } from '@/stores/useOtherUserState';
 import { useSocketMessage } from '@/stores/useSocketMessage';
+import { useStockStore } from '@/stores/useStockStore';
 import useUser from '@/stores/useUser';
 import type { ChatMessage, Player } from '@/types';
 import { Client } from '@stomp/stompjs';
@@ -36,6 +39,9 @@ interface SocketContextType {
   repayLoan: (repayLoanAmount: number) => void;
   buyStock: (stocks: number[]) => void;
   sellStock: (stocks: number[]) => void;
+  roundTimer: number;
+  presentRound: number;
+  enterLoan: () => void;
 }
 
 const defaultContextValue: SocketContextType = {
@@ -62,6 +68,9 @@ const defaultContextValue: SocketContextType = {
   repayLoan: () => {},
   buyStock: () => {},
   sellStock: () => {},
+  enterLoan: () => {},
+  roundTimer: 120,
+  presentRound: 1,
 };
 
 export const SocketContext =
@@ -85,8 +94,13 @@ export default function SocketProvider({ children }: SocketProviderProps) {
     setRepayLoanMessage,
     setGoldPurchaseMessage,
     setEventCardMessage,
+    setGameRoundMessage,
   } = useSocketMessage();
   const { setGameData } = useGameStore();
+  const { setStockMarketData } = useStockStore();
+  const { setGoldMarketData } = useGoldStore();
+  const { setLoanData } = useLoanStore();
+
   const [socket, setSocket] = useState<Client | null>(null);
   const [online, setOnline] = useState(false);
   const [player, setPlayer] = useState<string[]>([]);
@@ -95,6 +109,8 @@ export default function SocketProvider({ children }: SocketProviderProps) {
   const [hostPlayer, setHostPlayer] = useState<string | null>(null);
   const [allRendered, setAllRendered] = useState(false);
   const navigate = useNavigate();
+  const [roundTimer, setRoundTimer] = useState(120);
+  const [presentRound, setPresentRound] = useState(1);
 
   const roomTopic = `/sub/${roomId}/room`;
   const chatTopic = `/sub/${roomId}/chat`;
@@ -255,7 +271,6 @@ export default function SocketProvider({ children }: SocketProviderProps) {
               (player: Player) => player.nickname !== nickname,
             );
             if (otherPlayersData.length > 0) {
-              console.log('otherPlayersData--->', otherPlayersData);
               const updatedOtherUsers = otherPlayersData.map(
                 (player: Player) => {
                   const existingUser = useOtherUserStore
@@ -278,7 +293,7 @@ export default function SocketProvider({ children }: SocketProviderProps) {
           case 'SUCCESS_PURCHASE_GOLD':
             if (currentUser === nickname) {
               setGoldPurchaseMessage({
-                message: parsedMessage.data.goldOwned,
+                message: `금괴를 성공적으로 구매했습니다! 현재 소유 금괴 수량: ${parsedMessage.data.goldOwned}`,
                 isCompleted: true,
               });
             }
@@ -286,6 +301,8 @@ export default function SocketProvider({ children }: SocketProviderProps) {
 
           case 'SUCCESS_TAKE_LOAN':
             if (currentUser === nickname) {
+              console.log('parsedMessage.data 대출 성공->', parsedMessage.data);
+              setLoanData(parsedMessage.data);
               setLoanMessage({
                 message: parsedMessage.data.loanPrincipal,
                 isCompleted: true,
@@ -295,6 +312,8 @@ export default function SocketProvider({ children }: SocketProviderProps) {
 
           case 'SUCCESS_REPAY_LOAN':
             if (currentUser === nickname) {
+              console.log('상환 성공', parsedMessage.data);
+              setLoanData(parsedMessage.data);
               setRepayLoanMessage({
                 message: parsedMessage.data.totalDebt,
                 isCompleted: true,
@@ -357,8 +376,29 @@ export default function SocketProvider({ children }: SocketProviderProps) {
             break;
 
           case 'GAME_NOTIFICATION':
-            if (parsedMessage.data.roundStatus === 'ECONOMIC_EVENT') {
+            console.log('parsedMessage', parsedMessage);
+            if (
+              parsedMessage.data.roundStatus === 'APPLY_PREVIOUS_EVENT' ||
+              parsedMessage.data.roundStatus === 'ECONOMIC_EVENT_NEWS'
+            ) {
               setEventCardMessage(parsedMessage.data);
+            } else {
+              if (parsedMessage.data.time) {
+                setRoundTimer(parsedMessage.data.time);
+              } else {
+                setGameRoundMessage({
+                  roundStatus: parsedMessage.data.roundStatus,
+                  message: parsedMessage.data.message,
+                });
+              }
+              if (parsedMessage.data.round) {
+                setPresentRound(parsedMessage.data.round);
+              } else {
+                setGameRoundMessage({
+                  roundStatus: parsedMessage.data.roundStatus,
+                  message: parsedMessage.data.message,
+                });
+              }
             }
             break;
 
@@ -370,6 +410,7 @@ export default function SocketProvider({ children }: SocketProviderProps) {
                 isCompleted: true,
               });
               console.log('매수 성공', parsedMessage.data);
+              setStockMarketData(parsedMessage.data);
             }
             break;
 
@@ -405,12 +446,34 @@ export default function SocketProvider({ children }: SocketProviderProps) {
                 message: '매도 성공!',
                 isCompleted: true,
               });
+              setStockMarketData(parsedMessage.data);
             }
             break;
 
           case 'STOCK_FLUCTUATION':
             setGameData(parsedMessage.data);
+            setGameRoundMessage(parsedMessage.data);
             console.log('경제상황 발생', parsedMessage.data);
+            break;
+
+          case 'STOCK_MARKET_INFO':
+            setStockMarketData(parsedMessage.data);
+            console.log('주식 시장 데이터 업데이트', parsedMessage.data);
+            break;
+
+          case 'GOLD_MARKET_INFO':
+            setGoldMarketData(parsedMessage.data);
+            console.log('금괴 시장 데이터 업데이트', parsedMessage.data);
+            break;
+
+          case 'SUCCESS_CALCULATE_LOANLIMIT':
+            setLoanData(parsedMessage.data);
+            console.log('대출방 입장', parsedMessage.data);
+            break;
+
+          case 'MAIN_MESSAGE_NOTIFICATION':
+            setGameData(parsedMessage.data);
+            console.log('메인판 정보 업데이트', parsedMessage.data);
             break;
         }
       },
@@ -514,7 +577,7 @@ export default function SocketProvider({ children }: SocketProviderProps) {
       sender: string;
       data: null | object;
     } = {
-      type: 'test',
+      type: 'GAME_INIT',
       roomId,
       sender: nickname,
       data: null,
@@ -557,7 +620,6 @@ export default function SocketProvider({ children }: SocketProviderProps) {
         actionToggle,
       },
     };
-    console.log('messagePayload=보내는거=>', messagePayload);
     socket.publish({
       destination: '/pub/player-move',
       body: JSON.stringify(messagePayload),
@@ -633,9 +695,29 @@ export default function SocketProvider({ children }: SocketProviderProps) {
       sender: nickname,
       data: { stocks },
     };
-
+    console.log('매도messagePayload', messagePayload);
     socket.publish({
       destination: '/pub/sell-stock',
+      body: JSON.stringify(messagePayload),
+    });
+  };
+
+  // 대출방 진입
+  const enterLoan = () => {
+    if (!isSocketConnected()) return;
+    const messagePayload: {
+      roomId: string;
+      type: string;
+      sender: string;
+      data: null | number;
+    } = {
+      type: 'TAKE_LOAN',
+      roomId,
+      sender: nickname,
+      data: null,
+    };
+    socket.publish({
+      destination: '/pub/calculate-loanlimit',
       body: JSON.stringify(messagePayload),
     });
   };
@@ -665,6 +747,9 @@ export default function SocketProvider({ children }: SocketProviderProps) {
       repayLoan,
       buyStock,
       sellStock,
+      roundTimer,
+      presentRound,
+      enterLoan,
     }),
     [
       socket,
@@ -680,6 +765,9 @@ export default function SocketProvider({ children }: SocketProviderProps) {
       repayLoan,
       buyStock,
       sellStock,
+      roundTimer,
+      presentRound,
+      enterLoan,
     ],
   );
 

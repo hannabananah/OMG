@@ -5,6 +5,15 @@ spring:
     password: ${DB_PASSWORD_PROD}
     driver-class-name: com.mysql.cj.jdbc.Driver
 
+  jpa:
+    hibernate:
+      ddl-auto: update                # 스키마 자동 업데이트 (운영환경에선 필요에 따라 none으로 변경)
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.MySQL8Dialect   # MySQL 8.x 버전을 사용 중일 경우 적절한 방언 설정
+        show_sql: true
+        format_sql: true
+
   data:
     redis:
       host: ${REDIS_URL_PROD}

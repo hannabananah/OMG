@@ -47,8 +47,8 @@ public class StockState {
      * dc: 주가 변동 시 열에 대한 변화량
      * 각 인덱스는 주가 변동 시, (0, 1, 2, 3, 4, 5, 6, -6, -5, -4, -3, -2, -1)에 해당
      */
-    private final int[] stockDr = {0, -1, -1, -2, -2, -3, -3, 3, 3, 2, 2, 1, 1};
-    private final int[] stockDc = {-1, 0, 1, 0, 1, 0, 1, 0, -1, 0, -1, 0, -1};
+    public static final int[] stockDr = {0, -1, -1, -2, -2, -3, -3, 3, 3, 2, 2, 1, 1};
+    public static final int[] stockDc = {-1, 0, 1, 0, 1, 0, 1, 0, -1, 0, -1, 0, -1};
 
     /**
      * 주가 수준 카드
@@ -57,4 +57,9 @@ public class StockState {
     private final int[][] stockLevelCards = {
             {1, 5}, {1, 6}, {2, 6}, {2, 7}, {3, 7}, {3, 8}, {4, 9}, {4, 10}, {5, 11}, {5, 12}
     };
+
+    public int getTradableCount(int currentStockPriceLevel) {
+        int currentStockLevelCard[] = stockLevelCards[currentStockPriceLevel];
+        return currentStockLevelCard[0];
+    }
 }

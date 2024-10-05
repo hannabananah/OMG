@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import Gauge from '@/components/common/Gauge';
 
 export default function MarketState() {
   const items = [
@@ -16,11 +16,6 @@ export default function MarketState() {
     },
   ];
 
-  const [progress, setProgress] = useState(20); // 초기값 20
-
-  // TODO: 추후 삭제 필요
-  console.log('빌드 에러 해결을 위한 임시 setProgress 콘솔', setProgress(10));
-
   return (
     <div className='flex items-center gap-20 text-omg-20'>
       <ul className='flex items-center gap-6'>
@@ -34,12 +29,8 @@ export default function MarketState() {
 
       <div className='flex items-center gap-6'>
         <p>가격 변동 까지 남은 게이지</p>
-        <div className='relative w-[200px] h-7 bg-white rounded-100 overflow-hidden'>
-          <p className='absolute -translate-x-1/2 left-1/2'>{progress}%</p>
-          <div
-            className='h-full transition-all duration-300 bg-green'
-            style={{ width: `${progress}%` }}
-          ></div>
+        <div className='relative w-[200px] h-8 bg-white2 rounded-100 overflow-hidden'>
+          <Gauge />
         </div>
       </div>
     </div>

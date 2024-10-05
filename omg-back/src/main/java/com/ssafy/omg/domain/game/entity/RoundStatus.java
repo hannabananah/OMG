@@ -8,7 +8,8 @@ import java.util.Arrays;
 public enum RoundStatus {
     TUTORIAL(20),
     ROUND_START(3),         // 3초
-    ECONOMIC_EVENT(5),      // 5초
+    APPLY_PREVIOUS_EVENT(5),// 5초
+    ECONOMIC_EVENT_NEWS(5), // 5초
     ROUND_IN_PROGRESS(120), // 120초
     STOCK_FLUCTUATION(0),   // 타이머 정지
     ROUND_END(3),           // 3초

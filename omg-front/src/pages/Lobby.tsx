@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { FaCopy } from 'react-icons/fa';
 import { useNavigate } from 'react-router-dom';
 
@@ -14,10 +14,11 @@ export default function Lobby() {
   const [roomCode, setRoomCode] = useState<string>('');
   const navigate = useNavigate();
   const [isCopyEnabled, setIsCopyEnabled] = useState(false);
+  const roomCodeInputRef = useRef<HTMLInputElement | null>(null);
 
-  // TODO: 임시 이름 설정
   useEffect(() => {
-    const uniqueNickname = `testUser-${Date.now()}`;
+    const uniqueId = Math.floor(Math.random() * 9000) + 1000;
+    const uniqueNickname = `user-${uniqueId}`;
     setNickname(uniqueNickname);
   }, [setNickname]);
 
@@ -70,13 +71,23 @@ export default function Lobby() {
     }
   };
 
+  const handleKeyPress = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter') {
+      handleClickEnterRoom();
+    }
+  };
+
+  useEffect(() => {
+    roomCodeInputRef.current?.focus();
+  }, []);
+
   return (
     <div className='relative flex flex-col justify-center w-full h-screen p-10'>
       <div className='absolute right-8 bottom-9 text-omg-30'>
         <ExitButton showText={true} />
       </div>
 
-      <div className='flex flex-col items-center justify-center w-full h-full '>
+      <div className='flex flex-col items-center justify-center w-full h-full'>
         <div className='flex flex-col gap-5'>
           <div>
             <button
@@ -100,6 +111,8 @@ export default function Lobby() {
                 placeholder='코드 입력하기'
                 value={roomCode}
                 onChange={handleRoomCodeChange}
+                onKeyDown={handleKeyPress}
+                ref={roomCodeInputRef}
                 className='w-full py-2 pl-10 pr-20 border-4 border-black rounded-40 text-omg-24'
               />
               <button

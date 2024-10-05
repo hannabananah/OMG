@@ -68,4 +68,28 @@ button:disabled {
   .text-omg-30 {
     @apply font-omg-body;
   }
+
+  @keyframes shake {
+    0%,
+    100% {
+      transform: translateX(0);
+    }
+    25% {
+      transform: translateX(-2px);
+    }
+    50% {
+      transform: translateX(2px);
+    }
+    75% {
+      transform: translateX(-2px);
+    }
+  }
+
+  .animate-shake {
+    animation: shake 0.2s ease-in-out infinite;
+  }
+
+  .modal-container {
+    @apply flex flex-col w-[80%] h-[80%] bg-white bg-opacity-80 rounded-[30px];
+  }
 }
