@@ -45,7 +45,7 @@ export default function StockMarket() {
       className='fixed top-0 left-0 z-50 flex items-center justify-center w-full h-full bg-opacity-70'
       onClick={handleCloseStockMarket}
     >
-      <div className='flex flex-col w-[80%] h-[80%] bg-white bg-opacity-80 rounded-30'>
+      <div className='modal-container'>
         {/* 시장 수준 */}
         <section className='relative flex items-center justify-center w-full h-[14%] px-10 py-10 text-black text-omg-40b'>
           <div

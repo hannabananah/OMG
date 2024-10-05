@@ -24,6 +24,7 @@ import IntroCamera from '../camera/IntroCamera';
 import ChatButton from '../common/ChatButton';
 import GoldMarket from '../gold-market/GoldMarket';
 import LoanMarket from '../loan-market/LoanMarket';
+import MainBoard from '../main-board/MainBoard';
 import MyRoom from '../my-room/MyRoom';
 
 export const Controls = {
@@ -146,7 +147,7 @@ export default function MainMap() {
       const newCarryingCount = [...prevData];
 
       if (newCarryingCount[stockId] + 1 > tradableStockCnt) {
-        alert('tradableStockCnt를 초과해서 선택할 수 없습니다.');
+        alert(`${tradableStockCnt}를 초과해서 선택할 수 없습니다.`);
         return prevData;
       }
 
@@ -176,7 +177,9 @@ export default function MainMap() {
   });
 
   const openMainSettingsModal = () => {
-    alert('메인 판 모달 띄워주기');
+    if (!modals.mainBoard) {
+      openModal('mainBoard');
+    }
   };
 
   const openPersonalSettingsModal = () => {
@@ -213,6 +216,9 @@ export default function MainMap() {
 
   return (
     <main className='relative w-full h-screen overflow-hidden'>
+      {/* 메인판 Modal */}
+      {modals.mainBoard && <MainBoard />}
+
       {/* 내 방 Modal */}
       {modals.myRoom && <MyRoom />}
 

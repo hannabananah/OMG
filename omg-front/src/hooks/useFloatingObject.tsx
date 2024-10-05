@@ -25,6 +25,13 @@ export const useFloatingObject = (initialYPosition: number) => {
       ) {
         direction *= -1; // 방향 전환
       }
+
+      // Y축 위치를 제한
+      if (ref.current.position.y > initialYPosition + 0.2) {
+        ref.current.position.y = initialYPosition + 0.2;
+      } else if (ref.current.position.y < initialYPosition) {
+        ref.current.position.y = initialYPosition;
+      }
     }
   });
 

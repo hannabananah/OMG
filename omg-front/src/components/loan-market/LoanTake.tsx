@@ -19,14 +19,28 @@ export default function LoanTake() {
       const initialCash = players[playerIndex]?.cash;
       if (initialCash !== undefined) {
         setLoanData({
-          totalDebt: totalDebt,
+          totalDebt,
           cash: initialCash,
+          loanLimit,
         });
-      } else {
+      } else if (initialCash === undefined) {
         console.error('현금 정보 불러올 수 없음');
       }
     }
-  }, [playerIndex, setLoanData]);
+  }, [playerIndex, setLoanData, cash]);
+
+  useEffect(() => {
+    if (players && players[playerIndex]) {
+      const currentCash = players[playerIndex]?.cash;
+      if (currentCash !== undefined && cash !== currentCash) {
+        setLoanData({
+          totalDebt,
+          cash: currentCash,
+          loanLimit,
+        });
+      }
+    }
+  }, [players, playerIndex, setLoanData, cash, loanLimit, totalDebt]);
 
   useEffect(() => {
     if (!loanMessage.message) return;
@@ -37,7 +51,7 @@ export default function LoanTake() {
       alert(loanMessage.message);
     }
     setLoanMessage({ message: '', isCompleted: false });
-  }, [loanMessage, setLoanData]);
+  }, [loanMessage, setLoanMessage]);
 
   const handleClickTakeLoan = () => {
     const loanAmount = Number(prompt('대출할 액수를 입력하세요.').trim());
