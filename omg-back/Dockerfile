@@ -1,5 +1,6 @@
 # Use Gradle image for building, specify JDK 21 as the target
-FROM gradle:8.0-jdk21 AS build
+FROM gradle:8.8-jdk-focal AS build
+
 
 WORKDIR /app
 
@@ -10,7 +11,7 @@ COPY build.gradle settings.gradle ./
 COPY . /app
 
 # Build the project and skip the tests (-x test)
-RUN gradle clean build --no-daemon -x test
+RUN apt-get update && apt-get install -y openjdk-21-jdk
 
 # Use JRE for runtime environment to keep the image size smaller
 FROM openjdk:21-jdk-slim
