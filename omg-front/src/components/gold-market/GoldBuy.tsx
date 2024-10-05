@@ -17,7 +17,7 @@ export default function GoldBuy() {
 
   const { gameData } = useGameStore();
   const { tradableStockCnt } = gameData || {};
-  const MAX_TRADE_COUNT = tradableStockCnt || 1; // 최대 거래 가능 수량
+  const MAX_TRADE_COUNT = tradableStockCnt; // 최대 거래 가능 수량
 
   const MY_MONEY = 100; // TODO: 돈 정보 받아와야 함 (개인 판 정보로 부터)
   const GOLD_PRICE = goldPrice;
