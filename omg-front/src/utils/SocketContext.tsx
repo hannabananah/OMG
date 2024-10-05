@@ -49,26 +49,26 @@ const defaultContextValue: SocketContextType = {
   online: false,
   player: [],
   chatMessages: [],
-  connect: () => {},
-  disconnect: () => {},
-  roomSubscription: () => {},
-  leaveRoom: () => {},
-  chatSubscription: () => {},
-  sendMessage: () => {},
+  connect: () => { },
+  disconnect: () => { },
+  roomSubscription: () => { },
+  leaveRoom: () => { },
+  chatSubscription: () => { },
+  sendMessage: () => { },
   hostPlayer: '',
-  startGame: () => {},
-  rendered_complete: () => {},
-  gameSubscription: () => {},
+  startGame: () => { },
+  rendered_complete: () => { },
+  gameSubscription: () => { },
   players: [],
-  movePlayer: () => {},
-  initGameSetting: () => {},
+  movePlayer: () => { },
+  initGameSetting: () => { },
   allRendered: false,
-  purchaseGold: () => {},
-  takeLoan: () => {},
-  repayLoan: () => {},
-  buyStock: () => {},
-  sellStock: () => {},
-  enterLoan: () => {},
+  purchaseGold: () => { },
+  takeLoan: () => { },
+  repayLoan: () => { },
+  buyStock: () => { },
+  sellStock: () => { },
+  enterLoan: () => { },
   roundTimer: 120,
   presentRound: 1,
 };
@@ -235,7 +235,7 @@ export default function SocketProvider({ children }: SocketProviderProps) {
         switch (parsedMessage.type) {
           case 'GAME_INITIALIZED':
             const initGameData = parsedMessage.data.game;
-            if (initGameData.gameId === nickname) {
+            if (initGameData.gameId === roomId) {
               setGameData(initGameData);
             }
             const initPlayerData = parsedMessage.data.game.players;
@@ -301,10 +301,10 @@ export default function SocketProvider({ children }: SocketProviderProps) {
 
           case 'SUCCESS_TAKE_LOAN':
             if (currentUser === nickname) {
-              console.log('parsedMessage.data 대출 성공->', parsedMessage.data);
               setLoanData(parsedMessage.data);
+              console.log('대출 신청 성공', parsedMessage.data);
               setLoanMessage({
-                message: parsedMessage.data.loanPrincipal,
+                message: parsedMessage.data.currentLoanPrincipal,
                 isCompleted: true,
               });
             }
@@ -312,7 +312,7 @@ export default function SocketProvider({ children }: SocketProviderProps) {
 
           case 'SUCCESS_REPAY_LOAN':
             if (currentUser === nickname) {
-              console.log('상환 성공', parsedMessage.data);
+              console.log('대출 상환 성공', parsedMessage.data);
               setLoanData(parsedMessage.data);
               setRepayLoanMessage({
                 message: parsedMessage.data.totalDebt,
@@ -341,6 +341,7 @@ export default function SocketProvider({ children }: SocketProviderProps) {
 
           case 'AMOUNT_OUT_OF_RANGE':
             if (currentUser === nickname) {
+              console.log('대출 한도 초과');
               setLoanMessage({
                 message: '가능한 대출한도를 넘었습니다.',
                 isCompleted: false,
@@ -350,6 +351,7 @@ export default function SocketProvider({ children }: SocketProviderProps) {
 
           case 'LOAN_ALREADY_TAKEN':
             if (currentUser === nickname) {
+              console.log('이미 대출');
               setLoanMessage({
                 message: '이미 대출을 받았습니다.',
                 isCompleted: false,
@@ -359,6 +361,7 @@ export default function SocketProvider({ children }: SocketProviderProps) {
 
           case 'AMOUNT_EXCEED_DEBT':
             if (currentUser === nickname) {
+              console.log('대출 상환금이 부채금 초과');
               setRepayLoanMessage({
                 message: '상환금액이 총 부채금액 보다 큽니다.',
                 isCompleted: false,
@@ -368,6 +371,7 @@ export default function SocketProvider({ children }: SocketProviderProps) {
 
           case 'AMOUNT_EXCEED_CASH':
             if (currentUser === nickname) {
+              console.log('대출 상환금이 보유자산 초과');
               setRepayLoanMessage({
                 message: '상환금액이 보유 현금 자산 보다 큽니다.',
                 isCompleted: false,
@@ -469,7 +473,7 @@ export default function SocketProvider({ children }: SocketProviderProps) {
           case 'SUCCESS_CALCULATE_LOANLIMIT':
             if (currentUser === nickname) {
               setLoanData(parsedMessage.data);
-              console.log('대출방 입장', parsedMessage.data);
+              console.log('대출 입장', parsedMessage.data);
             }
             break;
 
@@ -652,6 +656,7 @@ export default function SocketProvider({ children }: SocketProviderProps) {
       sender: nickname,
       data: loanAmount,
     };
+    console.log('대출 신청', messagePayload);
     socket.publish({
       destination: '/pub/take-loan',
       body: JSON.stringify(messagePayload),
@@ -667,6 +672,7 @@ export default function SocketProvider({ children }: SocketProviderProps) {
       sender: nickname,
       data: repayLoanAmount,
     };
+    console.log('대출 상환', messagePayload);
     socket.publish({
       destination: '/pub/repay-loan',
       body: JSON.stringify(messagePayload),
