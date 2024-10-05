@@ -3,6 +3,7 @@ package com.ssafy.omg.domain.game.service;
 import com.ssafy.omg.config.baseresponse.BaseException;
 import com.ssafy.omg.config.baseresponse.MessageException;
 import com.ssafy.omg.domain.arena.entity.Arena;
+import com.ssafy.omg.domain.game.dto.GameResultResponse;
 import com.ssafy.omg.domain.game.dto.GoldMarketInfoResponse;
 import com.ssafy.omg.domain.game.dto.IndividualMessageDto;
 import com.ssafy.omg.domain.game.dto.MainMessageDto;
@@ -70,4 +71,7 @@ public interface GameService {
 
     // 금괴 매입소 정보 생성
     GoldMarketInfoResponse createGoldMarketInfo(Game game) throws BaseException;
+
+    // 게임 종료시 결과 정보 생성
+    GameResultResponse gameResult(Game game) throws BaseException;
 }

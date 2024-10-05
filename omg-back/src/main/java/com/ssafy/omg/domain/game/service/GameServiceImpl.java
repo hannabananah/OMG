@@ -4,6 +4,7 @@ import com.ssafy.omg.config.baseresponse.BaseException;
 import com.ssafy.omg.config.baseresponse.MessageException;
 import com.ssafy.omg.domain.arena.entity.Arena;
 import com.ssafy.omg.domain.game.GameRepository;
+import com.ssafy.omg.domain.game.dto.GameResultResponse;
 import com.ssafy.omg.domain.game.dto.GoldMarketInfoResponse;
 import com.ssafy.omg.domain.game.dto.IndividualMessageDto;
 import com.ssafy.omg.domain.game.dto.MainMessageDto;
@@ -223,6 +224,23 @@ public class GameServiceImpl implements GameService {
                 .goldPrice(goldPrice)
                 .goldPriceIncreaseCnt(goldPriceIncreaseCnt)
                 .goldPriceChart(marketGoldChart)
+                .build();
+    }
+
+    @Override
+    public GameResultResponse gameResult(Game game) throws BaseException {
+
+        List<Player> players = game.getPlayers();
+        String[] playerList = players.stream()
+                .map(Player::getNickname)
+                .toList().toArray(new String[0]);
+
+        return GameResultResponse.builder()
+                .playerNicknameByRanking(null)
+                .finalGoldCnt()
+                .finalStockCnt()
+                .finalNetWorth()
+                .finalDebt()
                 .build();
     }
 
