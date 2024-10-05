@@ -13,14 +13,14 @@ export default function GoldBuy() {
   const { purchaseGold } = useContext(SocketContext);
   const { goldPurchaseMessage, setGoldPurchaseMessage } = useSocketMessage();
 
-  const { goldPrice } = useGoldStore();
+  const { goldPrice, goldPriceChart } = useGoldStore();
+  const GOLD_PRICE = goldPrice;
 
   const { gameData } = useGameStore();
   const { tradableStockCnt } = gameData || {};
   const MAX_TRADE_COUNT = tradableStockCnt || 1; // 최대 거래 가능 수량
 
   const MY_MONEY = 100; // TODO: 돈 정보 받아와야 함 (개인 판 정보로 부터)
-  const GOLD_PRICE = goldPrice;
 
   // 선택한 금 개수
   const [goldCount, setGoldCount] = useState(0);
@@ -66,13 +66,12 @@ export default function GoldBuy() {
       {/* 금 시세 차트 등 & 플레이어 별 지분 */}
       <section className='w-[50%] flex flex-col justify-center items-center'>
         {/* 금 시세 차트 & 현재 금 가격 & 등락 */}
-        <div className='flex justify-center flex-col items-center w-full bg-skyblue h-[70%]'>
-          <LineChart />
-          <p>현재 금 가격: ${GOLD_PRICE}</p>
+        <div className='flex justify-center items-center w-full h-[70%] '>
+          <LineChart goldData={goldPriceChart} />
         </div>
 
         {/* 플레이어 별 지분 차트 */}
-        <div className='flex justify-center items-center w-full bg-blue h-[30%]'>
+        <div className='flex justify-center items-center w-full h-[30%]'>
           <PossessionChart />
         </div>
       </section>
@@ -85,10 +84,17 @@ export default function GoldBuy() {
 
           {/* 수량 선택 */}
           <div className='flex items-center'>
-            <Button text='-' type='count' onClick={() => handleGoldCount(-1)} />
+            <Button
+              text='-'
+              type='count'
+              onClick={() => handleGoldCount(-1)}
+              disabled={goldCount === 0}
+            />
             <p className='mx-4 text-omg-18'>{goldCount}</p>
             <Button text='+' type='count' onClick={() => handleGoldCount(1)} />
           </div>
+
+          <p className='text-omg-18'>현재 금 시세: ${GOLD_PRICE}</p>
 
           {/* 총 가격 표시 */}
           <div className='flex justify-between w-full px-20 text-omg-18'>
