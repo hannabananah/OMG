@@ -167,13 +167,24 @@ public class GameBattleService {
         Player loser = findPlayerByNickname(players, loserNickname);
 
         int loserGold = loser.getCarryingGolds();
-        winner.setCarryingGolds(winner.getCarryingGolds() + loserGold);
         loser.setCarryingGolds(0);
+        loser.setGoldOwned(loser.getGoldOwned() - loserGold);
+        winner.setCarryingGolds(winner.getCarryingGolds() + loserGold);
+        winner.setGoldOwned(winner.getGoldOwned() + loserGold);
 
         int[] loserStocks = loser.getCarryingStocks();
+        int[] loserAllStocks = loser.getStock();
         int[] winnerStocks = winner.getCarryingStocks();
+        int[] winnerAllStocks = winner.getStock();
+
+        for (int i = 1; i < 6; i++) {
+            winnerAllStocks[i] += loserStocks[i];
+        }
         for (int i = 1; i < 6; i++) {
             winnerStocks[i] += loserStocks[i];
+        }
+        for (int i = 1; i < 6; i++) {
+            loserAllStocks[i] -= loserStocks[i];
             loserStocks[i] = 0;
         }
 

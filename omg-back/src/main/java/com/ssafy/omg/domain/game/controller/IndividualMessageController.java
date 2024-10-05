@@ -214,7 +214,6 @@ public class IndividualMessageController {
         try {
             gameBattleService.handleBattleRequest(payload);
         } catch (MessageException e) {
-            // TODO
             response = new StompPayload<>(e.getStatus().name(), roomId, userNickname, null);
             messagingTemplate.convertAndSend("/sub/" + roomId + "/game", response);
         }
@@ -222,7 +221,6 @@ public class IndividualMessageController {
 
     @MessageMapping("/reject-battle")
     public void rejectBattle(@Payload StompPayload<BattleRequestDto> payload) throws BaseException {
-        // TODO sender가 receiver
         gameBattleService.rejectBattleRequest(payload);
     }
 
