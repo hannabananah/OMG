@@ -51,6 +51,7 @@ export default {
         skyblue: '#71FFFF',
         purple: '#AB18F4',
         blue: '#0371F8',
+        gray: '#888',
       },
     },
   },
