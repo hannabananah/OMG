@@ -405,6 +405,7 @@ export default function SocketProvider({ children }: SocketProviderProps) {
                 isCompleted: true,
               });
               console.log('매수 성공', parsedMessage.data);
+              setStockMarketData(parsedMessage.data);
             }
             break;
 
@@ -440,11 +441,13 @@ export default function SocketProvider({ children }: SocketProviderProps) {
                 message: '매도 성공!',
                 isCompleted: true,
               });
+              setStockMarketData(parsedMessage.data);
             }
             break;
 
           case 'STOCK_FLUCTUATION':
             setGameData(parsedMessage.data);
+            setGameRoundMessage(parsedMessage.data);
             console.log('경제상황 발생', parsedMessage.data);
             break;
 
@@ -459,9 +462,16 @@ export default function SocketProvider({ children }: SocketProviderProps) {
             break;
 
           case 'SUCCESS_CALCULATE_LOANLIMIT':
-            const { setLoanLimit } = useLoanStore.getState();
-            setLoanLimit(parsedMessage.data);
-            console.log('대출 한도 업데이트', parsedMessage.data);
+            if (currentUser === nickname) {
+              const { setLoanLimit } = useLoanStore.getState();
+              setLoanLimit(parsedMessage.data);
+              console.log('대출 한도 업데이트', parsedMessage.data);
+            }
+            break;
+
+          case 'MAIN_MESSAGE_NOTIFICATION':
+            setGameData(parsedMessage.data);
+            console.log('메인판 정보 업데이트', parsedMessage.data);
             break;
         }
       },
