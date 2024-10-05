@@ -140,28 +140,39 @@ public class GameBattleService {
         waitingTimers.put(timerKey, waitingTimer);
     }
 
-    private void updatePlayerStateAndCancelWaitingTimer(String roomId, String requesterNickname, String receiverNickname) throws BaseException {
-        log.info("플레이어 상태 업데이트 및 타이머 취소: 방 ID {}, {}와 {}", roomId, requesterNickname, receiverNickname);
+    private void resetBattleState(String roomId, String requesterNickname, String receiverNickname) throws BaseException {
+        log.info("플레이어 배틀 상태 해제: 방 ID {}, {}와 {}", roomId, requesterNickname, receiverNickname);
 
         Arena arena = gameRepository.findArenaByRoomId(roomId).orElseThrow(() -> new BaseException(ARENA_NOT_FOUND));
 
         List<Player> players = arena.getGame().getPlayers();
         Player updatedRequester = findPlayerByNickname(players, requesterNickname);
-        Player updatedReceiver  = findPlayerByNickname(players, receiverNickname);
+        Player updatedReceiver = findPlayerByNickname(players, receiverNickname);
 
         updatedRequester.setBattleState(false);
         updatedReceiver.setBattleState(false);
 
         gameRepository.saveArena(roomId, arena);
 
+        log.info("플레이어 배틀 상태 해제 완료: 방 ID {}", roomId);
+    }
+
+    private void cancelWaitingTimer(String roomId, String requesterNickname, String receiverNickname) {
         String timerKey = getTimerKey(roomId, requesterNickname, receiverNickname);
+
         if (waitingTimers.containsKey(timerKey)) {
             Thread waitingTimer = waitingTimers.get(timerKey);
             waitingTimer.interrupt();
             waitingTimers.remove(timerKey);
+            log.info("타이머 종료 완료: 방 ID {}, {}와 {}", roomId, requesterNickname, receiverNickname);
+        } else {
+            log.warn("타이머를 찾을 수 없음: 방 ID {}, {}와 {}", roomId, requesterNickname, receiverNickname);
         }
+    }
 
-        log.info("플레이어 상태 초기화 및 타이머 취소 완료, 방 ID: {}", roomId);
+    private void updatePlayerStateAndCancelWaitingTimer(String roomId, String requesterNickname, String receiverNickname) throws BaseException {
+        resetBattleState(roomId, requesterNickname, receiverNickname);
+        cancelWaitingTimer(roomId, requesterNickname, receiverNickname);
     }
 
     private String getTimerKey(String roomId, String requesterNickname, String receiverNickname) {
