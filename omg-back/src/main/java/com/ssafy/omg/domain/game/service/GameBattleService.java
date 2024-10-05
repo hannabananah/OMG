@@ -59,17 +59,25 @@ public class GameBattleService {
         validateReceiverState(requester, receiver, roomId, requesterNickname);
         setPlayersToBattleState(requester, receiver, arena, roomId);
 
-        notifyBattleRequest(roomId, requesterNickname, receiverNickname);
+        notifyBattleRequest("BATTLE_REQUEST", roomId, requesterNickname, receiverNickname);
 
         startWaitingTimer(roomId, requesterNickname, receiverNickname);
 
         log.info("배틀 요청 처리 완료, 방 ID: {}", roomId);
     }
 
-    private void notifyBattleRequest(String roomId, String requesterNickname, String receiverNickname) {
+    public void rejectBattleRequest(StompPayload<BattleRequestDto> payload) throws BaseException {
+        String receiverNickname = payload.getSender();
+        String requesterNickname = payload.getData().opponentPlayer();
+        String roomId = payload.getRoomId();
+        updatePlayerStateAndCancelWaitingTimer(roomId, requesterNickname, receiverNickname);
+        notifyBattleRequest("BATTLE_REQUEST_IS_REJECTED", roomId, requesterNickname, receiverNickname);
+    }
+
+    private void notifyBattleRequest(String messageType, String roomId, String requesterNickname, String receiverNickname) {
         log.info("배틀 요청 알림: {} -> {} (방 ID: {})", requesterNickname, receiverNickname, roomId);
         StompPayload<BattleRequestDto> response = new StompPayload<>(
-                "BATTLE_REQUEST", roomId, requesterNickname, new BattleRequestDto(receiverNickname)
+                messageType, roomId, requesterNickname, new BattleRequestDto(receiverNickname)
         );
         messagingTemplate.convertAndSend("/sub/" + roomId + "/game", response);
     }
@@ -179,14 +187,4 @@ public class GameBattleService {
         return roomId + "-" + requesterNickname + "-" + receiverNickname;
     }
 
-    public void rejectBattleRequest(StompPayload<BattleRequestDto> payload) throws BaseException {
-        String receiverNickname = payload.getSender();
-        String requesterNickname = payload.getData().opponentPlayer();
-        String roomId = payload.getRoomId();
-        updatePlayerStateAndCancelWaitingTimer(roomId, requesterNickname, receiverNickname);
-        StompPayload<BattleRequestDto> response = new StompPayload<>(
-                "BATTLE_REQUEST_IS_REJECTED", roomId, requesterNickname, new BattleRequestDto(receiverNickname)
-        );
-        messagingTemplate.convertAndSend("/sub/" + roomId + "/game", response);
-    }
 }
