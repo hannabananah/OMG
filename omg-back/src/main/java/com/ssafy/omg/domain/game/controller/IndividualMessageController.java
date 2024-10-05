@@ -1,5 +1,6 @@
 package com.ssafy.omg.domain.game.controller;
 
+import com.fasterxml.jackson.databind.ser.Serializers;
 import com.ssafy.omg.config.MessageController;
 import com.ssafy.omg.config.baseresponse.BaseException;
 import com.ssafy.omg.config.baseresponse.BaseResponse;
@@ -71,9 +72,8 @@ public class IndividualMessageController {
 
         StompPayload<IndividualMessageDto> response = null;
         try {
-            int loanLimit = gameService.calculateLoanLimit(roomId, userNickname);
             IndividualMessageDto individualMessage = gameService.getIndividualMessage(roomId, userNickname);
-            individualMessage.setLoanLimit(loanLimit);
+            individualMessage.setLoanLimit(gameService.calculateLoanLimit(roomId, userNickname));
             response = new StompPayload<>("SUCCESS_CALCULATE_LOANLIMIT", roomId, userNickname, individualMessage);
             messagingTemplate.convertAndSend("/sub/" + roomId + "/game", response);
             return new BaseResponse<>(response);
@@ -97,6 +97,7 @@ public class IndividualMessageController {
         try {
             gameService.takeLoan(roomId, userNickname, takeLoanAmount);
             IndividualMessageDto individualMessage = gameService.getIndividualMessage(roomId, userNickname);
+            individualMessage.setLoanLimit(gameService.calculateLoanLimit(roomId, userNickname));
             response = new StompPayload<>("SUCCESS_TAKE_LOAN", roomId, userNickname, individualMessage);
             messagingTemplate.convertAndSend("/sub/" + roomId + "/game", response);
             return new BaseResponse<>(response);
@@ -121,6 +122,7 @@ public class IndividualMessageController {
         try {
             gameService.repayLoan(roomId, userNickname, repayLoanAmount);
             IndividualMessageDto individualMessage = gameService.getIndividualMessage(roomId, userNickname);
+            individualMessage.setLoanLimit(gameService.calculateLoanLimit(roomId, userNickname));
             response = new StompPayload<>("SUCCESS_REPAY_LOAN", roomId, userNickname, individualMessage);
             messagingTemplate.convertAndSend("/sub/" + roomId + "/game", response);
             return new BaseResponse<>(response);
@@ -130,6 +132,24 @@ public class IndividualMessageController {
             messagingTemplate.convertAndSend("/sub/" + roomId + "/game", response);
             log.debug(e.getStatus().getMessage());
             return new BaseResponse<>(e.getStatus());
+        } catch (BaseException e) {
+            return new BaseResponse<>(e.getStatus());
+        }
+    }
+
+    @MessageMapping("/carry-stock")
+    public BaseResponse<?> setStocksOnCarryingStocks(@Payload StompPayload<StockRequest> payload) throws BaseException {
+        String roomId = payload.getRoomId();
+        String userNickname = payload.getSender();
+        int[] stocksToCarry = payload.getData().stocks();
+
+        StompPayload<IndividualMessageDto> response = null;
+        try {
+            gameService.setStocksOnCarryingStocks(roomId, userNickname, stocksToCarry);
+            IndividualMessageDto individualMessage = gameService.getIndividualMessage(roomId, userNickname);
+            response = new StompPayload<>("SUCCESS_CARRYING_STOCKS", roomId, userNickname, individualMessage);
+            messagingTemplate.convertAndSend("/sub/" + roomId + "/game", response);
+            return new BaseResponse<>(response);
         } catch (BaseException e) {
             return new BaseResponse<>(e.getStatus());
         }
