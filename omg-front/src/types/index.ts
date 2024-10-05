@@ -27,6 +27,32 @@ export type StockMarketView = 'main' | 'buy' | 'sell';
 export type StockItem = 'candy' | 'cupcake' | 'gift' | 'hat' | 'socks';
 export type StockItemInKorean = '사탕' | '컵케이크' | '선물' | '모자' | '양말';
 
+export const stockItems: {
+  itemName: StockItem;
+  position: { x: number; y: number; z: number };
+}[] = [
+  {
+    itemName: 'candy',
+    position: { x: -7, y: 0, z: 0 },
+  },
+  {
+    itemName: 'cupcake',
+    position: { x: -5.5, y: 2, z: 0 },
+  },
+  {
+    itemName: 'gift',
+    position: { x: -4, y: 2, z: 0 },
+  },
+  {
+    itemName: 'hat',
+    position: { x: -2.5, y: 1, z: 0 },
+  },
+  {
+    itemName: 'socks',
+    position: { x: -1, y: 0, z: 0 },
+  },
+];
+
 // 대출
 export type LoanMarketView = 'main' | 'take' | 'repay';
 
@@ -58,4 +84,10 @@ export interface PossessionDataInfo {
 export interface MarketStock {
   cnt: number;
   state: [number, number];
+}
+
+// 금 시세 차트 데이터
+export interface GoldDataItem {
+  id: string;
+  data: Array<{ x: number; y: number }>; // 각 시간(x)과 그에 따른 가격(y)
 }

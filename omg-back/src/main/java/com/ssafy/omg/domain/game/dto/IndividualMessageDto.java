@@ -15,7 +15,8 @@ import java.util.TreeSet;
 @Builder
 public class IndividualMessageDto {
     private TreeSet<LoanProduct> loanProducts; // 대출 상품 기록
-    private int loanPrincipal;              // 가장 최근 대출 원금
+    private int totalDebt;                  // 총 부채
+    private int loanLimit;                  // 대출 한도
     private int cash;                       // 현금
     private int[] stock;                    // 보유 주식 개수
     private int goldOwned;                  // 보유 금괴 개수

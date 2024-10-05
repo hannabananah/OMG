@@ -51,9 +51,10 @@ import static com.ssafy.omg.config.baseresponse.BaseResponseStatus.PLAYER_STATE_
 import static com.ssafy.omg.config.baseresponse.BaseResponseStatus.REQUEST_ERROR;
 import static com.ssafy.omg.config.baseresponse.MessageResponseStatus.AMOUNT_OUT_OF_RANGE;
 import static com.ssafy.omg.config.baseresponse.MessageResponseStatus.INSUFFICIENT_CASH;
-import static com.ssafy.omg.config.baseresponse.MessageResponseStatus.INVALID_REPAY_AMOUNT;
+import static com.ssafy.omg.config.baseresponse.MessageResponseStatus.AMOUNT_EXCEED_CASH;
+import static com.ssafy.omg.config.baseresponse.MessageResponseStatus.AMOUNT_EXCEED_DEBT;
 import static com.ssafy.omg.config.baseresponse.MessageResponseStatus.OUT_OF_CASH;
-import static com.ssafy.omg.config.baseresponse.MessageResponseStatus.REPAYMENT_CAPACITY_LACK;
+import static com.ssafy.omg.config.baseresponse.MessageResponseStatus.INVALID_STOCK_COUNT;
 import static com.ssafy.omg.config.baseresponse.MessageResponseStatus.STOCK_NOT_AVAILABLE;
 import static com.ssafy.omg.domain.game.entity.RoundStatus.STOCK_FLUCTUATION;
 import static com.ssafy.omg.domain.game.entity.RoundStatus.TUTORIAL;
@@ -68,7 +69,6 @@ public class GameServiceImpl implements GameService {
     private final RedisTemplate<String, Arena> redisTemplate;
     // Redis에서 대기방 식별을 위한 접두사 ROOM_PREFIX 설정
     private static final String ROOM_PREFIX = "room";
-    private final int[][] LOAN_RANGE = new int[][]{{50, 100}, {150, 300}, {500, 1000}};
     private static List<Integer> characterTypes = new ArrayList<>(Arrays.asList(0, 1, 2, 3));
     private final GameEventRepository gameEventRepository;
     private final GameRepository gameRepository;
@@ -144,7 +144,8 @@ public class GameServiceImpl implements GameService {
 
         return IndividualMessageDto.builder()
                 .loanProducts(player.getLoanProducts())
-                .loanPrincipal(player.getRecentLoanPrincipal())
+                .totalDebt(player.getTotalDebt())
+                .loanLimit(0)
                 .cash(player.getCash())
                 .stock(player.getStock())
                 .goldOwned(player.getGoldOwned())
@@ -816,8 +817,8 @@ public class GameServiceImpl implements GameService {
         Game game = arena.getGame();
 
         // 1. 현금 자산 대비 DSR 목표 금액 계산
-        double desiredDsr = isRichestPlayer(game, player) ? 0.04 : 0.03; // 가장 부유한 플레이어는 DesiredDSR가 40%, 그 외 30%
-        int maxLoanPayment = (int) (player.getCash() * desiredDsr);
+        double desiredDsr = isRichestPlayer(game, player) ? 0.4 : 0.3; // 가장 부유한 플레이어는 DesiredDSR가 40%, 그 외 30%
+        int maxLoanPayment = (int) ((player.getCash() - player.getTotalDebt()) * desiredDsr);
 
         // 2. 기존 부채 상환액 차감
         // 2-1. 기존 부채 상환액 계산
@@ -829,17 +830,19 @@ public class GameServiceImpl implements GameService {
             int loanInterest = loanProduct.getLoanInterest();
             existingDebt +=
                     (int) (((loanPrincipal * interestRate * Math.pow(1 + interestRate, leftRoundCnt))
-                            / Math.pow(1 + interestRate, leftRoundCnt) - 1) + loanInterest / leftRoundCnt);
+                            / (Math.pow(1 + interestRate, leftRoundCnt) - 1)) + loanInterest / leftRoundCnt);
         }
+
         // 2-2. DSR 목표 금액에서 기존 부채 상환액 차감
         int availableRepaymentCapacity = maxLoanPayment - existingDebt;
+
         if (availableRepaymentCapacity < 0) {
-            throw new MessageException(roomId, sender, REPAYMENT_CAPACITY_LACK);
+            return 0;
         }
 
         // 3. 대출 한도 산정
         double marketInterestRate = game.getCurrentInterestRate() / 100.0;
-        int loanLimit = (int) (availableRepaymentCapacity / marketInterestRate);
+        int loanLimit = (int) (((game.getCurrentStockPriceLevel() + 1) * availableRepaymentCapacity / 10.0 * 7) / marketInterestRate);
 
         // 4. 금괴, 주식 가치 대출 한도에 반영
         loanLimit += (int) (player.getGoldOwned() * game.getGoldPrice() * 0.7);
@@ -901,6 +904,7 @@ public class GameServiceImpl implements GameService {
         int range = calculateLoanLimit(roomId, sender);
 
         Arena arena = gameRepository.findArenaByRoomId(roomId).orElseThrow(() -> new BaseException(ARENA_NOT_FOUND));
+        Game game = arena.getGame();
         Player player = findPlayer(arena, sender);
 
         // 요청 금액이 대출 한도를 이내인지 검사
@@ -908,8 +912,8 @@ public class GameServiceImpl implements GameService {
             throw new MessageException(roomId, sender, AMOUNT_OUT_OF_RANGE);
         }
 
-        player.getLoanProducts().add(new LoanProduct(arena.getGame().getCurrentInterestRate(), amount, 0));
-        player.setRecentLoanPrincipal(amount);
+        player.getLoanProducts().add(new LoanProduct(game.getCurrentInterestRate(), amount, 0, game.getRound(), 120 - game.getTime()));
+        player.setTotalDebt(player.getTotalDebt() + amount);
         player.setCash(player.getCash() + amount);
 
         gameRepository.saveArena(roomId, arena);
@@ -928,41 +932,46 @@ public class GameServiceImpl implements GameService {
         validateRequest(roomId, sender);
 
         Arena arena = gameRepository.findArenaByRoomId(roomId).orElseThrow(() -> new BaseException(ARENA_NOT_FOUND));
-        Game game = arena.getGame();
         Player player = findPlayer(arena, sender);
 
         // 상환액이 총 부채보다 많을 경우, MessageException 발생
         TreeSet<LoanProduct> loanProducts = player.getLoanProducts();
-        int totalDebt = loanProducts.stream()
-                .mapToInt(loanProduct -> loanProduct.getLoanPrincipal() + loanProduct.getLoanInterest())
-                .sum();
+        int totalDebt = player.getTotalDebt();
 
-        if (totalDebt > amount || amount <= 0) {
-            throw new MessageException(roomId, sender, INVALID_REPAY_AMOUNT);
+        // 상환액이 총 부채금보다 많을 경우 MessageException 발생
+        if (totalDebt < amount || amount <= 0) {
+            throw new MessageException(roomId, sender, AMOUNT_EXCEED_DEBT);
         }
+
+        // 상환액이 내 현금자산 보다 많을 경우 MessageException 발생
+        if (amount > player.getCash()) {
+            throw new MessageException(roomId, sender, AMOUNT_EXCEED_CASH);
+        }
+
+        // 내 현금 자산에서 amount 빼기
+        player.setCash(player.getCash() - amount);
+
+        // totalDebt에서 amount 빼기
+        player.setTotalDebt(totalDebt - amount);
 
         // LoanProducts 돌면서 '이자 -> 대출원금' 상환
         for (LoanProduct loanProduct : loanProducts) {
-            // 이자 == 0 && 대출원금 == 0일 경우, loanProducts에서 삭제
-            // 상환 금액이 0이 되면 break
 
             // 이자 상환
             if (loanProduct.getLoanInterest() <= amount) {
-                loanProduct.setLoanInterest(0);
                 amount -= loanProduct.getLoanInterest();
+                loanProduct.setLoanInterest(0);
             } else {
                 loanProduct.setLoanInterest(loanProduct.getLoanInterest() - amount);
-                amount = 0;
                 break;
             }
 
             // 대출 원금 상환
             if (loanProduct.getLoanPrincipal() <= amount) {
-                loanProduct.setLoanPrincipal(0);
                 amount -= loanProduct.getLoanPrincipal();
+                loanProducts.remove(loanProduct);
             } else {
                 loanProduct.setLoanPrincipal(loanProduct.getLoanPrincipal() - amount);
-                amount = 0;
                 break;
             }
 
@@ -970,9 +979,43 @@ public class GameServiceImpl implements GameService {
                 break;
             }
         }
+
         gameRepository.saveArena(roomId, arena);
     }
 
+    @Override
+    public void addInterestToTotalDebtAndLoanProducts(Game game) {
+        List<Player> players = game.getPlayers();
+
+        for (Player player : players) {
+            int totalInterest = 0;
+            for (LoanProduct loanProduct : player.getLoanProducts()) {
+                int interest = (int) (loanProduct.getLoanPrincipal() * loanProduct.getInterestRate()/100.0);
+                totalInterest += interest;
+                loanProduct.setLoanInterest(loanProduct.getLoanInterest() + interest);
+            }
+            player.setTotalDebt(player.getTotalDebt() + totalInterest);
+        }
+    }
+
+    @Override
+    public void setStocksOnCarryingStocks(String roomId, String sender, int[] stocksToCarry) throws BaseException, MessageException {
+
+        validateRequest(roomId, sender);
+        Arena arena = gameRepository.findArenaByRoomId(roomId).orElseThrow(() -> new BaseException(ARENA_NOT_FOUND));
+
+        Player player = findPlayer(arena, sender);
+        int[] ownedStocks = player.getStock();
+
+        for (int i = 1; i < 6; i++) {
+            if (ownedStocks[i] < stocksToCarry[i]) {
+                throw new MessageException(roomId, sender, INVALID_STOCK_COUNT);
+            }
+        }
+        player.setCarryingStocks(stocksToCarry);
+
+        gameRepository.saveArena(roomId, arena);
+    }
 
     // 주식 매도
     @Override
@@ -986,6 +1029,7 @@ public class GameServiceImpl implements GameService {
         StockInfo[] marketStocks = game.getMarketStocks();
         int[] stockSellTrack = game.getStockSellTrack();
         Player player = findPlayer(arena, sender);
+        int[] carryingStocks = player.getCarryingStocks();
         int[] ownedStocks = player.getStock();
 
         if (player.getState() == COMPLETED) {
@@ -1008,6 +1052,7 @@ public class GameServiceImpl implements GameService {
         for (int i = 1; i < 6; i++) {
             stockPrice = getStockPrice(marketStocks, i);
             salePrice += stockPrice * stocksToSell[i];
+            carryingStocks[i] -= stocksToSell[i];
             ownedStocks[i] -= stocksToSell[i];
             marketStocks[i].addCnt(stocksToSell[i]);
         }
@@ -1060,9 +1105,6 @@ public class GameServiceImpl implements GameService {
             marketStocks[randomStockIndex].decreaseState();
         }
     }
-
-
-    // 주식 매수
 
     // 주가 변동
     public void changeStockPrice(Game game) throws BaseException {

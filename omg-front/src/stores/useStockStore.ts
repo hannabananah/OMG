@@ -15,7 +15,7 @@ export const useStockStore = create<StockStore>(set => ({
   stockPriceChangeInfo: Array(6)
     .fill(0)
     .map(() => [8, ...Array(60).fill(0)]),
-  playerNicknames: ['플레이어 1', '플레이어 2', '플레이어 3', '플레이어 4'],
+  playerNicknames: ['User 1', 'User 2', 'User 3', 'User 4'],
   playerStockShares: Array(6)
     .fill(0)
     .map(() => Array(4).fill(0)),
