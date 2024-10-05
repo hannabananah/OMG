@@ -99,6 +99,7 @@ export default function SocketProvider({ children }: SocketProviderProps) {
   const { setGameData } = useGameStore();
   const { setStockMarketData } = useStockStore();
   const { setGoldMarketData } = useGoldStore();
+  const { setLoanData } = useLoanStore();
 
   const [socket, setSocket] = useState<Client | null>(null);
   const [online, setOnline] = useState(false);
@@ -300,6 +301,8 @@ export default function SocketProvider({ children }: SocketProviderProps) {
 
           case 'SUCCESS_TAKE_LOAN':
             if (currentUser === nickname) {
+              console.log('parsedMessage.data 대출 성공->', parsedMessage.data);
+              setLoanData(parsedMessage.data);
               setLoanMessage({
                 message: parsedMessage.data.loanPrincipal,
                 isCompleted: true,
@@ -309,6 +312,8 @@ export default function SocketProvider({ children }: SocketProviderProps) {
 
           case 'SUCCESS_REPAY_LOAN':
             if (currentUser === nickname) {
+              console.log('상환 성공', parsedMessage.data);
+              setLoanData(parsedMessage.data);
               setRepayLoanMessage({
                 message: parsedMessage.data.totalDebt,
                 isCompleted: true,
@@ -405,6 +410,7 @@ export default function SocketProvider({ children }: SocketProviderProps) {
                 isCompleted: true,
               });
               console.log('매수 성공', parsedMessage.data);
+              setStockMarketData(parsedMessage.data);
             }
             break;
 
@@ -440,11 +446,13 @@ export default function SocketProvider({ children }: SocketProviderProps) {
                 message: '매도 성공!',
                 isCompleted: true,
               });
+              setStockMarketData(parsedMessage.data);
             }
             break;
 
           case 'STOCK_FLUCTUATION':
             setGameData(parsedMessage.data);
+            setGameRoundMessage(parsedMessage.data);
             console.log('경제상황 발생', parsedMessage.data);
             break;
 
@@ -459,9 +467,13 @@ export default function SocketProvider({ children }: SocketProviderProps) {
             break;
 
           case 'SUCCESS_CALCULATE_LOANLIMIT':
-            const { setLoanLimit } = useLoanStore.getState();
-            setLoanLimit(parsedMessage.data);
-            console.log('대출 한도 업데이트', parsedMessage.data);
+            setLoanData(parsedMessage.data);
+            console.log('대출방 입장', parsedMessage.data);
+            break;
+
+          case 'MAIN_MESSAGE_NOTIFICATION':
+            setGameData(parsedMessage.data);
+            console.log('메인판 정보 업데이트', parsedMessage.data);
             break;
         }
       },

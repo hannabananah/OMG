@@ -24,6 +24,7 @@ import IntroCamera from '../camera/IntroCamera';
 import ChatButton from '../common/ChatButton';
 import GoldMarket from '../gold-market/GoldMarket';
 import LoanMarket from '../loan-market/LoanMarket';
+import MainBoard from '../main-board/MainBoard';
 import MyRoom from '../my-room/MyRoom';
 
 export const Controls = {
@@ -44,7 +45,7 @@ const stockTypes = [
 
 export default function MainMap() {
   const { characterType } = useUser();
-  const { socket, online, initGameSetting, allRendered, repayLoan } =
+  const { socket, online, initGameSetting, allRendered } =
     useContext(SocketContext);
   const { gameData, carryingCount, setCarryingCount } = useGameStore();
 
@@ -52,8 +53,7 @@ export default function MainMap() {
 
   const { modals, openModal } = useModalStore();
 
-  const { repayLoanMessage, eventCardMessage, gameRoundMessage } =
-    useSocketMessage();
+  const { eventCardMessage, gameRoundMessage } = useSocketMessage();
   const { roundTimer, presentRound } = useContext(SocketContext);
   const { tradableStockCnt } = gameData || {};
 
@@ -103,22 +103,6 @@ export default function MainMap() {
     }
   }, [gameRoundMessage]);
 
-  useEffect(() => {
-    if (repayLoanMessage.message === null) return;
-
-    if (repayLoanMessage.isCompleted) {
-      if (repayLoanMessage.message == '0') {
-        alert('대출금을 모두 상환했습니다!');
-      } else {
-        alert(
-          `대출 상환이 완료되었습니다! 남은 대출액: ${repayLoanMessage.message}`,
-        );
-      }
-    } else if (!repayLoanMessage.isCompleted) {
-      alert(repayLoanMessage.message);
-    }
-  }, [repayLoanMessage]);
-
   // TODO: 삭제해야됨, 주식 매도 집에서 들고갈때
   useEffect(() => {
     console.log('carryingCount has changed:', carryingCount);
@@ -163,7 +147,7 @@ export default function MainMap() {
       const newCarryingCount = [...prevData];
 
       if (newCarryingCount[stockId] + 1 > tradableStockCnt) {
-        alert('tradableStockCnt를 초과해서 선택할 수 없습니다.');
+        alert(`${tradableStockCnt}를 초과해서 선택할 수 없습니다.`);
         return prevData;
       }
 
@@ -193,7 +177,9 @@ export default function MainMap() {
   });
 
   const openMainSettingsModal = () => {
-    alert('메인 판 모달 띄워주기');
+    if (!modals.mainBoard) {
+      openModal('mainBoard');
+    }
   };
 
   const openPersonalSettingsModal = () => {
@@ -202,17 +188,6 @@ export default function MainMap() {
 
   const openPersonalMissionModal = () => {
     alert('게임 미션 모달 띄워주기');
-  };
-
-  const handleClickRepayLoan = () => {
-    const repayLoanAmount = Number(
-      prompt('상환할 대출 액수를 입력하세요.').trim(),
-    );
-    if (repayLoanAmount == 0) {
-      alert('상환액을 다시 입력해주세요.');
-      return;
-    }
-    repayLoan(repayLoanAmount);
   };
 
   const openMyRoomModal = () => {
@@ -241,6 +216,9 @@ export default function MainMap() {
 
   return (
     <main className='relative w-full h-screen overflow-hidden'>
+      {/* 메인판 Modal */}
+      {modals.mainBoard && <MainBoard />}
+
       {/* 내 방 Modal */}
       {modals.myRoom && <MyRoom />}
 
@@ -291,12 +269,6 @@ export default function MainMap() {
           text='게임 미션'
           type='mainmap'
           onClick={openPersonalMissionModal}
-        />
-        {/* TODO: 삭제해야됨, 임시 대출상환 버튼 */}
-        <Button
-          text='임시 대출상환 버튼'
-          type='mainmap'
-          onClick={handleClickRepayLoan}
         />
         {/* TODO: 삭제해야됨, 임시 내 방 버튼 */}
         <Button
