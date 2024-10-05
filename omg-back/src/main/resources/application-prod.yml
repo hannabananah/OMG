@@ -1,8 +1,8 @@
 spring:
   datasource:
-    url: ${DB_URL_PROD}               # 프로덕션 데이터베이스 URL
-    username: ${DB_USERNAME_PROD}      # 프로덕션 데이터베이스 사용자명
-    password: ${DB_PASSWORD_PROD}      # 프로덕션 데이터베이스 비밀번호
+    url: ${DB_URL_PROD}
+    username: ${DB_USERNAME_PROD}
+    password: ${DB_PASSWORD_PROD}
     driver-class-name: com.mysql.cj.jdbc.Driver
 
   jpa:
@@ -16,9 +16,9 @@ spring:
 
   data:
     redis:
-      host: ${REDIS_URL_PROD}          # 프로덕션 Redis 호스트
-      port: ${REDIS_PORT_PROD}          # 프로덕션 Redis 포트
+      host: ${REDIS_URL_PROD}
+      port: ${REDIS_PORT_PROD}
 
 logging.level:
-  org.hibernate.SQL: debug
-  com.ssafy.omg: debug
+  org.hibernate.SQL: info
+  com.ssafy.omg: info

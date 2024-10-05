@@ -6,8 +6,11 @@ import com.ssafy.omg.config.baseresponse.BaseException;
 import com.ssafy.omg.config.baseresponse.BaseResponse;
 import com.ssafy.omg.config.baseresponse.MessageException;
 import com.ssafy.omg.domain.game.GameRepository;
+import com.ssafy.omg.domain.game.dto.BattleClickDto;
+import com.ssafy.omg.domain.game.dto.BattleRequestDto;
 import com.ssafy.omg.domain.game.dto.IndividualMessageDto;
 import com.ssafy.omg.domain.game.dto.StockRequest;
+import com.ssafy.omg.domain.game.service.battle.GameBattleService;
 import com.ssafy.omg.domain.game.entity.Game;
 import com.ssafy.omg.domain.game.service.GameBroadcastService;
 import com.ssafy.omg.domain.game.service.GameScheduler;
@@ -35,6 +38,7 @@ public class IndividualMessageController {
     private final GameBroadcastService gameBroadcastService;
     private final SimpMessageSendingOperations messagingTemplate;
     private final GameRepository gameRepository;
+    private final GameBattleService gameBattleService;
 
     @MessageMapping("/gold")
     public BaseResponse<?> purchaseGold(@Payload StompPayload<Integer> goldPayload) throws BaseException, MessageException {
@@ -202,4 +206,31 @@ public class IndividualMessageController {
         }
     }
 
+    @MessageMapping("/request-battle")
+    public void sendBattleRequest(@Payload StompPayload<BattleRequestDto> payload) throws BaseException {
+        String roomId = payload.getRoomId();
+        String userNickname = payload.getSender();
+        StompPayload<?> response = null;
+        try {
+            gameBattleService.handleBattleRequest(payload);
+        } catch (MessageException e) {
+            response = new StompPayload<>(e.getStatus().name(), roomId, userNickname, null);
+            messagingTemplate.convertAndSend("/sub/" + roomId + "/game", response);
+        }
+    }
+
+    @MessageMapping("/reject-battle")
+    public void rejectBattle(@Payload StompPayload<BattleRequestDto> payload) throws BaseException {
+        gameBattleService.rejectBattleRequest(payload);
+    }
+
+    @MessageMapping("/accept-battle")
+    public void acceptBattle(@Payload StompPayload<BattleRequestDto> payload) {
+        gameBattleService.acceptBattleRequest(payload);
+    }
+
+    @MessageMapping("/click-button")
+    public void clickButton(@Payload StompPayload<BattleClickDto> payload) {
+        gameBattleService.updateClickCount(payload);
+    }
 }
