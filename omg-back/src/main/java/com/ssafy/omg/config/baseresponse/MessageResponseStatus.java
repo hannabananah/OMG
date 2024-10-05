@@ -23,7 +23,10 @@ public enum MessageResponseStatus {
     AMOUNT_EXCEED_CASH(3109, "상환 금액이 보유 자산보다 많습니다."),
 
     // SetLoanLimit
-    REPAYMENT_CAPACITY_LACK(502, "상환 능력 부족으로 대출이 불가능합니다.");
+    REPAYMENT_CAPACITY_LACK(502, "상환 능력 부족으로 대출이 불가능합니다."),
+
+    // setStocksOnCarryingStocks
+    INVALID_STOCK_COUNT(503, "보유한 주식이 아니어서 지갑에 넣을 수 없습니다.");
 
     private final int code;
     private final String message;

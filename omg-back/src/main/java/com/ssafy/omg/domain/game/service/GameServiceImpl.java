@@ -53,7 +53,7 @@ import static com.ssafy.omg.config.baseresponse.MessageResponseStatus.INSUFFICIE
 import static com.ssafy.omg.config.baseresponse.MessageResponseStatus.AMOUNT_EXCEED_CASH;
 import static com.ssafy.omg.config.baseresponse.MessageResponseStatus.AMOUNT_EXCEED_DEBT;
 import static com.ssafy.omg.config.baseresponse.MessageResponseStatus.OUT_OF_CASH;
-import static com.ssafy.omg.config.baseresponse.MessageResponseStatus.REPAYMENT_CAPACITY_LACK;
+import static com.ssafy.omg.config.baseresponse.MessageResponseStatus.INVALID_STOCK_COUNT;
 import static com.ssafy.omg.config.baseresponse.MessageResponseStatus.STOCK_NOT_AVAILABLE;
 import static com.ssafy.omg.domain.game.entity.RoundStatus.STOCK_FLUCTUATION;
 import static com.ssafy.omg.domain.game.entity.RoundStatus.TUTORIAL;
@@ -799,8 +799,8 @@ public class GameServiceImpl implements GameService {
         Game game = arena.getGame();
 
         // 1. 현금 자산 대비 DSR 목표 금액 계산
-        double desiredDsr = isRichestPlayer(game, player) ? 0.04 : 0.03; // 가장 부유한 플레이어는 DesiredDSR가 40%, 그 외 30%
-        int maxLoanPayment = (int) (player.getCash() * desiredDsr);
+        double desiredDsr = isRichestPlayer(game, player) ? 0.4 : 0.3; // 가장 부유한 플레이어는 DesiredDSR가 40%, 그 외 30%
+        int maxLoanPayment = (int) ((player.getCash() - player.getTotalDebt()) * desiredDsr);
 
         // 2. 기존 부채 상환액 차감
         // 2-1. 기존 부채 상환액 계산
@@ -812,12 +812,14 @@ public class GameServiceImpl implements GameService {
             int loanInterest = loanProduct.getLoanInterest();
             existingDebt +=
                     (int) (((loanPrincipal * interestRate * Math.pow(1 + interestRate, leftRoundCnt))
-                            / Math.pow(1 + interestRate, leftRoundCnt) - 1) + loanInterest / leftRoundCnt);
+                            / (Math.pow(1 + interestRate, leftRoundCnt) - 1)) + loanInterest / leftRoundCnt);
         }
+
         // 2-2. DSR 목표 금액에서 기존 부채 상환액 차감
         int availableRepaymentCapacity = maxLoanPayment - existingDebt;
+
         if (availableRepaymentCapacity < 0) {
-            throw new MessageException(roomId, sender, REPAYMENT_CAPACITY_LACK);
+            return 0;
         }
 
         // 3. 대출 한도 산정
@@ -979,12 +981,19 @@ public class GameServiceImpl implements GameService {
     }
 
     @Override
-    public void setStocksOnCarryingStocks(String roomId, String sender, int[] stocksToCarry) throws BaseException {
+    public void setStocksOnCarryingStocks(String roomId, String sender, int[] stocksToCarry) throws BaseException, MessageException {
 
         validateRequest(roomId, sender);
         Arena arena = gameRepository.findArenaByRoomId(roomId).orElseThrow(() -> new BaseException(ARENA_NOT_FOUND));
 
         Player player = findPlayer(arena, sender);
+        int[] ownedStocks = player.getStock();
+
+        for (int i = 1; i < 6; i++) {
+            if (ownedStocks[i] < stocksToCarry[i]) {
+                throw new MessageException(roomId, sender, INVALID_STOCK_COUNT);
+            }
+        }
         player.setCarryingStocks(stocksToCarry);
 
         gameRepository.saveArena(roomId, arena);

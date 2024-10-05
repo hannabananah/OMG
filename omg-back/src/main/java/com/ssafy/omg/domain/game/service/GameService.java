@@ -55,7 +55,7 @@ public interface GameService {
 
     void addInterestToTotalDebtAndLoanProducts(Game game);
 
-    void setStocksOnCarryingStocks(String roomId, String sender, int[] stocksToCarry) throws BaseException;
+    void setStocksOnCarryingStocks(String roomId, String sender, int[] stocksToCarry) throws BaseException, MessageException;
 
     void sellStock(String roomId, String userNickname, int[] amount) throws BaseException;
 
