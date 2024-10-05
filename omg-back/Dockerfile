@@ -1,5 +1,5 @@
 # Use Gradle image for building, specify JDK 21 as the target
-FROM gradle:8.0-jdk21 AS build
+FROM gradle:8.0-jdk17 AS build
 
 WORKDIR /app
 
