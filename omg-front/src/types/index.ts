@@ -59,3 +59,9 @@ export interface MarketStock {
   cnt: number;
   state: [number, number];
 }
+
+// 금 시세 차트 데이터
+export interface GoldDataItem {
+  id: string;
+  data: Array<{ x: number; y: number }>; // 각 시간(x)과 그에 따른 가격(y)
+}
