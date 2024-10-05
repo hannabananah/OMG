@@ -7,11 +7,14 @@ WORKDIR /app
 # Copy build.gradle and settings.gradle for dependency resolution
 COPY build.gradle settings.gradle ./
 
+# Build the project and skip the tests (-x test)
+RUN apt-get update && apt-get install -y openjdk-21-jdk
+
 # Copy the rest of the application code
 COPY . /app
 
-# Build the project and skip the tests (-x test)
-RUN apt-get update && apt-get install -y openjdk-21-jdk
+# 빌드해서 jar 파일 생성
+RUN gradle clean build --no-daemon -x test
 
 # Use JRE for runtime environment to keep the image size smaller
 FROM openjdk:21-jdk-slim
