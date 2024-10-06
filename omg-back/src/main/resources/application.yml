@@ -22,10 +22,29 @@ spring:
     redis:
       host: localhost
       port: 6379
-logging.level:
-  org.hibernate.SQL: debug
-  com.ssafy.omg: debug
+
+logging:
+  file:
+    name: ./logs/application.log
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss} - %msg%n"
+    file: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"
+  level:
+    org.hibernate.SQL: debug
+    com.ssafy.omg: debug
 
 cors:
   allowed:
     origins: http://localhost:5173
+
+  kafka:
+    producer:
+      bootstrap-servers: localhost:9092
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.apache.kafka.common.serialization.StringSerializer
+    consumer:
+      bootstrap-servers: localhost:9092
+      group-id: your-group-id
+      auto-offset-reset: earliest
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.apache.kafka.common.serialization.StringDeserializer
