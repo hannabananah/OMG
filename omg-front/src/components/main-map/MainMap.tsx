@@ -19,7 +19,7 @@ import { SocketContext } from '@/utils/SocketContext';
 import { KeyboardControls, OrbitControls } from '@react-three/drei';
 import { Canvas } from '@react-three/fiber';
 import { Physics } from '@react-three/rapier';
-
+import Chatting from '@/components/chat/Chatting'
 import IntroCamera from '../camera/IntroCamera';
 import ChatButton from '../common/ChatButton';
 import GoldMarket from '../gold-market/GoldMarket';
@@ -57,7 +57,7 @@ export default function MainMap() {
   const { eventCardMessage, gameRoundMessage } = useSocketMessage();
   const { roundTimer, presentRound } = useContext(SocketContext);
   const { tradableStockCnt } = gameData || {};
-
+  const [isChatOpen, setIsChatOpen] = useState(false);
   const [isVisible, setIsVisible] = useState(false);
   const [isAlertVisible, setIsAlertVisible] = useState(false);
   const [isTimerVisible, setIsTimerVisible] = useState(false);
@@ -217,6 +217,14 @@ export default function MainMap() {
     }
   };
 
+  const openChattingModal = () => {
+    setIsChatOpen(true);
+  };
+
+  const closeChattingModal = () => {
+    setIsChatOpen(false);
+  };
+
   return (
     <main className='relative w-full h-screen overflow-hidden'>
       {/* 메인판 Modal */}
@@ -310,8 +318,12 @@ export default function MainMap() {
       )}
 
       {/* 채팅 및 종료 버튼 고정 렌더링 */}
-      <section className='absolute bottom-0 left-0 z-10 flex items-center justify-between w-full text-white py-14 px-14 text-omg-40b'>
-        <ChatButton isWhite={true} />
+      <section className='absolute bottom-0 left-0 z-10 flex items-end justify-between w-full p-10 text-white text-omg-40b'>
+        {!isChatOpen ? (
+          <ChatButton isWhite={true} onClick={openChattingModal} />
+        ) : (
+          <Chatting closeChattingModal={closeChattingModal} />
+        )}
         <ExitButton />
       </section>
 
