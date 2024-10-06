@@ -1,4 +1,4 @@
-import { useCallback, useContext, useEffect, useState } from 'react';
+import { useCallback, useContext, useEffect } from 'react';
 import { FaCrown } from 'react-icons/fa';
 import { useNavigate, useParams } from 'react-router-dom';
 
