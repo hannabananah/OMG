@@ -454,7 +454,6 @@ public class GameScheduler {
     }
 
     private void endGame(Game game) throws BaseException {
-        game.setGameStatus(GameStatus.GAME_FINISHED);
         notifyPlayers(game.getGameId(), GAME_FINISHED, "게임 결과");
         GameResultResponse result = gameService.gameResult(game);
         StompPayload<GameResultResponse> gameResultResponseStompPayload = new StompPayload<>("GAME_RESULT", game.getGameId(), "GAME_MANAGER", result);
