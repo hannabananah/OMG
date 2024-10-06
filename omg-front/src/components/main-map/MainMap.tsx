@@ -26,6 +26,7 @@ import GoldMarket from '../gold-market/GoldMarket';
 import LoanMarket from '../loan-market/LoanMarket';
 import MainBoard from '../main-board/MainBoard';
 import MyRoom from '../my-room/MyRoom';
+import PersonalBoard from '../personal-board/PersonalBoard';
 
 export const Controls = {
   forward: 'forward',
@@ -183,7 +184,9 @@ export default function MainMap() {
   };
 
   const openPersonalSettingsModal = () => {
-    alert('개인 판 모달 띄워주기');
+    if (!modals.personalBoard) {
+      openModal('personalBoard');
+    }
   };
 
   const openPersonalMissionModal = () => {
@@ -218,6 +221,9 @@ export default function MainMap() {
     <main className='relative w-full h-screen overflow-hidden'>
       {/* 메인판 Modal */}
       {modals.mainBoard && <MainBoard />}
+
+      {/* 개인판 Modal */}
+      {modals.personalBoard && <PersonalBoard />}
 
       {/* 내 방 Modal */}
       {modals.myRoom && <MyRoom />}
