@@ -35,6 +35,7 @@ import java.util.Set;
 import java.util.TreeSet;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
+import java.util.Iterator;
 
 import static com.ssafy.omg.config.baseresponse.BaseResponseStatus.ARENA_NOT_FOUND;
 import static com.ssafy.omg.config.baseresponse.BaseResponseStatus.EVENT_NOT_FOUND;
@@ -145,6 +146,7 @@ public class GameServiceImpl implements GameService {
                 .loanProducts(player.getLoanProducts())
                 .totalDebt(player.getTotalDebt())
                 .loanLimit(0)
+                .currentLoanPrincipal(0)
                 .cash(player.getCash())
                 .stock(player.getStock())
                 .goldOwned(player.getGoldOwned())
@@ -937,7 +939,9 @@ public class GameServiceImpl implements GameService {
         player.setTotalDebt(totalDebt - amount);
 
         // LoanProducts 돌면서 '이자 -> 대출원금' 상환
-        for (LoanProduct loanProduct : loanProducts) {
+        Iterator<LoanProduct> iterator = loanProducts.iterator();
+        while (iterator.hasNext()) {
+            LoanProduct loanProduct = iterator.next();
 
             // 이자 상환
             if (loanProduct.getLoanInterest() <= amount) {
@@ -951,7 +955,7 @@ public class GameServiceImpl implements GameService {
             // 대출 원금 상환
             if (loanProduct.getLoanPrincipal() <= amount) {
                 amount -= loanProduct.getLoanPrincipal();
-                loanProducts.remove(loanProduct);
+                iterator.remove();
             } else {
                 loanProduct.setLoanPrincipal(loanProduct.getLoanPrincipal() - amount);
                 break;
