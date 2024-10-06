@@ -4,6 +4,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { useGameStore } from '@/stores/useGameStore';
 import { useGoldStore } from '@/stores/useGoldStore';
 import { useLoanStore } from '@/stores/useLoanStore';
+import { useMainBoardStore } from '@/stores/useMainBoardStore';
 import { useOtherUserStore } from '@/stores/useOtherUserState';
 import { useSocketMessage } from '@/stores/useSocketMessage';
 import { useStockStore } from '@/stores/useStockStore';
@@ -97,6 +98,7 @@ export default function SocketProvider({ children }: SocketProviderProps) {
     setGameRoundMessage,
   } = useSocketMessage();
   const { setGameData } = useGameStore();
+  const { setMainBoardData } = useMainBoardStore();
   const { setStockMarketData } = useStockStore();
   const { setGoldMarketData } = useGoldStore();
   const { setLoanData } = useLoanStore();
@@ -235,7 +237,7 @@ export default function SocketProvider({ children }: SocketProviderProps) {
         switch (parsedMessage.type) {
           case 'GAME_INITIALIZED':
             const initGameData = parsedMessage.data.game;
-            if (initGameData.gameId === nickname) {
+            if (initGameData.gameId === roomId) {
               setGameData(initGameData);
             }
             const initPlayerData = parsedMessage.data.game.players;
@@ -472,7 +474,7 @@ export default function SocketProvider({ children }: SocketProviderProps) {
             break;
 
           case 'MAIN_MESSAGE_NOTIFICATION':
-            setGameData(parsedMessage.data);
+            setMainBoardData(parsedMessage.data);
             console.log('메인판 정보 업데이트', parsedMessage.data);
             break;
         }
