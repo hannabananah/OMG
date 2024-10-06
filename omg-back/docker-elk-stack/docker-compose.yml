@@ -5,6 +5,8 @@ services:
     container_name: elasticsearch
     environment:
       - discovery.type=single-node
+      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+
     ports:
       - 9200:9200
       - 9300:9300
@@ -12,18 +14,25 @@ services:
       - elasticsearch_data:/usr/share/elasticsearch/data
 
   logstash:
-    image: docker.elastic.co/logstash/logstash:7.14.0
+    build:
+      context: ./logstash
+      dockerfile: Dockerfile
+      args:
+        ELK_VERSION: 7.14.0
     container_name: logstash
     ports:
       - 5001:5000
     volumes:
       - ./logstash/pipeline:/usr/share/logstash/pipeline
+      - ./logstash/config:/usr/share/logstash/config
       - ../logs:/usr/share/logstash/logs
     depends_on:
       - elasticsearch
+      - kafka
     environment:
       - LANG=en_US.UTF-8
       - LC_ALL=en_US.UTF-8
+      - LS_JAVA_OPTS=-Xmx256m -Xms256m
 
   kibana:
     image: docker.elastic.co/kibana/kibana:7.14.0
@@ -64,6 +73,7 @@ services:
     command: [ "filebeat", "-e", "-strict.perms=false" ]
     depends_on:
       - kafka
+      - logstash
 
 volumes:
   elasticsearch_data:

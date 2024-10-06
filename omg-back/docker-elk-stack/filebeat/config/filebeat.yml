@@ -4,5 +4,8 @@ filebeat.inputs:
     paths:
       - /logs/application.log
 
-output.logstash:
+output.kafka:
   hosts: [ "kafka:9092" ]
+  topic: "OMG"
+  codec.json:
+    pretty: false
