@@ -2,7 +2,6 @@ import { useContext, useEffect, useState } from 'react';
 import { FaCrown } from 'react-icons/fa';
 import { useNavigate, useParams } from 'react-router-dom';
 
-import Chatting from '@/components/chat/Chatting';
 import useUser from '@/stores/useUser';
 import { SocketContext } from '@/utils/SocketContext';
 
