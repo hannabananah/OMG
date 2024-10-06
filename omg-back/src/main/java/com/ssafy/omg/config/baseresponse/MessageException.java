@@ -11,4 +11,5 @@ public class MessageException extends Exception {
     private final String roomId;
     private final String sender;
     private final MessageResponseStatus status;
+
 }
