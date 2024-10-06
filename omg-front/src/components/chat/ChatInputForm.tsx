@@ -9,16 +9,23 @@ export default function ChatInputForm({
   handleInputChange,
   handleSubmit,
 }: ChatInputFormProps) {
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter') {
+      handleSubmit(e as unknown as React.FormEvent);
+    }
+  };
+
   return (
-    <form onSubmit={handleSubmit} className='flex mt-2'>
+    <form onSubmit={handleSubmit} className='flex w-full text-omg-14'>
       <input
         type='text'
-        className='p-2 border rounded-l border-lime-500'
+        className='w-full p-2 mt-2 text-black rounded-b-10 border-t-1 border-lightgray caret-lightgray font-omg-chat'
         onChange={handleInputChange}
         value={msg}
         placeholder='메시지를 입력하세요...'
+        onKeyDown={handleKeyDown}
       />
-      <button type='submit' className='p-2 text-white rounded-r bg-lime-500'>
+      <button type='submit' className='hidden'>
         전송
       </button>
     </form>
