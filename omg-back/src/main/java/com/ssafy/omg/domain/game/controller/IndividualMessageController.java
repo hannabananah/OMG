@@ -102,6 +102,7 @@ public class IndividualMessageController {
             gameService.takeLoan(roomId, userNickname, takeLoanAmount);
             IndividualMessageDto individualMessage = gameService.getIndividualMessage(roomId, userNickname);
             individualMessage.setLoanLimit(gameService.calculateLoanLimit(roomId, userNickname));
+            individualMessage.setCurrentLoanPrincipal(takeLoanAmount);
             response = new StompPayload<>("SUCCESS_TAKE_LOAN", roomId, userNickname, individualMessage);
             messagingTemplate.convertAndSend("/sub/" + roomId + "/game", response);
             return new BaseResponse<>(response);
