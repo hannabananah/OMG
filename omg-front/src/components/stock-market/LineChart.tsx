@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useContext } from 'react';
 
 import {
   getMaxPrice,
@@ -6,6 +6,7 @@ import {
   treeItemNameInKorean,
 } from '@/hooks/useStock';
 import { StockDataItem, StockDataItemInKorean } from '@/types';
+import { SocketContext } from '@/utils/SocketContext';
 import { ResponsiveLine } from '@nivo/line';
 
 interface LineChartProps {
@@ -13,7 +14,8 @@ interface LineChartProps {
 }
 
 export default function LineChart({ stockData }: LineChartProps) {
-  const [currentRound, _] = useState(1); // 현재 라운드 설정
+  // const [currentRound, _] = useState(1); // 현재 라운드 설정
+  const { presentRound } = useContext(SocketContext);
 
   // stockData의 id(StockItem) => 한글로 변환
   const stockDataWithKoreanTreeItemName: StockDataItemInKorean[] =
@@ -25,7 +27,7 @@ export default function LineChart({ stockData }: LineChartProps) {
   // 필터링된 데이터와 최대 주가 계산
   const filteredData = stockDataUntilNow(
     stockDataWithKoreanTreeItemName,
-    currentRound,
+    presentRound,
   );
   const maxPrice = getMaxPrice(stockDataWithKoreanTreeItemName);
 
@@ -33,10 +35,10 @@ export default function LineChart({ stockData }: LineChartProps) {
     <ResponsiveLine
       data={filteredData} // 현재 ROUND까지의 데이터만 활용
       margin={{ top: 10, right: 110, bottom: 80, left: 80 }}
-      xScale={{ type: 'linear', min: 0, max: currentRound * 6 }} // 각 라운드가 6개의 데이터로 나뉨
+      xScale={{ type: 'linear', min: 0, max: presentRound * 6 }} // 각 라운드가 6개의 데이터로 나뉨
       yScale={{ type: 'linear', min: 0, max: maxPrice }} // 동적으로 최대 값 조정
       axisBottom={{
-        tickValues: Array.from({ length: currentRound }, (_, i) => (i + 1) * 6), // 각 라운드 끝에만 틱 값 설정 (6, 12, 18, ...)
+        tickValues: Array.from({ length: presentRound }, (_, i) => (i + 1) * 6), // 각 라운드 끝에만 틱 값 설정 (6, 12, 18, ...)
         format: x => `${x / 6}라운드`, // x축에 라운드 단위로 표시
         legend: '게임 Round',
         legendOffset: 50,
@@ -47,7 +49,7 @@ export default function LineChart({ stockData }: LineChartProps) {
         legendOffset: -50,
         legendPosition: 'middle',
       }}
-      gridXValues={Array.from({ length: currentRound }, (_, i) => (i + 1) * 6)} // x축의 그리드 라인도 라운드 끝에만 표시
+      gridXValues={Array.from({ length: presentRound }, (_, i) => (i + 1) * 6)} // x축의 그리드 라인도 라운드 끝에만 표시
       enablePoints={true}
       pointSize={10}
       pointColor={{ theme: 'background' }}

@@ -16,6 +16,7 @@
         "@react-spring/web": "^9.7.4",
         "@react-three/drei": "^9.112.0",
         "@react-three/fiber": "^8.17.6",
+        "@react-three/postprocessing": "^2.16.3",
         "@react-three/rapier": "^1.4.0",
         "@stomp/stompjs": "^7.0.0",
         "@tanstack/react-query": "^5.54.1",

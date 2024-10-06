@@ -1,5 +1,9 @@
-import { useContext, useState } from 'react';
+import { useContext, useEffect, useState } from 'react';
 
+import { useGameStore } from '@/stores/useGameStore';
+import { useGoldStore } from '@/stores/useGoldStore';
+import { useSocketMessage } from '@/stores/useSocketMessage';
+import useUser from '@/stores/useUser';
 import { SocketContext } from '@/utils/SocketContext';
 
 import Button from '../common/Button';
@@ -7,20 +11,37 @@ import LineChart from './LineChart';
 import PossessionChart from './PossessionChart';
 
 export default function GoldBuy() {
-  // TODO: 서버로 부터 데이터 받아오기
-
   const { purchaseGold } = useContext(SocketContext);
+  const { goldPurchaseMessage, setGoldPurchaseMessage } = useSocketMessage();
 
-  const MAX_TRADE_COUNT = 5; // 최대 거래 가능 수량
-  const MY_MONEY = 60; // 보유한 현금
+  const { goldPrice, goldPriceChart } = useGoldStore();
+  const GOLD_PRICE = goldPrice;
 
-  const GOLD_PRICE = 20; // (임시) 현재 금 가격
-  const GOLD_UPDOWN = 4; // (임시) 이전 타임 대비 등락
+  const { gameData } = useGameStore();
+  const { players, tradableStockCnt } = gameData || {};
+  const MAX_TRADE_COUNT = tradableStockCnt || 1; // 최대 거래 가능 수량
+
+  const { nickname } = useUser();
+
+  // 내 nickname에 해당하는 플레이어 정보 찾기
+  const myPlayerInfo = Array.isArray(players)
+    ? players.find(player => player.nickname === nickname)
+    : null;
+
+  const { cash } = myPlayerInfo || {};
+  const MY_MONEY = cash;
 
   // 선택한 금 개수
   const [goldCount, setGoldCount] = useState(0);
 
-  // back에 보낼 6짜리 count 배열 세팅
+  useEffect(() => {
+    if (goldPurchaseMessage.message) {
+      alert(goldPurchaseMessage.message);
+      setGoldPurchaseMessage({ message: '', isCompleted: false });
+    }
+  }, [goldPurchaseMessage]);
+
+  // back에 보낼 금 매입 개수 세팅
   const handleGoldCount = (value: number) => {
     const newGoldCount = goldCount + value;
 
@@ -54,14 +75,12 @@ export default function GoldBuy() {
       {/* 금 시세 차트 등 & 플레이어 별 지분 */}
       <section className='w-[50%] flex flex-col justify-center items-center'>
         {/* 금 시세 차트 & 현재 금 가격 & 등락 */}
-        <div className='flex justify-center flex-col items-center w-full bg-skyblue h-[70%]'>
-          <LineChart />
-          <p>(임시) 현재 금 가격: ${GOLD_PRICE}</p>
-          <p>(임시) 등락: ${GOLD_UPDOWN}</p>
+        <div className='flex justify-center items-center w-full h-[70%] '>
+          <LineChart goldData={goldPriceChart} />
         </div>
 
         {/* 플레이어 별 지분 차트 */}
-        <div className='flex justify-center items-center w-full bg-blue h-[30%]'>
+        <div className='flex justify-center items-center w-full h-[30%]'>
           <PossessionChart />
         </div>
       </section>
@@ -74,10 +93,17 @@ export default function GoldBuy() {
 
           {/* 수량 선택 */}
           <div className='flex items-center'>
-            <Button text='-' type='count' onClick={() => handleGoldCount(-1)} />
+            <Button
+              text='-'
+              type='count'
+              onClick={() => handleGoldCount(-1)}
+              disabled={goldCount === 0}
+            />
             <p className='mx-4 text-omg-18'>{goldCount}</p>
             <Button text='+' type='count' onClick={() => handleGoldCount(1)} />
           </div>
+
+          <p className='text-omg-18'>현재 금 시세: ${GOLD_PRICE}</p>
 
           {/* 총 가격 표시 */}
           <div className='flex justify-between w-full px-20 text-omg-18'>

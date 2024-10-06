@@ -3,8 +3,17 @@ package com.ssafy.omg.domain.game.service;
 import com.ssafy.omg.config.baseresponse.BaseException;
 import com.ssafy.omg.domain.arena.entity.Arena;
 import com.ssafy.omg.domain.game.GameRepository;
-import com.ssafy.omg.domain.game.dto.*;
-import com.ssafy.omg.domain.game.entity.*;
+import com.ssafy.omg.domain.game.dto.GameEventDto;
+import com.ssafy.omg.domain.game.dto.GameNotificationDto;
+import com.ssafy.omg.domain.game.dto.GameResultResponse;
+import com.ssafy.omg.domain.game.dto.MainMessageDto;
+import com.ssafy.omg.domain.game.dto.RoundStartNotificationDto;
+import com.ssafy.omg.domain.game.dto.StockFluctuationResponse;
+import com.ssafy.omg.domain.game.dto.TimeNotificationDto;
+import com.ssafy.omg.domain.game.entity.Game;
+import com.ssafy.omg.domain.game.entity.GameEvent;
+import com.ssafy.omg.domain.game.entity.RoundStatus;
+import com.ssafy.omg.domain.game.entity.StockState;
 import com.ssafy.omg.domain.socket.dto.StompPayload;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -20,8 +29,18 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import static com.ssafy.omg.config.baseresponse.BaseResponseStatus.*;
-import static com.ssafy.omg.domain.game.entity.RoundStatus.*;
+import static com.ssafy.omg.config.baseresponse.BaseResponseStatus.ARENA_NOT_FOUND;
+import static com.ssafy.omg.config.baseresponse.BaseResponseStatus.INVALID_MARKET_INFO;
+import static com.ssafy.omg.config.baseresponse.BaseResponseStatus.INVALID_ROUND_STATUS;
+import static com.ssafy.omg.config.baseresponse.BaseResponseStatus.ROUND_STATUS_ERROR;
+import static com.ssafy.omg.domain.game.entity.RoundStatus.APPLY_PREVIOUS_EVENT;
+import static com.ssafy.omg.domain.game.entity.RoundStatus.ECONOMIC_EVENT_NEWS;
+import static com.ssafy.omg.domain.game.entity.RoundStatus.GAME_FINISHED;
+import static com.ssafy.omg.domain.game.entity.RoundStatus.PREPARING_NEXT_ROUND;
+import static com.ssafy.omg.domain.game.entity.RoundStatus.ROUND_END;
+import static com.ssafy.omg.domain.game.entity.RoundStatus.ROUND_IN_PROGRESS;
+import static com.ssafy.omg.domain.game.entity.RoundStatus.ROUND_START;
+import static com.ssafy.omg.domain.game.entity.RoundStatus.STOCK_FLUCTUATION;
 
 @Slf4j
 @Component
@@ -90,6 +109,9 @@ public class GameScheduler {
             case PREPARING_NEXT_ROUND:
                 handlePreparingNextRound(game);
                 break;
+            case GAME_FINISHED:
+                handleGameFinish(game);
+                break;
             default:
                 throw new BaseException(INVALID_ROUND_STATUS);
         }
@@ -126,6 +148,7 @@ public class GameScheduler {
         if (game.getTime() == 2) {
 //            notifyPlayers(game.getGameId(), ROUND_START, +game.getRound() + "라운드가 시작됩니다!");
             notifyRoundStart(game.getGameId(), ROUND_START, game.getRound() + "라운드가 시작됩니다!", game.getRound());
+            notifyMainMessage(game.getGameId(), "GAME_MANAGER");
         } else if (game.getTime() == 0) {
             game.setRoundStatus(APPLY_PREVIOUS_EVENT);
             game.setTime(5);
@@ -184,6 +207,7 @@ public class GameScheduler {
                 );
 
                 messagingTemplate.convertAndSend("/sub/" + game.getGameId() + "/game", payload);
+                notifyMainMessage(game.getGameId(), "GAME_MANAGER");
 
                 // 트랜잭션 체킹용 sout
                 log.debug("경제 이벤트가 반영됨!");
@@ -240,10 +264,12 @@ public class GameScheduler {
                     messagingTemplate.convertAndSend("/sub/" + game.getGameId() + "/game", payload);
                 }
             } catch (BaseException e) {
-                log.error("경제 이벤트 생성 중 에러 발생: {}", e.getMessage());
-                if (game.getRound() == 10) return;
-                game.setRoundStatus(ECONOMIC_EVENT_NEWS);
-                game.setTime(5);
+                log.error("경제 이벤트 생성 중 에러 발생: {}", e.getStatus().getMessage());
+                if (game.getRound() == 10) {
+                    game.setRoundStatus(ROUND_IN_PROGRESS);
+                    game.setTime(120);
+                    return;
+                }
             }
         } else if (game.getTime() == 0) {
             game.setRoundStatus(ROUND_IN_PROGRESS);
@@ -279,6 +305,7 @@ public class GameScheduler {
     public void updateAndBroadcastMarketInfo(Game game, String marketType) throws BaseException {
         int remainingTime = (game.getTime() == 119) ? 120 : game.getTime();
         gameService.setStockPriceChangeInfo(game, game.getRound(), remainingTime);
+        gameService.setGoldPriceChartInfo(game, game.getRound(), remainingTime);
 
         switch (marketType) {
             case "STOCK":
@@ -312,6 +339,8 @@ public class GameScheduler {
             StockFluctuationResponse response = new StockFluctuationResponse(stockState.getStockLevelCards()[game.getCurrentStockPriceLevel()][0]);
             StompPayload<StockFluctuationResponse> payload = new StompPayload<>("STOCK_FLUCTUATION", game.getGameId(), "GAME_MANAGER", response);
             messagingTemplate.convertAndSend("/sub/" + game.getGameId() + "/game", payload);
+
+            notifyMainMessage(game.getGameId(), "GAME_MANAGER");
         } else {
 //            if (game.getPauseTime() > 0) {
 //                game.setPauseTime(game.getPauseTime() - 1);
@@ -329,7 +358,8 @@ public class GameScheduler {
         log.debug("handleRoundEnd 진입. 현재 시간: {}", game.getTime());
 
         if (game.getTime() == 2) {
-            notifyPlayers(game.getGameId(), ROUND_END, game.getRound() + "라운드가 종료되었습니다!");
+            notifyPlayers(game.getGameId(), ROUND_END, game.getRound() + "라운드가 종료되었습니다! 대출상품에 대한 이자가 추가됩니다!");
+            gameService.addInterestToTotalDebtAndLoanProducts(game);
         } else if (game.getTime() == 0) {
             game.setRoundStatus(PREPARING_NEXT_ROUND);
             game.setTime(5);
@@ -349,7 +379,9 @@ public class GameScheduler {
 
             if (nextRound > MAX_ROUNDS) {
                 log.debug("최대 라운드 도달. 게임 종료 처리 시작.");
-                endGame(game);
+                game.setRoundStatus(GAME_FINISHED);
+                game.setTime(3);
+                log.debug("상태를 GAME_FINISHED로 변경. 새 시간: {}", game.getTime());
             } else {
                 notifyPlayers(game.getGameId(), PREPARING_NEXT_ROUND, "곧 " + nextRound + " 라운드가 시작됩니다...");
             }
@@ -363,6 +395,17 @@ public class GameScheduler {
         log.debug("handlePreparingNextRound 종료. 최종 시간: {}, 상태: {}, 현재 라운드: {}",
                 game.getTime(), game.getRoundStatus(), game.getRound());
     }
+
+
+    private void handleGameFinish(Game game) throws BaseException {
+        if (game.getTime() == 2) {
+            notifyPlayers(game.getGameId(), GAME_FINISHED, "게임이 종료되었습니다! 결과를 합산중입니다...");
+            gameService.addInterestToTotalDebtAndLoanProducts(game);
+        } else if (game.getTime() == 0) {
+            endGame(game);
+        }
+    }
+
 
     // 다음 라운드 시작을 위한 변화값들 초기화
     private void initializePlayersForNextRound(Game game) {
@@ -385,6 +428,12 @@ public class GameScheduler {
         messagingTemplate.convertAndSend("/sub/" + gameId + "/game", payload);
     }
 
+    public void notifyMainMessage(String gameId, String sender) throws BaseException {
+        MainMessageDto mainMessageDto = gameService.getMainMessage(gameId, sender);
+        StompPayload<MainMessageDto> mainMessagePayload = new StompPayload<>("MAIN_MESSAGE_NOTIFICATION", gameId, "GAME_MANAGER", mainMessageDto);
+        messagingTemplate.convertAndSend("/sub/" + gameId + "/game", mainMessagePayload);
+    }
+
     private void notifyPlayers(String gameId, RoundStatus roundStatus, String message) {
         GameNotificationDto gameNotificationDto2 = GameNotificationDto.builder()
                 .roundStatus(roundStatus)
@@ -404,9 +453,11 @@ public class GameScheduler {
         messagingTemplate.convertAndSend("/sub/" + gameId + "/game", payload);
     }
 
-    private void endGame(Game game) {
-        game.setGameStatus(GameStatus.GAME_FINISHED);
-        notifyPlayers(game.getGameId(), GAME_FINISHED, "게임 종료!");
-        // TODO: 게임 종료 후 로직이 필요함, 순위 화면 같은거 계산해서 반환하기 등
+    private void endGame(Game game) throws BaseException {
+        notifyPlayers(game.getGameId(), GAME_FINISHED, "게임 결과");
+        GameResultResponse result = gameService.gameResult(game);
+        StompPayload<GameResultResponse> gameResultResponseStompPayload = new StompPayload<>("GAME_RESULT", game.getGameId(), "GAME_MANAGER", result);
+        messagingTemplate.convertAndSend("/sub/" + game.getGameId() + "/game", gameResultResponseStompPayload);
+        log.debug("게임 결과 : {}", result);
     }
 }

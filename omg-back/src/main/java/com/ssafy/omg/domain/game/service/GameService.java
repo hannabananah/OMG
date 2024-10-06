@@ -3,7 +3,13 @@ package com.ssafy.omg.domain.game.service;
 import com.ssafy.omg.config.baseresponse.BaseException;
 import com.ssafy.omg.config.baseresponse.MessageException;
 import com.ssafy.omg.domain.arena.entity.Arena;
-import com.ssafy.omg.domain.game.dto.*;
+import com.ssafy.omg.domain.game.dto.GameResultResponse;
+import com.ssafy.omg.domain.game.dto.GoldMarketInfoResponse;
+import com.ssafy.omg.domain.game.dto.IndividualMessageDto;
+import com.ssafy.omg.domain.game.dto.MainMessageDto;
+import com.ssafy.omg.domain.game.dto.PlayerMoveRequest;
+import com.ssafy.omg.domain.game.dto.StockMarketResponse;
+import com.ssafy.omg.domain.game.dto.StockRequest;
 import com.ssafy.omg.domain.game.entity.Game;
 import com.ssafy.omg.domain.game.entity.GameEvent;
 import com.ssafy.omg.domain.socket.dto.StompPayload;
@@ -14,6 +20,9 @@ public interface GameService {
 
     // 진행중인(활성화된) 게임 리스트 반환
     List<Game> getAllActiveGames() throws BaseException;
+
+    // 메인판 정보 보낼 DTO 생성 메서드
+    MainMessageDto getMainMessage(String roomId, String sender) throws BaseException;
 
     // 거래소에서 응답으로 보낼 DTO 생성 메서드
     IndividualMessageDto getIndividualMessage(String roomId, String sender) throws BaseException;
@@ -43,7 +52,11 @@ public interface GameService {
 
     void takeLoan(String roomId, String userNickname, int amount) throws BaseException, MessageException;
 
-//    void repayLoan(String roomId, String userNickname, int amount) throws BaseException, MessageException;
+    void repayLoan(String roomId, String userNickname, int amount) throws BaseException, MessageException;
+
+    void addInterestToTotalDebtAndLoanProducts(Game game);
+
+    void setStocksOnCarryingStocks(String roomId, String sender, int[] stocksToCarry) throws BaseException, MessageException;
 
     void sellStock(String roomId, String userNickname, int[] amount) throws BaseException;
 
@@ -51,11 +64,18 @@ public interface GameService {
 
     void buyStock(StompPayload<StockRequest> data) throws BaseException, MessageException;
 
+    // 주가 차트 생성
     void setStockPriceChangeInfo(Game game, int round, int remainTime);
+
+    // 금괴 차트 생성
+    void setGoldPriceChartInfo(Game game, int round, int remainTime) throws BaseException;
 
     // 주식 거래소 정보 생성
     StockMarketResponse createStockMarketInfo(Game game);
 
     // 금괴 매입소 정보 생성
     GoldMarketInfoResponse createGoldMarketInfo(Game game) throws BaseException;
+
+    // 게임 종료시 결과 정보 생성
+    GameResultResponse gameResult(Game game) throws BaseException;
 }

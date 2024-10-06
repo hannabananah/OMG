@@ -75,7 +75,7 @@ export default function EventCard() {
         }}
       >
         <div className='flex flex-col items-center h-full justify-evenly'>
-          <h2 className='basis-1/6 text-omg-30b font-omg-title'>
+          <h2 className='basis-1/6 text-omg-28b font-omg-title break-keep'>
             {eventCardTitle}
           </h2>
           {eventRoundStatus === 'APPLY_PREVIOUS_EVENT' && (
@@ -85,10 +85,12 @@ export default function EventCard() {
               {isPositive ? '금리 상승' : '금리 하락'} {eventCardValue}%
             </span>
           )}
-          <p className='font-omg-body text-omg-20'>{eventCardContent}</p>
-          <p className='underline font-omg-body text-omg-14'>
-            *해당 뉴스는 다음 라운드의 금리 변동에 영향을 줍니다.
-          </p>
+          <p className='break-words font-omg-body text-omg-18'>{eventCardContent}</p>
+          {eventRoundStatus === 'ECONOMIC_EVENT_NEWS' && (
+            <p className='underline font-omg-body text-omg-14'>
+              *해당 뉴스는 다음 라운드의 금리 변동에 영향을 줍니다.
+            </p>
+          )}
         </div>
       </animated.div>
     </div>

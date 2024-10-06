@@ -17,7 +17,8 @@ export default function Lobby() {
   const roomCodeInputRef = useRef<HTMLInputElement | null>(null);
 
   useEffect(() => {
-    const uniqueNickname = `testUser-${Date.now()}`;
+    const uniqueId = Math.floor(Math.random() * 9000) + 1000;
+    const uniqueNickname = `user-${uniqueId}`;
     setNickname(uniqueNickname);
   }, [setNickname]);
 
