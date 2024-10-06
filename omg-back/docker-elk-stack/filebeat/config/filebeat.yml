@@ -5,4 +5,4 @@ filebeat.inputs:
       - /logs/application.log
 
 output.logstash:
-  hosts: [ "logstash:5044" ]
+  hosts: [ "kafka:9092" ]

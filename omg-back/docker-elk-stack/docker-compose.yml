@@ -43,12 +43,14 @@ services:
     image: wurstmeister/kafka
     container_name: kafka
     ports:
-      - 9092:9092
+      - "9092:9092"
+      - "9093:9093"
     environment:
-      KAFKA_ADVERTISED_LISTENERS: INSIDE://kafka:9092,OUTSIDE://localhost:9092
+      KAFKA_ADVERTISED_LISTENERS: INSIDE://kafka:9092,OUTSIDE://localhost:9093
       KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: INSIDE:PLAINTEXT,OUTSIDE:PLAINTEXT
-      KAFKA_LISTENERS: INSIDE://0.0.0.0:9092,OUTSIDE://0.0.0.0:9092
+      KAFKA_LISTENERS: INSIDE://0.0.0.0:9092,OUTSIDE://0.0.0.0:9093
       KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_INTER_BROKER_LISTENER_NAME: INSIDE
     depends_on:
       - zookeeper
 
@@ -57,11 +59,11 @@ services:
     image: docker.elastic.co/beats/filebeat:7.14.0
     container_name: filebeat
     volumes:
-      - ./logstash/config/filebeat.yml:/usr/share/filebeat/filebeat.yml
+      - ./filebeat/config/filebeat.yml:/usr/share/filebeat/filebeat.yml
       - ../logs:/logs
     command: [ "filebeat", "-e", "-strict.perms=false" ]
     depends_on:
-      - logstash
+      - kafka
 
 volumes:
   elasticsearch_data:

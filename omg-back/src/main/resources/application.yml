@@ -3,9 +3,9 @@ spring:
     name: omg-back
 
   datasource:
-    url: jdbc:mysql://localhost:3306/omg
-    username: root
-    password: 1234
+    url: ${DB_URL_LOCAL}
+    username: ${DB_USERNAME_LOCAL}
+    password: ${DB_PASSWORD_LOCAL}
     driver-class-name: com.mysql.cj.jdbc.Driver
 
   jpa:
