@@ -66,7 +66,7 @@ export default function PersonalBoard() {
         {/* 보유 주식 & 보유 금 & 보유 현금 & 총 대출 액 */}
         <section className='flex flex-col w-full h-full'>
           {/* 보유 주식 개수 */}
-          <div className='flex w-full mx-auto h-1/2 bg-blue'>
+          <div className='flex w-full mx-auto h-1/2'>
             <Canvas>
               <Html position={[startPosition, 3.9, 0]}>
                 <h2 className='-ml-2 break-keep text-nowrap font-omg-body text-omg-30'>
@@ -101,12 +101,12 @@ export default function PersonalBoard() {
 
                       {/* HTML 요소 */}
                       <Html position={[positionX, 1, 0]} center>
-                        <div className='flex flex-col w-20 h-20 gap-2 text-center bg-green text-omg-14'>
+                        <div className='flex flex-col w-20 h-20 gap-2 text-center text-omg-14'>
                           <div>{treeItemNameInKorean(item.itemName)}</div>
                           {stock &&
                             stock[itemIndex] !== undefined && ( // itemIndex에 해당하는 주가가 있는지 확인
                               <div className='text-omg-18'>
-                                {stock[itemIndex]}개
+                                {stock[itemIndex + 1]}개
                               </div>
                             )}
                         </div>
@@ -123,7 +123,7 @@ export default function PersonalBoard() {
 
           {/* 보유 금 개수 & 현금 & 총 대출 액 */}
           {gameData && gameData.goldPrice && (
-            <div className='flex flex-col w-full mx-auto h-1/2 bg-skyblue'>
+            <div className='flex flex-col w-full mx-auto h-1/2'>
               <h2 className='flex justify-center w-full break-keep text-nowrap font-omg-body text-omg-30b'>
                 금 개수, 보유 현금, 총 대출 액
               </h2>
