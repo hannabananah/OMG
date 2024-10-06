@@ -18,6 +18,7 @@ import com.ssafy.omg.domain.game.entity.LoanProduct;
 import com.ssafy.omg.domain.game.entity.StockInfo;
 import com.ssafy.omg.domain.game.entity.StockState;
 import com.ssafy.omg.domain.game.repository.GameEventRepository;
+import com.ssafy.omg.domain.player.dto.PlayerResult;
 import com.ssafy.omg.domain.player.entity.Player;
 import com.ssafy.omg.domain.player.entity.PlayerStatus;
 import com.ssafy.omg.domain.socket.dto.StompPayload;
@@ -49,12 +50,12 @@ import static com.ssafy.omg.config.baseresponse.BaseResponseStatus.INVALID_STOCK
 import static com.ssafy.omg.config.baseresponse.BaseResponseStatus.PLAYER_NOT_FOUND;
 import static com.ssafy.omg.config.baseresponse.BaseResponseStatus.PLAYER_STATE_ERROR;
 import static com.ssafy.omg.config.baseresponse.BaseResponseStatus.REQUEST_ERROR;
-import static com.ssafy.omg.config.baseresponse.MessageResponseStatus.AMOUNT_OUT_OF_RANGE;
-import static com.ssafy.omg.config.baseresponse.MessageResponseStatus.INSUFFICIENT_CASH;
 import static com.ssafy.omg.config.baseresponse.MessageResponseStatus.AMOUNT_EXCEED_CASH;
 import static com.ssafy.omg.config.baseresponse.MessageResponseStatus.AMOUNT_EXCEED_DEBT;
-import static com.ssafy.omg.config.baseresponse.MessageResponseStatus.OUT_OF_CASH;
+import static com.ssafy.omg.config.baseresponse.MessageResponseStatus.AMOUNT_OUT_OF_RANGE;
+import static com.ssafy.omg.config.baseresponse.MessageResponseStatus.INSUFFICIENT_CASH;
 import static com.ssafy.omg.config.baseresponse.MessageResponseStatus.INVALID_STOCK_COUNT;
+import static com.ssafy.omg.config.baseresponse.MessageResponseStatus.OUT_OF_CASH;
 import static com.ssafy.omg.config.baseresponse.MessageResponseStatus.STOCK_NOT_AVAILABLE;
 import static com.ssafy.omg.domain.game.entity.RoundStatus.STOCK_FLUCTUATION;
 import static com.ssafy.omg.domain.game.entity.RoundStatus.TUTORIAL;
@@ -198,6 +199,8 @@ public class GameServiceImpl implements GameService {
     }
 
     /**
+     * 금괴 매입소 정보 생성
+     *
      * @param game
      * @return
      * @throws BaseException
@@ -228,21 +231,50 @@ public class GameServiceImpl implements GameService {
                 .build();
     }
 
+    /**
+     * 게임 결과 정보 생성
+     *
+     * @param game
+     * @return
+     * @throws BaseException
+     */
     @Override
     public GameResultResponse gameResult(Game game) throws BaseException {
 
         List<Player> players = game.getPlayers();
-        String[] playerList = players.stream()
-                .map(Player::getNickname)
-                .toList().toArray(new String[0]);
+        List<PlayerResult> playerResults = new ArrayList<>();
+
+        for (Player player : players) {
+            int finalNetWorth = calculateNetWorth(game, player);
+            PlayerResult individualResult = PlayerResult.builder()
+                    .nickname(player.getNickname())
+                    .finalGoldCnt(player.getGoldOwned())
+                    .finalStockCnt(player.getStock())
+                    .finalNetWorth(finalNetWorth)
+                    .finalDebt(player.getTotalDebt())
+                    .build();
+            playerResults.add(individualResult);
+        }
+
+        // 순위 정렬
+        playerResults.sort((o1, o2) -> Integer.compare(o2.getFinalNetWorth(), o1.getFinalNetWorth()));
 
         return GameResultResponse.builder()
-                .playerNicknameByRanking(null)
-                .finalGoldCnt()
-                .finalStockCnt()
-                .finalNetWorth()
-                .finalDebt()
+                .playerResults(playerResults)
                 .build();
+    }
+
+    // 순자산 계산
+    private int calculateNetWorth(Game game, Player player) {
+        int netWorth = player.getCash();
+        int goldPrice = game.getGoldPrice();
+        StockInfo[] marketStocks = game.getMarketStocks();
+
+        netWorth += player.getGoldOwned() * goldPrice;
+        netWorth += getStockValue(player.getStock(), marketStocks);
+        netWorth -= player.getTotalDebt();
+
+        return netWorth;
     }
 
     /**
@@ -990,7 +1022,7 @@ public class GameServiceImpl implements GameService {
         for (Player player : players) {
             int totalInterest = 0;
             for (LoanProduct loanProduct : player.getLoanProducts()) {
-                int interest = (int) (loanProduct.getLoanPrincipal() * loanProduct.getInterestRate()/100.0);
+                int interest = (int) (loanProduct.getLoanPrincipal() * loanProduct.getInterestRate() / 100.0);
                 totalInterest += interest;
                 loanProduct.setLoanInterest(loanProduct.getLoanInterest() + interest);
             }
