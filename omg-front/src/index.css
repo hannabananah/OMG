@@ -57,6 +57,14 @@ button:disabled {
   font-style: normal;
 }
 
+@font-face {
+  font-family: 'SUITE';
+  src: url('https://fastly.jsdelivr.net/gh/projectnoonnu/noonfonts_2304-2@1.0/SUITE-Regular.woff2')
+    format('woff2');
+  font-weight: normal;
+  font-style: normal;
+}
+
 @layer utilities {
   /* 'b'가 붙은 텍스트 크기에는 'OKDDUNG' 폰트 적용 */
   .text-omg-24b,

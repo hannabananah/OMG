@@ -37,6 +37,7 @@ export default {
       fontFamily: {
         'omg-title': 'OKDDUNG',
         'omg-body': 'Katuri',
+        'omg-chat': 'SUITE',
       },
       colors: {
         white1: '#FFFFFF',
