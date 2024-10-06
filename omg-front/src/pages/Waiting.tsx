@@ -16,7 +16,6 @@ export default function Waiting() {
     roomSubscription,
     disconnect,
     leaveRoom,
-    chatSubscription,
     hostPlayer,
     startGame,
   } = useContext(SocketContext);
@@ -31,8 +30,6 @@ export default function Waiting() {
   useEffect(() => {
     if (online && socket) {
       roomSubscription();
-      // TODO: 임시 채팅 구독
-      chatSubscription();
     }
   }, [online, socket]);
 
@@ -78,8 +75,6 @@ export default function Waiting() {
           )}
         </button>
       )}
-      {/* TODO: 임시 테스트 채팅방 */}
-      <Chatting />
     </div>
   );
 }
