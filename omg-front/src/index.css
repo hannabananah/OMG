@@ -16,8 +16,8 @@ svg .clickable {
 }
 
 html {
-  @apply h-screen w-full text-gray-800 break-words m-auto select-none;
-  font-size: 14px; /* 1rem을 14px로 설정 */
+  @apply h-screen w-full text-slate-950 break-words m-auto select-none;
+  font-size: 14px;
 }
 
 input {
@@ -30,6 +30,15 @@ button:disabled {
 
 .modal-open {
   overflow: hidden;
+}
+
+.scrollbar-hidden::-webkit-scrollbar {
+  display: none;
+}
+
+.scrollbar-hidden {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
 }
 
 @font-face {
