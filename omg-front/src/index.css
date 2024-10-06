@@ -110,3 +110,32 @@ button:disabled {
     @apply flex flex-col w-[80%] h-[80%] bg-white bg-opacity-80 rounded-[30px];
   }
 }
+
+@layer utilities {
+  @keyframes gradient {
+    0% {
+      background-position: 0% 50%;
+    }
+    50% {
+      background-position: 100% 50%;
+    }
+    100% {
+      background-position: 0% 50%;
+    }
+  }
+
+  .bg-gradient-animation {
+    background: linear-gradient(
+      270deg,
+      #ff0000 0%,
+      #00ff00 33%,
+      #ffffff 67%,
+      #ff0000 100%
+    );
+    background-size: 100% 100%;
+    animation: gradient 4s ease infinite;
+    -webkit-background-clip: text; /* Safari 지원 */
+    background-clip: text;
+    color: transparent;
+  }
+}
