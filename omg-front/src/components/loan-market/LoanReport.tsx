@@ -104,7 +104,7 @@ function Deck() {
                     <h4 className='text-omg-24'>
                       {product.loanPrincipal}
                     </h4>
-                    <span className='text-omg-14 text-gray'>대출 원금</span>
+                    <span className='text-omg-14 text-gray'>갚아야 할 돈</span>
                   </div>
                   <div className='flex flex-col items-center'>
                     <h4 className='text-omg-24'>
