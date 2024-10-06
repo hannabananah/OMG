@@ -3,8 +3,6 @@ import { create } from 'zustand';
 
 interface ExtendedGameData extends GameData {
   tradableStockCnt?: number | null;
-  remainingUntilChange?: number | null;
-  stockPrices: number[] | null;
 }
 
 interface GameData {
@@ -52,8 +50,6 @@ export const useGameStore = create<GameStore>(set => ({
       gameData: {
         ...data,
         tradableStockCnt: data.tradableStockCnt ?? 1,
-        remainingUntilChange: data.remainingUntilChange ?? 0,
-        stockPrices: data.stockPrices ?? [0, 0, 0, 0, 0, 0],
       },
     });
   },
