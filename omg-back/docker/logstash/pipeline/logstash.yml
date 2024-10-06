@@ -1,0 +1,24 @@
+input {
+kafka {
+bootstrap_servers => "kafka:9092"
+topics => ["OMG"]
+codec => json
+}
+}
+
+filter {
+grok {
+match => { "message" => "%{TIMESTAMP_ISO8601:timestamp} \[%{GREEDYDATA:thread}\] %{LOGLEVEL:log_level} %{GREEDYDATA:logger} - %{GREEDYDATA:message}" }
+}
+date {
+match => [ "timestamp", "yyyy-MM-dd HH:mm:ss.SSS" ]
+target => "@timestamp"
+}
+}
+
+output {
+elasticsearch {
+hosts => ["elasticsearch:9200"]
+index => "GAME-LOG-%{+YYYY.MM.dd}"
+}
+}

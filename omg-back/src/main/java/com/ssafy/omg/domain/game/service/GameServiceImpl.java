@@ -4,19 +4,8 @@ import com.ssafy.omg.config.baseresponse.BaseException;
 import com.ssafy.omg.config.baseresponse.MessageException;
 import com.ssafy.omg.domain.arena.entity.Arena;
 import com.ssafy.omg.domain.game.GameRepository;
-import com.ssafy.omg.domain.game.dto.GameResultResponse;
-import com.ssafy.omg.domain.game.dto.GoldMarketInfoResponse;
-import com.ssafy.omg.domain.game.dto.IndividualMessageDto;
-import com.ssafy.omg.domain.game.dto.MainMessageDto;
-import com.ssafy.omg.domain.game.dto.PlayerMoveRequest;
-import com.ssafy.omg.domain.game.dto.StockMarketResponse;
-import com.ssafy.omg.domain.game.dto.StockRequest;
-import com.ssafy.omg.domain.game.entity.Game;
-import com.ssafy.omg.domain.game.entity.GameEvent;
-import com.ssafy.omg.domain.game.entity.GameStatus;
-import com.ssafy.omg.domain.game.entity.LoanProduct;
-import com.ssafy.omg.domain.game.entity.StockInfo;
-import com.ssafy.omg.domain.game.entity.StockState;
+import com.ssafy.omg.domain.game.dto.*;
+import com.ssafy.omg.domain.game.entity.*;
 import com.ssafy.omg.domain.game.repository.GameEventRepository;
 import com.ssafy.omg.domain.player.entity.Player;
 import com.ssafy.omg.domain.player.entity.PlayerStatus;
@@ -26,36 +15,13 @@ import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Random;
-import java.util.Set;
-import java.util.TreeSet;
+import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
-import static com.ssafy.omg.config.baseresponse.BaseResponseStatus.ARENA_NOT_FOUND;
-import static com.ssafy.omg.config.baseresponse.BaseResponseStatus.EVENT_NOT_FOUND;
-import static com.ssafy.omg.config.baseresponse.BaseResponseStatus.EXCEEDS_DIFF_RANGE;
-import static com.ssafy.omg.config.baseresponse.BaseResponseStatus.IMPOSSIBLE_STOCK_CNT;
-import static com.ssafy.omg.config.baseresponse.BaseResponseStatus.INSUFFICIENT_STOCK;
-import static com.ssafy.omg.config.baseresponse.BaseResponseStatus.INVALID_BLACK_TOKEN;
-import static com.ssafy.omg.config.baseresponse.BaseResponseStatus.INVALID_ROUND;
-import static com.ssafy.omg.config.baseresponse.BaseResponseStatus.INVALID_SELL_STOCKS;
-import static com.ssafy.omg.config.baseresponse.BaseResponseStatus.INVALID_STOCK_GROUP;
-import static com.ssafy.omg.config.baseresponse.BaseResponseStatus.PLAYER_NOT_FOUND;
-import static com.ssafy.omg.config.baseresponse.BaseResponseStatus.PLAYER_STATE_ERROR;
-import static com.ssafy.omg.config.baseresponse.BaseResponseStatus.REQUEST_ERROR;
+import static com.ssafy.omg.config.baseresponse.BaseResponseStatus.*;
 import static com.ssafy.omg.config.baseresponse.MessageResponseStatus.AMOUNT_OUT_OF_RANGE;
-import static com.ssafy.omg.config.baseresponse.MessageResponseStatus.INSUFFICIENT_CASH;
-import static com.ssafy.omg.config.baseresponse.MessageResponseStatus.AMOUNT_EXCEED_CASH;
-import static com.ssafy.omg.config.baseresponse.MessageResponseStatus.AMOUNT_EXCEED_DEBT;
-import static com.ssafy.omg.config.baseresponse.MessageResponseStatus.OUT_OF_CASH;
-import static com.ssafy.omg.config.baseresponse.MessageResponseStatus.INVALID_STOCK_COUNT;
-import static com.ssafy.omg.config.baseresponse.MessageResponseStatus.STOCK_NOT_AVAILABLE;
+import static com.ssafy.omg.config.baseresponse.MessageResponseStatus.*;
 import static com.ssafy.omg.domain.game.entity.RoundStatus.STOCK_FLUCTUATION;
 import static com.ssafy.omg.domain.game.entity.RoundStatus.TUTORIAL;
 import static com.ssafy.omg.domain.player.entity.PlayerStatus.COMPLETED;
@@ -238,10 +204,10 @@ public class GameServiceImpl implements GameService {
 
         return GameResultResponse.builder()
                 .playerNicknameByRanking(null)
-                .finalGoldCnt()
-                .finalStockCnt()
-                .finalNetWorth()
-                .finalDebt()
+                .finalGoldCnt(null)
+                .finalStockCnt(null)
+                .finalNetWorth(null)
+                .finalDebt(null)
                 .build();
     }
 
@@ -990,7 +956,7 @@ public class GameServiceImpl implements GameService {
         for (Player player : players) {
             int totalInterest = 0;
             for (LoanProduct loanProduct : player.getLoanProducts()) {
-                int interest = (int) (loanProduct.getLoanPrincipal() * loanProduct.getInterestRate()/100.0);
+                int interest = (int) (loanProduct.getLoanPrincipal() * loanProduct.getInterestRate() / 100.0);
                 totalInterest += interest;
                 loanProduct.setLoanInterest(loanProduct.getLoanInterest() + interest);
             }
