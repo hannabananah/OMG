@@ -54,6 +54,8 @@ services:
     ports:
       - "9092:9092"
       - "9093:9093"
+    volumes:
+      - /Users/kimhyeonjae/Desktop/projectA206/S11P21A206/omg-back/logs:/logs
     environment:
       KAFKA_ADVERTISED_LISTENERS: INSIDE://kafka:9092,OUTSIDE://localhost:9093
       KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: INSIDE:PLAINTEXT,OUTSIDE:PLAINTEXT
