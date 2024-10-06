@@ -1,5 +1,7 @@
 import { useEffect, useState } from 'react';
 
+import { formatTime } from '@/utils/formatTime';
+
 export default function Timer({ time }: { time: number }) {
   const [remainingTime, setRemainingTime] = useState(time);
 
@@ -7,12 +9,6 @@ export default function Timer({ time }: { time: number }) {
     if (!time) return;
     setRemainingTime(time);
   }, [time]);
-
-  const formatTime = (timeInSeconds: number) => {
-    const minutes = Math.floor(timeInSeconds / 60);
-    const seconds = timeInSeconds % 60;
-    return `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
-  };
 
   return (
     <p
