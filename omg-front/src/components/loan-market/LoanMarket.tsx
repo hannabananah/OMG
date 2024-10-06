@@ -13,14 +13,16 @@ import LoanActionButton from './LoanActionButton';
 import LoanInfo from './LoanInfo';
 import LoanReport from './LoanReport';
 import LoanSheet from './LoanSheet';
+import LoanLogicModal from './LoanLogicModal';
 
 export default function LoanMarket() {
   const { enterLoan, takeLoan, repayLoan } = useContext(SocketContext);
   const { totalDebt } = useLoanStore();
-
   const { modals, closeModal } = useModalStore();
+
   const [currentView, setCurrentView] = useState<LoanMarketView>('main');
   const [isReportVisible, setIsReportVisible] = useState(true);
+  const [isTooltipVisible, setIsTooltipVisible] = useState(false);
 
   useEffect(() => {
     enterLoan();
@@ -42,9 +44,15 @@ export default function LoanMarket() {
     }
   };
 
-
   const toggleView = () => {
     setIsReportVisible((prev) => !prev);
+  };
+
+  const showTooltip = () => {
+    setIsTooltipVisible(true);
+    setTimeout(() => {
+      setIsTooltipVisible(false);
+    }, 5000);
   };
 
   return (
@@ -61,10 +69,17 @@ export default function LoanMarket() {
             <BackButton onClick={handleBackButton} />
           </div>
           <button
-            className='absolute text-center right-10'
+            type='button'
+            className='absolute w-10 h-10 m-4 text-center right-10 -p-4'
+            onMouseEnter={showTooltip}
           >
             <FaRegQuestionCircle size={20} />
           </button>
+
+          <LoanLogicModal
+            isTooltipVisible={isTooltipVisible}
+          />
+
         </section>
 
         <section className='flex w-full h-full'>
@@ -96,7 +111,9 @@ export default function LoanMarket() {
                 disabled={totalDebt === 0}
               />
             </div>
-            <div><p className='underline text-omg-14'>*해당 대출은 금리가 높은 상품부터 우선적으로 상환됩니다.</p></div>
+            <div>
+              <p className='underline text-omg-14'>*해당 대출은 금리가 높은 상품부터 우선적으로 상환됩니다.</p>
+            </div>
           </div>
         </section>
       </div>
