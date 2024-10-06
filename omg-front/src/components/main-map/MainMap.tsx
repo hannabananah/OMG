@@ -16,7 +16,7 @@ import { useOtherUserStore } from '@/stores/useOtherUserState';
 import { useSocketMessage } from '@/stores/useSocketMessage';
 import useUser from '@/stores/useUser';
 import { SocketContext } from '@/utils/SocketContext';
-import { KeyboardControls } from '@react-three/drei';
+import { KeyboardControls, OrbitControls } from '@react-three/drei';
 import { Canvas } from '@react-three/fiber';
 import { Physics } from '@react-three/rapier';
 
@@ -192,11 +192,11 @@ export default function MainMap() {
     keyof typeof CharacterInfo
   >;
 
-  const selectedCharacterKey = characterKeys[characterType] || 'santa';
+  const selectedCharacterKey = characterKeys[characterType] || 'elf';
   const selectedCharacter = CharacterInfo[selectedCharacterKey];
 
   const otherCharacters = otherUsers.map(user => {
-    const userCharacterKey = characterKeys[user.characterType] || 'santa';
+    const userCharacterKey = characterKeys[user.characterType] || 'elf';
 
     return {
       id: user.id,
@@ -356,6 +356,8 @@ export default function MainMap() {
       <KeyboardControls map={keyboardMap}>
         <Canvas>
           <Suspense>
+            {/* <OrbitControls /> */}
+
             <Physics timeStep='vary' colliders={false} debug>
               <ambientLight />
               <directionalLight />
@@ -365,8 +367,9 @@ export default function MainMap() {
               <Character
                 characterURL={selectedCharacter.url}
                 characterScale={selectedCharacter.scale}
-                // position={selectedCharacter.position}
                 isOwnCharacter={true}
+                startPosition={selectedCharacter.startPosition}
+                characterCamera={selectedCharacter.cameraSettings}
               />
 
               {/* 다른 유저들 캐릭터 */}
