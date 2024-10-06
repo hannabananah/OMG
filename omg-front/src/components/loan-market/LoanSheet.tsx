@@ -5,7 +5,7 @@ const TableHeader = ({ headers }: { headers: string[] }) => (
   <thead>
     <tr className='text-omg-14'>
       {headers.map((header, index) => (
-        <th key={index} className='p-4 text-left bg-white'>
+        <th key={index} className='w-1/5 p-4 text-left bg-white'>
           {header}
         </th>
       ))}
@@ -14,7 +14,7 @@ const TableHeader = ({ headers }: { headers: string[] }) => (
 );
 
 const TableCell = ({ value }: { value: string | number }) => (
-  <td className='p-4 text-omg-14'>{value}</td>
+  <td className='w-1/5 p-4 text-omg-14'>{value}</td>
 );
 
 export default function LoanSheet() {
@@ -30,29 +30,29 @@ export default function LoanSheet() {
 
   const headers = [
     '대출한 라운드',
-    '대출 시각',
+    '대출한 시각',
     '금리',
     '대출 원금',
-    '현재 대출상품에 적용된 이자',
+    '해당 상품에 적용된 이자액',
   ];
 
   return (
-    <div className='flex flex-col items-center w-full h-[440px] p-10'>
+    <div className='flex flex-col items-center w-full h-full px-6 py-10'>
       <div className='w-full h-full'>
-        <table className='min-w-full bg-white shadow-xl'>
+        <table className='min-w-full bg-white table-fixed'>
           <TableHeader headers={headers} />
         </table>
 
-        <div className='h-[360px] overflow-y-auto scrollbar-hidden'>
-          <table className='min-w-full bg-white'>
+        <div className='h-[330px] overflow-y-auto scrollbar-hidden'>
+          <table className='min-w-full bg-white shadow-xl table-fixed'>
             <tbody>
               {loanProducts.map((product, index) => (
-                <tr key={index} className='border-b'>
-                  <TableCell value={product.round} />
+                <tr key={index}>
+                  <TableCell value={`${product.round} 라운드`} />
                   <TableCell value={formatTime(product.loanTimestampInSeconds)} />
                   <TableCell value={`${product.interestRate}%`} />
-                  <TableCell value={product.loanPrincipal} />
-                  <TableCell value={product.loanInterest} />
+                  <TableCell value={`$${product.loanPrincipal}`} />
+                  <TableCell value={`$${product.loanInterest}`} />
                 </tr>
               ))}
             </tbody>
