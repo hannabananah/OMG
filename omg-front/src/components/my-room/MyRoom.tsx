@@ -14,7 +14,7 @@ import { treeItemNameInKorean } from '@/hooks/useStock';
 import { useGameStore } from '@/stores/useGameStore';
 import { useMainBoardStore } from '@/stores/useMainBoardStore';
 import useModalStore from '@/stores/useModalStore';
-import useUser from '@/stores/useUser';
+import { usePersonalBoardStore } from '@/stores/usePersonalBoardStore';
 import { SocketContext } from '@/utils/SocketContext';
 import { Html, OrbitControls } from '@react-three/drei';
 import { Canvas } from '@react-three/fiber';
@@ -23,22 +23,11 @@ export default function MyRoom() {
   const { modals, closeModal } = useModalStore();
   const { roundTimer, presentRound } = useContext(SocketContext);
 
-  const { gameData, setCarryingCount } = useGameStore();
-
-  const { players } = gameData || {};
+  const { setCarryingCount } = useGameStore();
 
   const { stockPrices, tradableStockCnt } = useMainBoardStore();
+  const { stock } = usePersonalBoardStore();
 
-  const { nickname } = useUser();
-
-  // 내 nickname에 해당하는 플레이어 정보 찾기
-  const myPlayerInfo = Array.isArray(players)
-    ? players.find(player => player.nickname === nickname)
-    : null;
-
-  const { stock } = myPlayerInfo || {};
-
-  // const MAX_TRADE_COUNT = 5; // 최대 거래 가능 수량
   const MAX_TRADE_COUNT = tradableStockCnt; // 최대 거래 가능 수량
   const STOCK_MARKET_PRICE = stockPrices; // 현재 주가
   const MY_STOCK = stock; // 보유 주식 개수

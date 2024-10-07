@@ -32,10 +32,6 @@ interface GameStore {
   carryingCount: number[];
   selectedCount: number[];
   setGameData: (data: Partial<GameData>) => void; // Partial 타입 사용하여 일부 필드만 업데이트 가능하도록 설정
-  setPlayerDataByNickname: (
-    nickname: string,
-    updatedData: Partial<Player>,
-  ) => void; // 특정 nickname의 플레이어 데이터만 업데이트하는 함수 타입 정의
   setCarryingCount: (
     data: number[] | ((prevData: number[]) => number[]),
   ) => void;
@@ -54,20 +50,6 @@ export const useGameStore = create<GameStore>(set => ({
       gameData: {
         ...state.gameData, // 기존 데이터 유지
         ...data, // 새로운 데이터로 덮어쓰기 (일부 필드만 업데이트)
-      },
-    }));
-  },
-  // nickname을 기준으로 특정 플레이어의 데이터를 업데이트하는 함수
-  setPlayerDataByNickname: (nickname: string, updatedData: Partial<Player>) => {
-    set(state => ({
-      gameData: {
-        ...state.gameData,
-        players: state.gameData?.players.map(
-          player =>
-            player.nickname === nickname
-              ? { ...player, ...updatedData } // 해당 nickname의 플레이어 데이터만 업데이트
-              : player, // 나머지 플레이어는 그대로 유지
-        ),
       },
     }));
   },

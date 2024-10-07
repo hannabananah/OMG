@@ -6,6 +6,7 @@ import { useGoldStore } from '@/stores/useGoldStore';
 import { useLoanStore } from '@/stores/useLoanStore';
 import { useMainBoardStore } from '@/stores/useMainBoardStore';
 import { useOtherUserStore } from '@/stores/useOtherUserState';
+import { usePersonalBoardStore } from '@/stores/usePersonalBoardStore';
 import { useSocketMessage } from '@/stores/useSocketMessage';
 import { useStockStore } from '@/stores/useStockStore';
 import useUser from '@/stores/useUser';
@@ -97,8 +98,9 @@ export default function SocketProvider({ children }: SocketProviderProps) {
     setEventCardMessage,
     setGameRoundMessage,
   } = useSocketMessage();
-  const { setGameData, setPlayerDataByNickname } = useGameStore();
+  const { setGameData } = useGameStore();
   const { setMainBoardData } = useMainBoardStore();
+  const { setPersonalBoardData } = usePersonalBoardStore();
   const { setStockMarketData } = useStockStore();
   const { setGoldMarketData } = useGoldStore();
   const { setLoanData } = useLoanStore();
@@ -298,8 +300,7 @@ export default function SocketProvider({ children }: SocketProviderProps) {
 
           case 'SUCCESS_PURCHASE_GOLD':
             if (currentUser === nickname) {
-              // players 배열에서 해당 nickname에 맞는 플레이어 업데이트
-              setPlayerDataByNickname(nickname, parsedMessage.data);
+              setPersonalBoardData(parsedMessage.data);
               setGoldPurchaseMessage({
                 message: `금괴를 성공적으로 구매했습니다! 현재 소유 금괴 수량: ${parsedMessage.data.goldOwned}`,
                 isCompleted: true,
@@ -310,6 +311,7 @@ export default function SocketProvider({ children }: SocketProviderProps) {
 
           case 'SUCCESS_TAKE_LOAN':
             if (currentUser === nickname) {
+              setPersonalBoardData(parsedMessage.data);
               setLoanData(parsedMessage.data);
               console.log('대출 신청 성공', parsedMessage.data);
               setLoanMessage({
@@ -321,8 +323,9 @@ export default function SocketProvider({ children }: SocketProviderProps) {
 
           case 'SUCCESS_REPAY_LOAN':
             if (currentUser === nickname) {
-              console.log('대출 상환 성공', parsedMessage.data);
+              setPersonalBoardData(parsedMessage.data);
               setLoanData(parsedMessage.data);
+              console.log('대출 상환 성공', parsedMessage.data);
               setRepayLoanMessage({
                 message: parsedMessage.data.totalDebt,
                 isCompleted: true,
@@ -417,8 +420,7 @@ export default function SocketProvider({ children }: SocketProviderProps) {
 
           case 'SUCCESS_BUY_STOCK':
             if (currentUser === nickname) {
-              // players 배열에서 해당 nickname에 맞는 플레이어 업데이트
-              setPlayerDataByNickname(nickname, parsedMessage.data);
+              setPersonalBoardData(parsedMessage.data);
               setBuyMessage({
                 message: '매수 완료!',
                 isCompleted: true,
@@ -452,13 +454,11 @@ export default function SocketProvider({ children }: SocketProviderProps) {
 
           case 'SUCCESS_SELL_STOCK':
             if (currentUser === nickname) {
-              // players 배열에서 해당 nickname에 맞는 플레이어 업데이트
-              setPlayerDataByNickname(nickname, parsedMessage.data);
+              setPersonalBoardData(parsedMessage.data);
               setSellMessage({
                 message: '매도 성공!',
                 isCompleted: true,
               });
-              setStockMarketData(parsedMessage.data);
               console.log('매도 성공', parsedMessage.data);
             }
             break;
@@ -488,6 +488,13 @@ export default function SocketProvider({ children }: SocketProviderProps) {
           case 'MAIN_MESSAGE_NOTIFICATION':
             setMainBoardData(parsedMessage.data);
             console.log('메인판 정보 업데이트', parsedMessage.data);
+            break;
+
+          case 'INDIVIDUAL_MESSAGE_NOTIFICATION':
+            if (currentUser === nickname) {
+              setPersonalBoardData(parsedMessage.data); // 현재 사용자와 nickname이 일치하는 경우에만 업데이트
+              console.log('개인 판 정보 업데이트', parsedMessage.data);
+            }
             break;
         }
       },

@@ -1,8 +1,7 @@
 import Item from '@/components/stock-market/Item';
 import { treeItemNameInKorean } from '@/hooks/useStock';
-import { useGameStore } from '@/stores/useGameStore';
 import useModalStore from '@/stores/useModalStore';
-import useUser from '@/stores/useUser';
+import { usePersonalBoardStore } from '@/stores/usePersonalBoardStore';
 import { stockItems } from '@/types';
 import { Html } from '@react-three/drei';
 import { Canvas } from '@react-three/fiber';
@@ -17,17 +16,7 @@ import BackButton from '../common/BackButton';
 export default function PersonalBoard() {
   const { modals, closeModal } = useModalStore();
 
-  const { gameData } = useGameStore();
-  const { players } = gameData || {};
-
-  const { nickname } = useUser();
-
-  // 내 nickname에 해당하는 플레이어 정보 찾기
-  const myPlayerInfo = Array.isArray(players)
-    ? players.find(player => player.nickname === nickname)
-    : null;
-
-  const { stock, goldOwned, cash, totalDebt } = myPlayerInfo || {};
+  const { stock, goldOwned, cash, totalDebt } = usePersonalBoardStore();
 
   const spacing = 0.8;
   const startPosition = -(stockItems.length - 1) * (spacing / 2);
@@ -122,25 +111,23 @@ export default function PersonalBoard() {
           </div>
 
           {/* 보유 금 개수 & 현금 & 총 대출 액 */}
-          {gameData && gameData.goldPrice && (
-            <div className='flex flex-col w-full mx-auto h-1/2'>
-              <h2 className='flex justify-center w-full break-keep text-nowrap font-omg-body text-omg-30b'>
-                금 개수, 보유 현금, 총 대출 액
-              </h2>
-              <div className='flex items-center flex-grow w-full text-center'>
-                {/* 금괴 에셋 시각화하여 보여주기 */}
-                <span className='justify-center w-full text-omg-28'>
-                  금 개수: {goldOwned}개
-                </span>
-                <span className='justify-center w-full text-omg-28'>
-                  보유 현금: {cash}원
-                </span>
-                <span className='justify-center w-full text-omg-28'>
-                  총 대출: {totalDebt}원
-                </span>
-              </div>
+          <div className='flex flex-col w-full mx-auto h-1/2'>
+            <h2 className='flex justify-center w-full break-keep text-nowrap font-omg-body text-omg-30b'>
+              금 개수, 보유 현금, 총 대출 액
+            </h2>
+            <div className='flex items-center flex-grow w-full text-center'>
+              {/* 금괴 에셋 시각화하여 보여주기 */}
+              <span className='justify-center w-full text-omg-28'>
+                금 개수: {goldOwned}개
+              </span>
+              <span className='justify-center w-full text-omg-28'>
+                보유 현금: {cash}원
+              </span>
+              <span className='justify-center w-full text-omg-28'>
+                총 대출: {totalDebt}원
+              </span>
             </div>
-          )}
+          </div>
         </section>
       </div>
     </div>
