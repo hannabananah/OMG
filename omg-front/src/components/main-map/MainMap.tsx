@@ -27,6 +27,7 @@ import LoanMarket from '../loan-market/LoanMarket';
 import MainBoard from '../main-board/MainBoard';
 import MyRoom from '../my-room/MyRoom';
 import PersonalBoard from '../personal-board/PersonalBoard';
+import GameResult from '@/components/game/GameResult';
 
 export const Controls = {
   forward: 'forward',
@@ -46,7 +47,7 @@ const stockTypes = [
 
 export default function MainMap() {
   const { characterType } = useUser();
-  const { socket, online, initGameSetting, allRendered } =
+  const { socket, online, initGameSetting, allRendered, isGameResultVisible, roundTimer, presentRound } =
     useContext(SocketContext);
   const { gameData, carryingCount, setCarryingCount } = useGameStore();
 
@@ -55,7 +56,6 @@ export default function MainMap() {
   const { modals, openModal } = useModalStore();
 
   const { eventCardMessage, gameRoundMessage } = useSocketMessage();
-  const { roundTimer, presentRound } = useContext(SocketContext);
   const { tradableStockCnt } = gameData || {};
   const [isChatOpen, setIsChatOpen] = useState(false);
   const [isVisible, setIsVisible] = useState(false);
@@ -244,6 +244,9 @@ export default function MainMap() {
 
       {/* 대출 시장 모달 */}
       {modals.loanMarket && <LoanMarket />}
+
+      {/* 게임 결과 모달 */}
+      {isGameResultVisible && <GameResult />}
 
       {/* 주식 매도 수량 선택(집에서) */}
       <div className='px-10 py-2'>
