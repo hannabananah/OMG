@@ -16,8 +16,8 @@ svg .clickable {
 }
 
 html {
-  @apply h-screen w-full text-gray-800 break-words m-auto select-none;
-  font-size: 14px; /* 1rem을 14px로 설정 */
+  @apply h-screen w-full text-slate-950 break-words m-auto select-none;
+  font-size: 14px;
 }
 
 input {
@@ -32,6 +32,15 @@ button:disabled {
   overflow: hidden;
 }
 
+.scrollbar-hidden::-webkit-scrollbar {
+  display: none;
+}
+
+.scrollbar-hidden {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
 @font-face {
   font-family: 'OKDDUNG';
   src: url('https://fastly.jsdelivr.net/gh/projectnoonnu/noonfonts_2206-02@1.0/OKDDUNG.woff2')
@@ -44,6 +53,14 @@ button:disabled {
   font-family: 'Katuri';
   src: url('https://gcore.jsdelivr.net/gh/projectnoonnu/noonfonts_13@1.0/Katuri.woff')
     format('woff');
+  font-weight: normal;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: 'SUITE';
+  src: url('https://fastly.jsdelivr.net/gh/projectnoonnu/noonfonts_2304-2@1.0/SUITE-Regular.woff2')
+    format('woff2');
   font-weight: normal;
   font-style: normal;
 }
@@ -91,5 +108,34 @@ button:disabled {
 
   .modal-container {
     @apply flex flex-col w-[80%] h-[80%] bg-white bg-opacity-80 rounded-[30px];
+  }
+}
+
+@layer utilities {
+  @keyframes gradient {
+    0% {
+      background-position: 0% 50%;
+    }
+    50% {
+      background-position: 100% 50%;
+    }
+    100% {
+      background-position: 0% 50%;
+    }
+  }
+
+  .bg-gradient-animation {
+    background: linear-gradient(
+      270deg,
+      #ff0000 0%,
+      #00ff00 33%,
+      #ffffff 67%,
+      #ff0000 100%
+    );
+    background-size: 100% 100%;
+    animation: gradient 4s ease infinite;
+    -webkit-background-clip: text; /* Safari 지원 */
+    background-clip: text;
+    color: transparent;
   }
 }

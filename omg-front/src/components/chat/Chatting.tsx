@@ -1,10 +1,15 @@
 import { useContext, useEffect, useRef, useState } from 'react';
-
+import { TbFoldDown } from "react-icons/tb";
 import ChatInputForm from '@/components/chat/ChatInputForm';
 import ChatMessage from '@/components/chat/ChatMessage';
 import { SocketContext } from '@/utils/SocketContext';
 
-export default function Chatting() {
+
+interface ChattingProps {
+  closeChattingModal: () => void;
+}
+
+export default function Chatting({ closeChattingModal }: ChattingProps) {
   const { sendMessage, chatMessages } = useContext(SocketContext);
 
   const [msg, setMsg] = useState<string>('');
@@ -22,7 +27,6 @@ export default function Chatting() {
     }
   };
 
-  // 스크롤 하단 고정
   useEffect(() => {
     if (chatRef.current) {
       const newHeight = chatRef.current.scrollHeight;
@@ -31,11 +35,14 @@ export default function Chatting() {
   }, [chatMessages]);
 
   return (
-    <div className='mt-4'>
-      <h3 className='text-lime-700'>채팅 영역</h3>
+    <div className='relative w-2/5 py-3 mb-4 bg-white bg-opacity-90 h-52 rounded-t-10 text-omg-14 font-omg-chat'>
+      <button className="absolute p-2 -m-2 text-gray hover:text-black top-2 right-4" onClick={closeChattingModal}>
+        <TbFoldDown size={24} />
+      </button>
+
       <div
         ref={chatRef}
-        className='h-40 p-2 overflow-y-auto border border-lime-500'
+        className='justify-center h-full px-4 overflow-y-auto scrollbar-hidden'
       >
         {chatMessages.map((message, index) => (
           <ChatMessage

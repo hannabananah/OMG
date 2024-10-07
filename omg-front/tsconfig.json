@@ -15,7 +15,8 @@
       "@/hooks/*": ["hooks/*"],
       "@/stores/*": ["stores/*"],
       "@/apis/*": ["apis/*"],
-      "@/types/*": ["types/*"]
+      "@/types/*": ["types/*"],
+      "@/data/*": ["data/*"]
     },
 
     /* Bundler mode */
