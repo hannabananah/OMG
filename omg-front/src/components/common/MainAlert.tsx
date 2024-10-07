@@ -4,7 +4,7 @@ interface MainAlertProps {
 
 export default function MainAlert({ text }: MainAlertProps) {
   return (
-    <div className='w-full p-4 text-center bg-white text-omg-24 rounded-20'>
+    <div className='w-full p-4 text-center bg-white drop-shadow-xl text-omg-24 rounded-20'>
       {text}
     </div>
   );

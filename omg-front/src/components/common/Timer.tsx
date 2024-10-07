@@ -12,7 +12,7 @@ export default function Timer({ time }: { time: number }) {
 
   return (
     <p
-      className={`text-omg-40b ${remainingTime <= 5 ? 'text-red animate-shake' : 'text-white'}`}
+      className={`text-omg-40b drop-shadow-xl ${remainingTime <= 5 ? 'text-red animate-shake' : 'text-black'}`}
     >
       {formatTime(remainingTime)}
     </p>
