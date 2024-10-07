@@ -243,31 +243,57 @@ public class GameServiceImpl implements GameService {
     @Override
     public GameResultResponse gameResult(Game game) throws BaseException {
 
+        System.out.println("==== Starting Game Result Calculation ====");
         int finalGoldPrice = game.getGoldPrice();
+        System.out.println("Final Gold Price: " + finalGoldPrice);
+
         int[] finalStockPrices = new int[5];
         StockInfo[] marketStocks = game.getMarketStocks();
         for (int i = 0; i < 5; i++) {
             int[] state = marketStocks[i + 1].getState();
             finalStockPrices[i] = stockState.getStockStandard()[state[0]][state[1]].getPrice();
+            System.out.println("Final Stock Price for stock " + (i + 1) + ": " + finalStockPrices[i]);
         }
 
         List<Player> players = game.getPlayers();
         List<PlayerResult> playerResults = new ArrayList<>();
+        System.out.println("\n==== Calculating Player Results ====");
 
         for (Player player : players) {
+            System.out.println("\nCalculating for player: " + player.getNickname());
             int finalNetWorth = calculateNetWorth(game, player);
             PlayerResult individualResult = PlayerResult.builder()
                     .nickname(player.getNickname())
+                    .finalCash(player.getCash())
                     .finalGoldCnt(player.getGoldOwned())
                     .finalStockCnt(player.getStock())
                     .finalNetWorth(finalNetWorth)
                     .finalDebt(player.getTotalDebt())
                     .build();
             playerResults.add(individualResult);
+
+            System.out.println("Player: " + player.getNickname());
+            System.out.println("  Final Gold Count: " + player.getGoldOwned());
+            System.out.println("  Final Stock Count: " + Arrays.toString(player.getStock()));
+            System.out.println("  Final Net Worth: " + finalNetWorth);
+            System.out.println("  Final Debt: " + player.getTotalDebt());
+            System.out.println("  Cash: " + player.getCash());
+        }
+
+        System.out.println("\n==== Player Results Before Sorting ====");
+        for (PlayerResult result : playerResults) {
+            System.out.println(result.getNickname() + ": Net worth = " + result.getFinalNetWorth() + ", Cash = " + result.getFinalCash());
         }
 
         // 순위 정렬
         playerResults.sort((o1, o2) -> Integer.compare(o2.getFinalNetWorth(), o1.getFinalNetWorth()));
+
+        System.out.println("\n==== Final Player Rankings ====");
+        for (int i = 0; i < playerResults.size(); i++) {
+            PlayerResult result = playerResults.get(i);
+            System.out.println((i + 1) + ". " + result.getNickname() + ": Net worth = " + result.getFinalNetWorth() + ", Cash = " + result.getFinalCash());
+        }
+        System.out.println("\n==== Game Result Calculation Completed ====");
 
         return GameResultResponse.builder()
                 .finalGoldPrice(finalGoldPrice)
@@ -282,9 +308,22 @@ public class GameServiceImpl implements GameService {
         int goldPrice = game.getGoldPrice();
         StockInfo[] marketStocks = game.getMarketStocks();
 
-        netWorth += player.getGoldOwned() * goldPrice;
-        netWorth += getStockValue(player.getStock(), marketStocks);
-        netWorth -= player.getTotalDebt();
+        System.out.println("  Calculating net worth:");
+        System.out.println("    Cash: " + netWorth);
+
+        int goldValue = player.getGoldOwned() * goldPrice;
+        netWorth += goldValue;
+        System.out.println("    Gold value: " + goldValue + " (Gold owned: " + player.getGoldOwned() + ", Gold price: " + goldPrice + ")");
+
+        int stockValue = getStockValue(player.getStock(), marketStocks);
+        netWorth += stockValue;
+        System.out.println("    Stock value: " + stockValue);
+
+        int debt = player.getTotalDebt();
+        netWorth -= debt;
+        System.out.println("    Total debt: " + debt);
+
+        System.out.println("    Final net worth: " + netWorth);
 
         return netWorth;
     }
