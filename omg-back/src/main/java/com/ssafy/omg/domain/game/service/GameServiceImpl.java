@@ -1277,6 +1277,10 @@ public class GameServiceImpl implements GameService {
             Player player = findPlayer(arena, playerNickname);
             Game game = arena.getGame();
 
+            if (player.getState() == COMPLETED) {
+                throw new BaseException(PLAYER_STATE_ERROR);
+            }
+
             int stockPriceLevel = game.getCurrentStockPriceLevel();
             StockInfo[] marketStocks = game.getMarketStocks();
             int[] stockBuyTrack = game.getStockBuyTrack();
@@ -1290,6 +1294,7 @@ public class GameServiceImpl implements GameService {
                 throw new MessageException(roomId, playerNickname, INSUFFICIENT_CASH);
             }
             player.setCash(player.getCash() - totalCost);
+            player.setState(PlayerStatus.COMPLETED);
 
             updatePlayerStocks(stocksToBuy, player);
             updateStockMarket(stocksToBuy, marketStocks);
