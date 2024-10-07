@@ -301,6 +301,7 @@ export default function MainMap() {
                 characterURL={selectedCharacter.url}
                 characterScale={selectedCharacter.scale}
                 isOwnCharacter={true}
+                startPosition={selectedCharacter.startPosition}
               />
               <spotLight
                 position={[0, 10, 5]}

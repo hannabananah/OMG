@@ -31,13 +31,13 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Random;
 import java.util.Set;
 import java.util.TreeSet;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
-import java.util.Iterator;
 
 import static com.ssafy.omg.config.baseresponse.BaseResponseStatus.ARENA_NOT_FOUND;
 import static com.ssafy.omg.config.baseresponse.BaseResponseStatus.EVENT_NOT_FOUND;
@@ -243,6 +243,14 @@ public class GameServiceImpl implements GameService {
     @Override
     public GameResultResponse gameResult(Game game) throws BaseException {
 
+        int finalGoldPrice = game.getGoldPrice();
+        int[] finalStockPrices = new int[5];
+        StockInfo[] marketStocks = game.getMarketStocks();
+        for (int i = 0; i < 5; i++) {
+            int[] state = marketStocks[i + 1].getState();
+            finalStockPrices[i] = stockState.getStockStandard()[state[0]][state[1]].getPrice();
+        }
+
         List<Player> players = game.getPlayers();
         List<PlayerResult> playerResults = new ArrayList<>();
 
@@ -262,6 +270,8 @@ public class GameServiceImpl implements GameService {
         playerResults.sort((o1, o2) -> Integer.compare(o2.getFinalNetWorth(), o1.getFinalNetWorth()));
 
         return GameResultResponse.builder()
+                .finalGoldPrice(finalGoldPrice)
+                .finalStockPrice(finalStockPrices)
                 .playerResults(playerResults)
                 .build();
     }
@@ -1267,6 +1277,10 @@ public class GameServiceImpl implements GameService {
             Player player = findPlayer(arena, playerNickname);
             Game game = arena.getGame();
 
+            if (player.getState() == COMPLETED) {
+                throw new BaseException(PLAYER_STATE_ERROR);
+            }
+
             int stockPriceLevel = game.getCurrentStockPriceLevel();
             StockInfo[] marketStocks = game.getMarketStocks();
             int[] stockBuyTrack = game.getStockBuyTrack();
@@ -1280,6 +1294,7 @@ public class GameServiceImpl implements GameService {
                 throw new MessageException(roomId, playerNickname, INSUFFICIENT_CASH);
             }
             player.setCash(player.getCash() - totalCost);
+            player.setState(PlayerStatus.COMPLETED);
 
             updatePlayerStocks(stocksToBuy, player);
             updateStockMarket(stocksToBuy, marketStocks);

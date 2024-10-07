@@ -1,6 +1,5 @@
 package com.ssafy.omg.domain.game.controller;
 
-import com.fasterxml.jackson.databind.ser.Serializers;
 import com.ssafy.omg.config.MessageController;
 import com.ssafy.omg.config.baseresponse.BaseException;
 import com.ssafy.omg.config.baseresponse.BaseResponse;
@@ -172,16 +171,18 @@ public class IndividualMessageController {
 
         StompPayload<IndividualMessageDto> response = null;
 
-        gameService.sellStock(roomId, userNickname, sellStockAmount);
-        IndividualMessageDto individualMessage = gameService.getIndividualMessage(roomId, userNickname);
-        response = new StompPayload<>("SUCCESS_SELL_STOCK", roomId, userNickname, individualMessage);
-        messagingTemplate.convertAndSend("/sub/" + roomId + "/game", response);
-        Game game = gameRepository.findArenaByRoomId(roomId).get().getGame();
-        gameScheduler.updateAndBroadcastMarketInfo(game, "STOCK");
         try {
+            gameService.sellStock(roomId, userNickname, sellStockAmount);
+            IndividualMessageDto individualMessage = gameService.getIndividualMessage(roomId, userNickname);
+            response = new StompPayload<>("SUCCESS_SELL_STOCK", roomId, userNickname, individualMessage);
+            messagingTemplate.convertAndSend("/sub/" + roomId + "/game", response);
+            Game game = gameRepository.findArenaByRoomId(roomId).get().getGame();
+            gameScheduler.updateAndBroadcastMarketInfo(game, "STOCK");
             gameScheduler.notifyMainMessage(roomId, "GAME_MANAGER");
         } catch (BaseException e) {
-            log.error("Error while notifying main message: " + e.getStatus().getMessage());
+            IndividualMessageDto individualMessage = gameService.getIndividualMessage(roomId, userNickname);
+            response = new StompPayload<>("STOCK_ALREADY_SOLD", roomId, userNickname, individualMessage);
+            messagingTemplate.convertAndSend("/sub/" + roomId + "/game", response);
         }
         return new BaseResponse<>(response);
     }
