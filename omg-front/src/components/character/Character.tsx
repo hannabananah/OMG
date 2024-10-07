@@ -9,6 +9,7 @@ import { useFrame } from '@react-three/fiber';
 import { CuboidCollider, RigidBody } from '@react-three/rapier';
 import * as THREE from 'three';
 
+import { isInZone, zones } from '../../assets/data/locationInfo';
 import { useIntroStore } from '../../stores/useIntroStore';
 import IntroCamera from '../camera/IntroCamera';
 import Item from './Item';
@@ -48,6 +49,7 @@ export default function Character({
   const [isColliding, setIsColliding] = useState(false);
   const [isCameraTransitioned, setIsCameraTransitioned] = useState(false);
   const movementStateRef = useRef<'idle' | 'walking' | 'running'>('idle');
+  const prevPositionRef = useRef(new THREE.Vector3()); // 캐릭터 이전 위치
 
   const leftPressed = useKeyboardControls(state => state[Controls.left]);
   const rightPressed = useKeyboardControls(state => state[Controls.right]);
@@ -58,6 +60,15 @@ export default function Character({
   const [rightColliding, setRightColliding] = useState(false);
   const [forwardColliding, setForwardColliding] = useState(false);
   const [backColliding, setBackColliding] = useState(false);
+
+  const [isInStockMarketZone, setIsInStockMarketZone] = useState(false);
+  const [isInLoanMarketZone, setIsInLoanMarketZone] = useState(false);
+  const [isInGoldMarketZone, setIsInGoldMarketZone] = useState(false);
+  const [isInSantaHouseZone, setIsInSantaHouseZone] = useState(false);
+  const [isInSnowmanHouseZone, setIsInSnowmanHouseZone] = useState(false);
+  const [isInElfHouseZone, setIsInElfHouseZone] = useState(false);
+  const [isInGingerbreadHouseZone, setIsInGingerbreadHouseZone] =
+    useState(false);
 
   const { showIntro } = useIntroStore();
 
@@ -85,12 +96,104 @@ export default function Character({
   };
 
   useEffect(() => {
-    console.log('캐릭터 현재 위치:', {
-      x: characterPosition.x,
-      y: characterPosition.y,
-      z: characterPosition.z,
-    });
-  }, [characterPosition]);
+    const prevPosition = prevPositionRef.current;
+    if (
+      characterPosition.x !== prevPosition.x ||
+      characterPosition.y !== prevPosition.y ||
+      characterPosition.z !== prevPosition.z
+    ) {
+      console.log('캐릭터 현재 위치:', {
+        x: characterPosition.x,
+        y: characterPosition.y,
+        z: characterPosition.z,
+      });
+      prevPositionRef.current.copy(characterPosition); // 현재 위치를 이전 위치로 업데이트
+
+      const insideStockMarket = isInZone(characterPosition, zones.stockMarket);
+      if (insideStockMarket && !isInStockMarketZone) {
+        setIsInStockMarketZone(true);
+        console.log('주식 시장 진입');
+      } else if (!insideStockMarket && isInStockMarketZone) {
+        setIsInStockMarketZone(false);
+        console.log('주식 시장 벗어남');
+      }
+
+      const insideLoanMarket = isInZone(characterPosition, zones.loanMarket);
+      if (insideLoanMarket && !isInLoanMarketZone) {
+        setIsInLoanMarketZone(true);
+        console.log('대출 방 진입');
+      } else if (!insideLoanMarket && isInLoanMarketZone) {
+        setIsInLoanMarketZone(false);
+        console.log('대출 방 벗어남');
+      }
+
+      const insideGoldMarket = isInZone(characterPosition, zones.goldMarket);
+      if (insideGoldMarket && !isInGoldMarketZone) {
+        setIsInGoldMarketZone(true);
+        console.log('금 거래소 진입');
+      } else if (!insideGoldMarket && isInGoldMarketZone) {
+        setIsInGoldMarketZone(false);
+        console.log('금 거래소 벗어남');
+      }
+
+      const insideSantaHouse = isInZone(characterPosition, zones.santaHouse);
+      if (insideSantaHouse && !isInSantaHouseZone) {
+        setIsInSantaHouseZone(true);
+        console.log('산타 집 진입');
+      } else if (!insideSantaHouse && isInSantaHouseZone) {
+        setIsInSantaHouseZone(false);
+        console.log('산타 집 벗어남');
+      }
+
+      const insideSnowmanHouse = isInZone(
+        characterPosition,
+        zones.snowmanHouse,
+      );
+      if (insideSnowmanHouse && !isInSnowmanHouseZone) {
+        // snowman 집에 진입
+        setIsInSnowmanHouseZone(true);
+        console.log('snowman 집 진입');
+      } else if (!insideSnowmanHouse && isInSnowmanHouseZone) {
+        // snowman 집에서 벗어남
+        setIsInSnowmanHouseZone(false);
+        console.log('snowman 집 진입');
+      }
+
+      const insideElfHouse = isInZone(characterPosition, zones.elfHouse);
+      if (insideElfHouse && !isInElfHouseZone) {
+        // elf 집에 진입
+        setIsInElfHouseZone(true);
+        console.log('elf 집 진입');
+      } else if (!insideElfHouse && isInElfHouseZone) {
+        // elf 집에서 벗어남
+        setIsInElfHouseZone(false);
+        console.log('elf 집 벗어남');
+      }
+
+      const insideGingerbreadHouse = isInZone(
+        characterPosition,
+        zones.gingerbreadHouse,
+      );
+      if (insideGingerbreadHouse && !isInGingerbreadHouseZone) {
+        // gingerbread 집에 진입
+        setIsInGingerbreadHouseZone(true);
+        console.log('gingerbread 집 진입');
+      } else if (!insideGingerbreadHouse && isInGingerbreadHouseZone) {
+        // gingerbread 집에서 벗어남
+        setIsInGingerbreadHouseZone(false);
+        console.log('Exited gingerbread 집 벗어남');
+      }
+    }
+  }, [
+    characterPosition,
+    isInStockMarketZone,
+    isInLoanMarketZone,
+    isInGoldMarketZone,
+    isInSantaHouseZone,
+    isInSnowmanHouseZone,
+    isInElfHouseZone,
+    isInGingerbreadHouseZone,
+  ]);
 
   useEffect(() => {
     if (!showIntro && isCameraTransitioned && isColliding) {
@@ -180,7 +283,7 @@ export default function Character({
         movePlayer(positionArray, directionArray, localActionToggle);
       }
     }
-  }, [rotation, allRendered, isOwnCharacter, localActionToggle]);
+  }, [position, rotation, allRendered, isOwnCharacter, localActionToggle]);
 
   const items: { itemName: StockItem; count: number }[] = useMemo(
     () => [
@@ -195,6 +298,8 @@ export default function Character({
 
   return (
     <>
+      <directionalLight position={[5, 10, 5]} intensity={2} />
+      <ambientLight intensity={0.5} />
       <IntroCamera
         characterPosition={characterPosition}
         characterDirection={

@@ -315,13 +315,13 @@ export default function MainMap() {
       </section>
 
       <KeyboardControls map={keyboardMap}>
-        <Canvas>
+        <Canvas shadows>
           <Suspense>
             {/* <OrbitControls /> */}
 
             <Physics timeStep='vary' colliders={false} debug>
-              <ambientLight />
-              <directionalLight />
+              <ambientLight intensity={2} />
+              <directionalLight intensity={2} />
 
               <Map />
               {/* 본인 캐릭터 */}
