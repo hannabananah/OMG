@@ -481,7 +481,7 @@ export default function SocketProvider({ children }: SocketProviderProps) {
           case 'SUCCESS_CALCULATE_LOANLIMIT':
             if (currentUser === nickname) {
               setLoanData(parsedMessage.data);
-              console.log('대출 입장', parsedMessage.data);
+              console.log('대출 한도 계산 완료', parsedMessage.data);
             }
             break;
 

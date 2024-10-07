@@ -1,8 +1,11 @@
+import { useContext, useEffect } from 'react';
+
 import Item from '@/components/stock-market/Item';
 import { treeItemNameInKorean } from '@/hooks/useStock';
 import useModalStore from '@/stores/useModalStore';
 import { usePersonalBoardStore } from '@/stores/usePersonalBoardStore';
 import { stockItems } from '@/types';
+import { SocketContext } from '@/utils/SocketContext';
 import { Html } from '@react-three/drei';
 import { Canvas } from '@react-three/fiber';
 import {
@@ -15,8 +18,13 @@ import BackButton from '../common/BackButton';
 
 export default function PersonalBoard() {
   const { modals, closeModal } = useModalStore();
+  const { enterLoan } = useContext(SocketContext);
 
   const { stock, goldOwned, cash, totalDebt } = usePersonalBoardStore();
+
+  useEffect(() => {
+    enterLoan();
+  }, []);
 
   const spacing = 0.8;
   const startPosition = -(stockItems.length - 1) * (spacing / 2);
