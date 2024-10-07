@@ -1,6 +1,6 @@
 import { ReactNode, createContext, useEffect, useMemo, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-
+import { useGameResultStore } from '@/stores/useGameResultStore'
 import { useGameStore } from '@/stores/useGameStore';
 import { useGoldStore } from '@/stores/useGoldStore';
 import { useLoanStore } from '@/stores/useLoanStore';
@@ -43,6 +43,7 @@ interface SocketContextType {
   roundTimer: number;
   presentRound: number;
   enterLoan: () => void;
+  isGameResultVisible: boolean
 }
 
 const defaultContextValue: SocketContextType = {
@@ -72,6 +73,7 @@ const defaultContextValue: SocketContextType = {
   enterLoan: () => { },
   roundTimer: 120,
   presentRound: 1,
+  isGameResultVisible: false,
 };
 
 export const SocketContext =
@@ -102,6 +104,7 @@ export default function SocketProvider({ children }: SocketProviderProps) {
   const { setStockMarketData } = useStockStore();
   const { setGoldMarketData } = useGoldStore();
   const { setLoanData } = useLoanStore();
+  const { setGameResultData } = useGameResultStore();
 
   const [socket, setSocket] = useState<Client | null>(null);
   const [online, setOnline] = useState(false);
@@ -113,6 +116,7 @@ export default function SocketProvider({ children }: SocketProviderProps) {
   const navigate = useNavigate();
   const [roundTimer, setRoundTimer] = useState(120);
   const [presentRound, setPresentRound] = useState(1);
+  const [isGameResultVisible, setIsGameResultVisible] = useState(false);
 
   const roomTopic = `/sub/${roomId}/room`;
   const chatTopic = `/sub/${roomId}/chat`;
@@ -268,7 +272,6 @@ export default function SocketProvider({ children }: SocketProviderProps) {
             break;
 
           case 'PLAYER_STATE':
-            console.log('16ms마다 들어오는 실시간 게임 정보');
             const otherPlayersData = parsedMessage.data.filter(
               (player: Player) => player.nickname !== nickname,
             );
@@ -482,6 +485,12 @@ export default function SocketProvider({ children }: SocketProviderProps) {
           case 'MAIN_MESSAGE_NOTIFICATION':
             setMainBoardData(parsedMessage.data);
             console.log('메인판 정보 업데이트', parsedMessage.data);
+            break;
+
+          case 'GAME_RESULT':
+            setGameResultData(parsedMessage.data);
+            setIsGameResultVisible(true);
+            console.log('게임 최종결과', parsedMessage.data);
             break;
         }
       },
@@ -760,6 +769,7 @@ export default function SocketProvider({ children }: SocketProviderProps) {
       roundTimer,
       presentRound,
       enterLoan,
+      isGameResultVisible
     }),
     [
       socket,
@@ -778,6 +788,7 @@ export default function SocketProvider({ children }: SocketProviderProps) {
       roundTimer,
       presentRound,
       enterLoan,
+      isGameResultVisible
     ],
   );
 
