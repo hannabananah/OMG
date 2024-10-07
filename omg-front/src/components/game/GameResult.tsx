@@ -1,0 +1,38 @@
+import { IoArrowRedo, IoArrowUndo } from "react-icons/io5";
+import { useState, lazy } from "react";
+import { useGameResultStore } from "@/stores/useGameResultStore";
+import useUser from '@/stores/useUser';
+
+const GamePersonalResult = lazy(() => import('./GamePersonalResult'));
+const GameTotalResult = lazy(() => import('./GameTotalResult'));
+
+export default function GameResult() {
+  const { playerResults } = useGameResultStore();
+  const { nickname } = useUser();
+
+  const [showTotalResult, setShowTotalResult] = useState(true);
+
+  const currentPlayer = playerResults.find(player => player.nickname === nickname);
+  const rank = playerResults.indexOf(currentPlayer) + 1;
+
+  const handleToggle = () => {
+    setShowTotalResult(!showTotalResult);
+  };
+
+  return (
+    <div className='fixed top-0 left-0 z-50 flex items-center justify-center w-full h-full bg-opacity-70'>
+      <div className='p-8 w-[70%] modal-container'>
+        <h2 className='text-center text-omg-40b'>최종 게임 결과</h2>
+        <h2 className='text-center text-omg-24'>{nickname}님의 최종 순위는 <span className='text-red'>{rank}위</span> 입니다.</h2>
+        <div className='overflow-auto'>
+          {showTotalResult ? <GameTotalResult /> : <GamePersonalResult />}
+        </div>
+        <div className='flex justify-end mt-4'>
+          <button onClick={handleToggle} className="text-2xl">
+            {showTotalResult ? <IoArrowRedo /> : <IoArrowUndo />}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
