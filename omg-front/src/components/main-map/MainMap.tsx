@@ -339,37 +339,61 @@ export default function MainMap() {
         <Canvas>
           <Suspense>
             <OrbitControls />
-            <axesHelper args={[800]} />
             <IntroCamera />
-            <Physics timeStep='vary' colliders={false} debug>
-              <ambientLight />
-              <directionalLight />
+            <Physics timeStep="vary" colliders={false}>
+              <ambientLight intensity={1.5} />              <directionalLight
+                intensity={2.0}
+                position={[10, 15, 10]}
+                castShadow
+              />
+              <pointLight intensity={2.0} position={[0, 10, 0]} />
 
               <Map />
 
-              {/* <PerspectiveCamera /> */}
               {/* 본인 캐릭터 */}
-
               <Character
                 characterURL={selectedCharacter.url}
                 characterScale={selectedCharacter.scale}
                 isOwnCharacter={true}
               />
 
+              <spotLight
+                position={[0, 10, 5]}
+                angle={0.5}
+                intensity={10}
+                penumbra={0.3}
+                castShadow
+              />
+
               {/* 다른 유저들 캐릭터 */}
               {otherCharacters.map(userCharacter => (
-                <Character
-                  key={userCharacter.id}
-                  characterURL={userCharacter.url}
-                  characterScale={userCharacter.scale}
-                  position={userCharacter.position}
-                  direction={userCharacter.direction}
-                  actionToggle={userCharacter.actionToggle}
-                  isOwnCharacter={false}
-                />
+                <>
+                  <Character
+                    key={userCharacter.id}
+                    characterURL={userCharacter.url}
+                    characterScale={userCharacter.scale}
+                    position={userCharacter.position}
+                    direction={userCharacter.direction}
+                    actionToggle={userCharacter.actionToggle}
+                    isOwnCharacter={false}
+                  />
+
+                  <spotLight
+                    position={[
+                      userCharacter.position[0],
+                      userCharacter.position[1] + 8,
+                      userCharacter.position[2] - 3,
+                    ]}
+                    angle={0.8}
+                    intensity={7}
+                    penumbra={0.2}
+                    castShadow
+                  />
+                </>
               ))}
             </Physics>
           </Suspense>
+
         </Canvas>
       </KeyboardControls>
     </main>
