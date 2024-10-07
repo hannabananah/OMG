@@ -2,6 +2,7 @@ import { Suspense, useContext, useEffect, useMemo, useState } from 'react';
 
 import { CharacterInfo } from '@/assets/data/characterInfo';
 import Character from '@/components/character/Character';
+import Chatting from '@/components/chat/Chatting';
 import Button from '@/components/common/Button';
 import ExitButton from '@/components/common/ExitButton';
 import MainAlert from '@/components/common/MainAlert';
@@ -19,8 +20,7 @@ import { SocketContext } from '@/utils/SocketContext';
 import { KeyboardControls, OrbitControls } from '@react-three/drei';
 import { Canvas } from '@react-three/fiber';
 import { Physics } from '@react-three/rapier';
-import Chatting from '@/components/chat/Chatting'
-import IntroCamera from '../camera/IntroCamera';
+
 import ChatButton from '../common/ChatButton';
 import GoldMarket from '../gold-market/GoldMarket';
 import LoanMarket from '../loan-market/LoanMarket';
@@ -330,25 +330,22 @@ export default function MainMap() {
       <KeyboardControls map={keyboardMap}>
         <Canvas>
           <Suspense>
-            <OrbitControls />
-            <IntroCamera />
-            <Physics timeStep="vary" colliders={false}>
-              <ambientLight intensity={1.5} />              <directionalLight
+            {/* <OrbitControls /> */}
+            <Physics timeStep='vary' colliders={false}>
+              <ambientLight intensity={1.5} />
+              <directionalLight
                 intensity={2.0}
                 position={[10, 15, 10]}
                 castShadow
               />
               <pointLight intensity={2.0} position={[0, 10, 0]} />
-
               <Map />
-
               {/* 본인 캐릭터 */}
               <Character
                 characterURL={selectedCharacter.url}
                 characterScale={selectedCharacter.scale}
                 isOwnCharacter={true}
               />
-
               <spotLight
                 position={[0, 10, 5]}
                 angle={0.5}
@@ -356,7 +353,6 @@ export default function MainMap() {
                 penumbra={0.3}
                 castShadow
               />
-
               {/* 다른 유저들 캐릭터 */}
               {otherCharacters.map(userCharacter => (
                 <>
@@ -385,7 +381,6 @@ export default function MainMap() {
               ))}
             </Physics>
           </Suspense>
-
         </Canvas>
       </KeyboardControls>
     </main>
