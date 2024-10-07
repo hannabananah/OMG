@@ -6,6 +6,7 @@ services:
     environment:
       - discovery.type=single-node
       - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+      - ELASTIC_PASSWORD=ssafya206
 
     ports:
       - 9200:9200
@@ -33,6 +34,8 @@ services:
       - LANG=en_US.UTF-8
       - LC_ALL=en_US.UTF-8
       - LS_JAVA_OPTS=-Xmx256m -Xms256m
+      - ELASTIC_USERNAME=elastic
+      - ELASTIC_PASSWORD=ssafya206
 
   kibana:
     image: docker.elastic.co/kibana/kibana:7.14.0
@@ -41,6 +44,9 @@ services:
       - 5601:5601
     depends_on:
       - elasticsearch
+    environment:
+      - ELASTICSEARCH_USERNAME=elastic
+      - ELASTICSEARCH_PASSWORD=ssafya206
 
   zookeeper:
     image: wurstmeister/zookeeper
