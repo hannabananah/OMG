@@ -18,7 +18,7 @@ export default function Lobby() {
 
   useEffect(() => {
     const uniqueId = Math.floor(Math.random() * 9000) + 1000;
-    const uniqueNickname = `user-${uniqueId}`;
+    const uniqueNickname = `user${uniqueId}`;
     setNickname(uniqueNickname);
   }, [setNickname]);
 

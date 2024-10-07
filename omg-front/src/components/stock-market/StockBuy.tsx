@@ -5,6 +5,7 @@ import { getTreeItemImagePath } from '@/hooks/useStock';
 import { useGameStore } from '@/stores/useGameStore';
 import { useSocketMessage } from '@/stores/useSocketMessage';
 import { useStockStore } from '@/stores/useStockStore';
+import useUser from '@/stores/useUser';
 import { SocketContext } from '@/utils/SocketContext';
 
 import Button from '../common/Button';
@@ -17,11 +18,19 @@ export default function StockBuy() {
   const { gameData, selectedCount, setSelectedCount } = useGameStore();
   const { buyStockMessage, setBuyMessage } = useSocketMessage();
 
-  const { tradableStockCnt } = gameData || {};
+  const { players, tradableStockCnt } = gameData || {};
+
+  const { nickname } = useUser();
 
   const MAX_TRADE_COUNT = tradableStockCnt || 1;
-  // TODO: 돈 정보 받아와야 함
-  const MY_MONEY = 50;
+
+  // 내 nickname에 해당하는 플레이어 정보 찾기
+  const myPlayerInfo = Array.isArray(players)
+    ? players.find(player => player.nickname === nickname)
+    : null;
+
+  const { cash } = myPlayerInfo || {};
+  const MY_MONEY = cash;
 
   useEffect(() => {
     if (buyStockMessage.message) {

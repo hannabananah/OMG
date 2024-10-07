@@ -1,8 +1,7 @@
-import { useContext, useEffect, useState } from 'react';
+import { useCallback, useContext, useEffect } from 'react';
 import { FaCrown } from 'react-icons/fa';
 import { useNavigate, useParams } from 'react-router-dom';
 
-import Chatting from '@/components/chat/Chatting';
 import useUser from '@/stores/useUser';
 import { SocketContext } from '@/utils/SocketContext';
 
@@ -16,7 +15,6 @@ export default function Waiting() {
     roomSubscription,
     disconnect,
     leaveRoom,
-    chatSubscription,
     hostPlayer,
     startGame,
   } = useContext(SocketContext);
@@ -26,21 +24,27 @@ export default function Waiting() {
     console.error('Room ID is undefined');
     return null;
   }
-  const [isRoomFull, setIsRoomFull] = useState(false);
+
+  const isRoomFull = player.length >= 4;
 
   useEffect(() => {
     if (online && socket) {
       roomSubscription();
-      // TODO: 임시 채팅 구독
-      chatSubscription();
     }
   }, [online, socket]);
 
-  useEffect(() => {
-    setIsRoomFull(player.length >= 4);
-  }, [socket, player]);
+  const copyToClipboard = useCallback(() => {
+    navigator.clipboard
+      .writeText(roomId)
+      .then(() => {
+        alert('해당 방 ID가 복사되었습니다.');
+      })
+      .catch(err => {
+        console.error('복사 중 오류 발생:', err);
+      });
+  }, [roomId]);
 
-  const handleClick = () => {
+  const handleGameStart = () => {
     if (isRoomFull) {
       startGame();
     }
@@ -53,33 +57,57 @@ export default function Waiting() {
   };
 
   return (
-    <div className='relative flex flex-col items-center justify-center w-full h-screen p-10 bg-lime-100'>
-      <button className='absolute right-1 bottom-1' onClick={handleExit}>
+    <div className='relative flex flex-col items-center justify-center w-full h-screen p-10 text-white font-omg-body'>
+      <img
+        src={'/assets/game-bg.png'}
+        alt='대기방 배경'
+        className='absolute w-full h-screen'
+      />
+      <span className='absolute right-4 top-4 text-omg-11'>
+        방 ID:
+        <button className='select-text' onClick={copyToClipboard}>
+          {roomId}
+        </button>
+      </span>
+      <button className='absolute right-4 bottom-4' onClick={handleExit}>
         <p>대기방 나가기</p>
       </button>
-      <h2 className='text-lime-700'>대기 중인 플레이어 수: {player.length}</h2>
-      <ul>
-        {player.map((currentPlayer, index) => (
-          <li key={index} className='flex items-center text-lime-500'>
-            {currentPlayer}
-            {currentPlayer === hostPlayer && (
-              <FaCrown className='ml-2 text-yellow-500' />
-            )}
-          </li>
-        ))}
-      </ul>
-
-      {hostPlayer === nickname && (
-        <button onClick={handleClick} disabled={!isRoomFull}>
-          {isRoomFull ? (
-            <span>START</span>
+      <div className='flex flex-col justify-between w-2/3 text-center h-2/3'>
+        <div className='flex flex-col justify-between gap-10'>
+          <h2 className='relative tracking-wider text-omg-40b'>
+            대기방 ({player.length}/4)
+          </h2>
+          <ul className='flex flex-col mx-auto h-52 text-omg-24'>
+            {player.map((currentPlayer, index) => (
+              <li
+                key={index}
+                className='relative flex items-center'
+              >
+                {currentPlayer}
+                {currentPlayer === hostPlayer && (
+                  <FaCrown className='mb-1 ml-2 text-yellow-500' />
+                )}
+              </li>
+            ))}
+          </ul>
+        </div>
+        <div className='relative'>
+          {hostPlayer === nickname ? (
+            <button
+              onClick={handleGameStart}
+              disabled={!isRoomFull}
+              className={isRoomFull ? 'transition-all duration-1000 animate-shake hover:bg-gradient-animation hover:scale-90' : ''}
+            >
+              {isRoomFull ? <span className='text-omg-100b'>GAME START</span> :
+                <p className='text-white'>{4 - player.length}명의 플레이어를 기다리고 있습니다.</p>}
+            </button>
           ) : (
-            <span className='opacity-50'>WAIT</span>
+            <p className='text-omg-30b'>
+              {isRoomFull ? '방장의 게임 시작을 기다리는 중입니다.' : `${4 - player.length}명의 플레이어를 기다리고 있습니다.`}
+            </p>
           )}
-        </button>
-      )}
-      {/* TODO: 임시 테스트 채팅방 */}
-      <Chatting />
+        </div>
+      </div>
     </div>
   );
 }

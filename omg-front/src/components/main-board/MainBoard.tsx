@@ -1,6 +1,7 @@
 import Gauge from '@/components/common/Gauge';
 import Item from '@/components/stock-market/Item';
-import { useGameStore } from '@/stores/useGameStore';
+import { treeItemNameInKorean } from '@/hooks/useStock';
+import { useMainBoardStore } from '@/stores/useMainBoardStore';
 import useModalStore from '@/stores/useModalStore';
 import { stockItems } from '@/types';
 import { Html } from '@react-three/drei';
@@ -15,12 +16,18 @@ import BackButton from '../common/BackButton';
 
 export default function MainBoard() {
   const { modals, closeModal } = useModalStore();
-  const { gameData } = useGameStore();
-  const { stockPrices, tradableStockCnt } = gameData || {};
+
+  const {
+    stockPrices,
+    goldPrice,
+    currentInterestRate,
+    currentStockPriceLevel,
+    tradableStockCnt,
+  } = useMainBoardStore();
 
   const infoItems = [
-    { label: '금리', value: `${gameData.currentInterestRate}%` },
-    { label: '물가 수준', value: `${gameData.currentStockPriceLevel}/9` },
+    { label: '금리', value: `${currentInterestRate}%` },
+    { label: '물가 수준', value: `${currentStockPriceLevel}/9` },
     { label: '거래 가능 수량', value: `${tradableStockCnt}개` },
   ];
 
@@ -46,7 +53,7 @@ export default function MainBoard() {
       className='fixed top-0 left-0 z-50 flex items-center justify-center w-full h-full bg-opacity-70'
       onClick={handleCloseMainBoard}
     >
-      <div className='modal-container w-[70%] h-[80%] bg-white p-8'>
+      <div className='p-8 w-[70%] modal-container'>
         <section className='relative flex items-center justify-center w-full h-[14%] px-10 py-10 text-black text-omg-40b'>
           <div
             className='absolute flex items-center left-10'
@@ -98,15 +105,13 @@ export default function MainBoard() {
 
                         {/* HTML 요소 */}
                         <Html position={[positionX, 1, 0]} center>
-                          <div className='flex flex-col h-20 gap-2 text-center text-omg-14'>
-                            <div>{item.itemName}</div>
-                            {stockPrices &&
-                              stockPrices[itemIndex] !== undefined && ( // itemIndex에 해당하는 주가가 있는지 확인
-                                <div className='text-omg-18'>
-                                  {stockPrices[itemIndex]}{' '}
-                                  {/* itemIndex에 해당하는 주가 표시 */}
-                                </div>
-                              )}
+                          <div className='flex flex-col w-20 h-20 gap-2 text-center text-omg-14'>
+                            <div>{treeItemNameInKorean(item.itemName)}</div>
+                            {stockPrices && (
+                              <div className='text-omg-18'>
+                                ${stockPrices[itemIndex + 1]}
+                              </div>
+                            )}
                           </div>
                         </Html>
                       </group>
@@ -122,7 +127,7 @@ export default function MainBoard() {
               </Canvas>
             </div>
             {/* 아래 */}
-            {gameData && gameData.goldPrice && (
+            {goldPrice && (
               <section className='flex flex-col w-full mx-auto h-1/2'>
                 <h2 className='flex justify-center w-full break-keep text-nowrap font-omg-body text-omg-30b'>
                   금 시세 현황
@@ -130,7 +135,7 @@ export default function MainBoard() {
                 <div className='flex items-center flex-grow w-full text-center'>
                   {/* 금괴 에셋 시각화하여 보여주기 */}
                   <span className='justify-center w-full text-omg-28'>
-                    {gameData.goldPrice}
+                    ${goldPrice}
                   </span>
                 </div>
               </section>

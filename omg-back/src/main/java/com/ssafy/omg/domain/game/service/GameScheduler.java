@@ -5,6 +5,7 @@ import com.ssafy.omg.domain.arena.entity.Arena;
 import com.ssafy.omg.domain.game.GameRepository;
 import com.ssafy.omg.domain.game.dto.GameEventDto;
 import com.ssafy.omg.domain.game.dto.GameNotificationDto;
+import com.ssafy.omg.domain.game.dto.GameResultResponse;
 import com.ssafy.omg.domain.game.dto.MainMessageDto;
 import com.ssafy.omg.domain.game.dto.RoundStartNotificationDto;
 import com.ssafy.omg.domain.game.dto.StockFluctuationResponse;
@@ -12,7 +13,6 @@ import com.ssafy.omg.domain.game.dto.TimeNotificationDto;
 import com.ssafy.omg.domain.game.dto.IndividualMessageDto;
 import com.ssafy.omg.domain.game.entity.Game;
 import com.ssafy.omg.domain.game.entity.GameEvent;
-import com.ssafy.omg.domain.game.entity.GameStatus;
 import com.ssafy.omg.domain.game.entity.RoundStatus;
 import com.ssafy.omg.domain.game.entity.StockState;
 import com.ssafy.omg.domain.socket.dto.StompPayload;
@@ -109,6 +109,9 @@ public class GameScheduler {
                 break;
             case PREPARING_NEXT_ROUND:
                 handlePreparingNextRound(game);
+                break;
+            case GAME_FINISHED:
+                handleGameFinish(game);
                 break;
             default:
                 throw new BaseException(INVALID_ROUND_STATUS);
@@ -378,7 +381,9 @@ public class GameScheduler {
 
             if (nextRound > MAX_ROUNDS) {
                 log.debug("최대 라운드 도달. 게임 종료 처리 시작.");
-                endGame(game);
+                game.setRoundStatus(GAME_FINISHED);
+                game.setTime(3);
+                log.debug("상태를 GAME_FINISHED로 변경. 새 시간: {}", game.getTime());
             } else {
                 notifyPlayers(game.getGameId(), PREPARING_NEXT_ROUND, "곧 " + nextRound + " 라운드가 시작됩니다...");
             }
@@ -392,6 +397,17 @@ public class GameScheduler {
         log.debug("handlePreparingNextRound 종료. 최종 시간: {}, 상태: {}, 현재 라운드: {}",
                 game.getTime(), game.getRoundStatus(), game.getRound());
     }
+
+
+    private void handleGameFinish(Game game) throws BaseException {
+        if (game.getTime() == 2) {
+            notifyPlayers(game.getGameId(), GAME_FINISHED, "게임이 종료되었습니다! 결과를 합산중입니다...");
+            gameService.addInterestToTotalDebtAndLoanProducts(game);
+        } else if (game.getTime() == 0) {
+            endGame(game);
+        }
+    }
+
 
     // 다음 라운드 시작을 위한 변화값들 초기화
     private void initializePlayersForNextRound(Game game) {
@@ -449,9 +465,11 @@ public class GameScheduler {
         }
     }
 
-    private void endGame(Game game) {
-        game.setGameStatus(GameStatus.GAME_FINISHED);
-        notifyPlayers(game.getGameId(), GAME_FINISHED, "게임 종료!");
-        // TODO: 게임 종료 후 로직이 필요함, 순위 화면 같은거 계산해서 반환하기 등
+    private void endGame(Game game) throws BaseException {
+        notifyPlayers(game.getGameId(), GAME_FINISHED, "게임 결과");
+        GameResultResponse result = gameService.gameResult(game);
+        StompPayload<GameResultResponse> gameResultResponseStompPayload = new StompPayload<>("GAME_RESULT", game.getGameId(), "GAME_MANAGER", result);
+        messagingTemplate.convertAndSend("/sub/" + game.getGameId() + "/game", gameResultResponseStompPayload);
+        log.debug("게임 결과 : {}", result);
     }
 }

@@ -5,6 +5,7 @@ export default {
   important: true,
   theme: {
     fontSize: {
+      'omg-11': '0.8rem', // 11px
       'omg-14': '1rem', // 14px로 적용
       'omg-18': '1.29rem', // 18px
       'omg-20': '1.43rem', // 20px
@@ -36,6 +37,7 @@ export default {
       fontFamily: {
         'omg-title': 'OKDDUNG',
         'omg-body': 'Katuri',
+        'omg-chat': 'SUITE',
       },
       colors: {
         white1: '#FFFFFF',
@@ -51,6 +53,8 @@ export default {
         skyblue: '#71FFFF',
         purple: '#AB18F4',
         blue: '#0371F8',
+        gray: '#888',
+        lightgray: '#ddd',
       },
     },
   },
