@@ -167,23 +167,23 @@ export default function MainMap() {
     }
   };
 
-  const openStockMarketModal = () => {
-    if (!modals.stockMarket) {
-      openModal('stockMarket');
-    }
-  };
+  // const openStockMarketModal = () => {
+  //   if (!modals.stockMarket) {
+  //     openModal('stockMarket');
+  //   }
+  // };
 
-  const openGoldMarketModal = () => {
-    if (!modals.goldMarket) {
-      openModal('goldMarket');
-    }
-  };
+  // const openGoldMarketModal = () => {
+  //   if (!modals.goldMarket) {
+  //     openModal('goldMarket');
+  //   }
+  // };
 
-  const openLoanMarketModal = () => {
-    if (!modals.loanMarket) {
-      openModal('loanMarket');
-    }
-  };
+  // const openLoanMarketModal = () => {
+  //   if (!modals.loanMarket) {
+  //     openModal('loanMarket');
+  //   }
+  // };
 
   const openChattingModal = () => {
     setIsChatOpen(true);
@@ -246,23 +246,23 @@ export default function MainMap() {
           onClick={openMyRoomModal}
         />
         {/* TODO: 삭제해야됨, 임시 주식 시장 버튼 */}
-        <Button
+        {/* <Button
           text='임시 주식 시장 버튼'
           type='mainmap'
           onClick={openStockMarketModal}
-        />
+        /> */}
         {/* TODO: 삭제해야됨, 임시 금 시장 버튼 */}
-        <Button
+        {/* <Button
           text='임시 금 시장 버튼'
           type='mainmap'
           onClick={openGoldMarketModal}
-        />
+        /> */}
         {/* TODO: 삭제해야됨, 임시 대출 시장 버튼 */}
-        <Button
+        {/* <Button
           text='임시 대출 시장 버튼'
           type='mainmap'
           onClick={openLoanMarketModal}
-        />
+        /> */}
       </section>
 
       {/* TODO: 삭제해야됨 */}
