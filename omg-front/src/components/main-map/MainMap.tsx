@@ -16,11 +16,10 @@ import { useOtherUserStore } from '@/stores/useOtherUserState';
 import { useSocketMessage } from '@/stores/useSocketMessage';
 import useUser from '@/stores/useUser';
 import { SocketContext } from '@/utils/SocketContext';
-import { KeyboardControls, OrbitControls } from '@react-three/drei';
+import { KeyboardControls } from '@react-three/drei';
 import { Canvas } from '@react-three/fiber';
 import { Physics } from '@react-three/rapier';
 
-import IntroCamera from '../camera/IntroCamera';
 import ChatButton from '../common/ChatButton';
 import GoldMarket from '../gold-market/GoldMarket';
 import LoanMarket from '../loan-market/LoanMarket';
@@ -286,10 +285,10 @@ export default function MainMap() {
       <KeyboardControls map={keyboardMap}>
         <Canvas>
           <Suspense>
-            <OrbitControls />
-            <IntroCamera />
+            {/* <OrbitControls /> */}
+
             <Physics timeStep='vary' colliders={false}>
-              <ambientLight intensity={1.5} />
+              <ambientLight intensity={1.5} />{' '}
               <directionalLight
                 intensity={2.0}
                 position={[10, 15, 10]}
