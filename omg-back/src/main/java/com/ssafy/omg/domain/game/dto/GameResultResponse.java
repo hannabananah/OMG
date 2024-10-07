@@ -13,5 +13,7 @@ import java.util.List;
 @AllArgsConstructor
 @NoArgsConstructor
 public class GameResultResponse {
+    private int finalGoldPrice;
+    private int[] finalStockPrice;
     private List<PlayerResult> playerResults;
 }

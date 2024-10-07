@@ -6,9 +6,11 @@ import { StockItem } from '@/types';
 import { SocketContext } from '@/utils/SocketContext';
 import { useKeyboardControls } from '@react-three/drei';
 import { useFrame } from '@react-three/fiber';
-import { RigidBody } from '@react-three/rapier';
+import { CuboidCollider, RigidBody } from '@react-three/rapier';
 import * as THREE from 'three';
 
+import { isInZone, zones } from '../../assets/data/locationInfo';
+import IntroCamera from '../camera/IntroCamera';
 import Item from './Item';
 
 interface Props {
@@ -36,12 +38,21 @@ export default function Character({
   ); // 캐릭터 기본 위치
   const [rotation, setRotation] = useState(0);
   const movementStateRef = useRef<'idle' | 'walking' | 'running'>('idle');
+  const prevPositionRef = useRef(new THREE.Vector3()); // 캐릭터 이전 위치
 
-  // const pickupPressed = useKeyboardControls((state) => state[Controls.pickup])
   const leftPressed = useKeyboardControls(state => state[Controls.left]);
   const rightPressed = useKeyboardControls(state => state[Controls.right]);
   const backPressed = useKeyboardControls(state => state[Controls.back]);
   const forwardPressed = useKeyboardControls(state => state[Controls.forward]);
+
+  const [isInStockMarketZone, setIsInStockMarketZone] = useState(false);
+  const [isInLoanMarketZone, setIsInLoanMarketZone] = useState(false);
+  const [isInGoldMarketZone, setIsInGoldMarketZone] = useState(false);
+  const [isInSantaHouseZone, setIsInSantaHouseZone] = useState(false);
+  const [isInSnowmanHouseZone, setIsInSnowmanHouseZone] = useState(false);
+  const [isInElfHouseZone, setIsInElfHouseZone] = useState(false);
+  const [isInGingerbreadHouseZone, setIsInGingerbreadHouseZone] =
+    useState(false);
 
   const { scene, mixer, pickUpAnimation } = useCharacter({
     characterURL,
@@ -51,6 +62,106 @@ export default function Character({
     onActionToggleChange: setLocalActionToggle,
     isOwnCharacter,
   });
+
+  useEffect(() => {
+    const prevPosition = prevPositionRef.current;
+    if (
+      characterPosition.x !== prevPosition.x ||
+      characterPosition.y !== prevPosition.y ||
+      characterPosition.z !== prevPosition.z
+    ) {
+      console.log('캐릭터 현재 위치:', {
+        x: characterPosition.x,
+        y: characterPosition.y,
+        z: characterPosition.z,
+      });
+      prevPositionRef.current.copy(characterPosition); // 현재 위치를 이전 위치로 업데이트
+
+      const insideStockMarket = isInZone(characterPosition, zones.stockMarket);
+      if (insideStockMarket && !isInStockMarketZone) {
+        setIsInStockMarketZone(true);
+        console.log('주식 시장 진입');
+      } else if (!insideStockMarket && isInStockMarketZone) {
+        setIsInStockMarketZone(false);
+        console.log('주식 시장 벗어남');
+      }
+
+      const insideLoanMarket = isInZone(characterPosition, zones.loanMarket);
+      if (insideLoanMarket && !isInLoanMarketZone) {
+        setIsInLoanMarketZone(true);
+        console.log('대출 방 진입');
+      } else if (!insideLoanMarket && isInLoanMarketZone) {
+        setIsInLoanMarketZone(false);
+        console.log('대출 방 벗어남');
+      }
+
+      const insideGoldMarket = isInZone(characterPosition, zones.goldMarket);
+      if (insideGoldMarket && !isInGoldMarketZone) {
+        setIsInGoldMarketZone(true);
+        console.log('금 거래소 진입');
+      } else if (!insideGoldMarket && isInGoldMarketZone) {
+        setIsInGoldMarketZone(false);
+        console.log('금 거래소 벗어남');
+      }
+
+      const insideSantaHouse = isInZone(characterPosition, zones.santaHouse);
+      if (insideSantaHouse && !isInSantaHouseZone) {
+        setIsInSantaHouseZone(true);
+        console.log('산타 집 진입');
+      } else if (!insideSantaHouse && isInSantaHouseZone) {
+        setIsInSantaHouseZone(false);
+        console.log('산타 집 벗어남');
+      }
+
+      const insideSnowmanHouse = isInZone(
+        characterPosition,
+        zones.snowmanHouse,
+      );
+      if (insideSnowmanHouse && !isInSnowmanHouseZone) {
+        // snowman 집에 진입
+        setIsInSnowmanHouseZone(true);
+        console.log('snowman 집 진입');
+      } else if (!insideSnowmanHouse && isInSnowmanHouseZone) {
+        // snowman 집에서 벗어남
+        setIsInSnowmanHouseZone(false);
+        console.log('snowman 집 진입');
+      }
+
+      const insideElfHouse = isInZone(characterPosition, zones.elfHouse);
+      if (insideElfHouse && !isInElfHouseZone) {
+        // elf 집에 진입
+        setIsInElfHouseZone(true);
+        console.log('elf 집 진입');
+      } else if (!insideElfHouse && isInElfHouseZone) {
+        // elf 집에서 벗어남
+        setIsInElfHouseZone(false);
+        console.log('elf 집 벗어남');
+      }
+
+      const insideGingerbreadHouse = isInZone(
+        characterPosition,
+        zones.gingerbreadHouse,
+      );
+      if (insideGingerbreadHouse && !isInGingerbreadHouseZone) {
+        // gingerbread 집에 진입
+        setIsInGingerbreadHouseZone(true);
+        console.log('gingerbread 집 진입');
+      } else if (!insideGingerbreadHouse && isInGingerbreadHouseZone) {
+        // gingerbread 집에서 벗어남
+        setIsInGingerbreadHouseZone(false);
+        console.log('Exited gingerbread 집 벗어남');
+      }
+    }
+  }, [
+    characterPosition,
+    isInStockMarketZone,
+    isInLoanMarketZone,
+    isInGoldMarketZone,
+    isInSantaHouseZone,
+    isInSnowmanHouseZone,
+    isInElfHouseZone,
+    isInGingerbreadHouseZone,
+  ]);
 
   useEffect(() => {
     if (!isOwnCharacter && actionToggle) {
@@ -152,24 +263,49 @@ export default function Character({
 
   return (
     <>
-      <RigidBody type='dynamic' colliders={'trimesh'} lockRotations>
+      <IntroCamera
+        characterPosition={characterPosition}
+        characterDirection={
+          new THREE.Vector3(Math.sin(rotation), 0, Math.cos(rotation))
+        }
+        characterRotation={new THREE.Euler(0, rotation, 0)}
+        scale={characterScale}
+      />
+
+      <RigidBody type='dynamic' colliders={false} lockRotations={true}>
         <primitive
           object={scene}
           scale={characterScale}
           position={characterPosition}
         />
+
+        <CuboidCollider
+          position={
+            new THREE.Vector3(
+              characterPosition.x,
+              characterPosition.y + characterScale[1] / 2,
+              characterPosition.z,
+            )
+          }
+          args={[
+            characterScale[0] / 4,
+            characterScale[1] / 2.2,
+            characterScale[2] / 3,
+          ]}
+        />
+
+        {items.map((item, itemIndex) =>
+          [...Array(item.count)].map((_, index) => (
+            <Item
+              key={`${item.itemName}-${itemIndex}-${index}`}
+              disabled={true}
+              characterPosition={characterPosition}
+              index={index + itemIndex * 2}
+              itemName={item.itemName}
+            />
+          )),
+        )}
       </RigidBody>
-      {items.map((item, itemIndex) =>
-        [...Array(item.count)].map((_, index) => (
-          <Item
-            key={`${item.itemName}-${itemIndex}-${index}`}
-            disabled={true}
-            characterPosition={characterPosition}
-            index={index + itemIndex * 2}
-            itemName={item.itemName}
-          />
-        )),
-      )}
     </>
   );
 }

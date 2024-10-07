@@ -6,11 +6,11 @@ import com.ssafy.omg.domain.game.GameRepository;
 import com.ssafy.omg.domain.game.dto.GameEventDto;
 import com.ssafy.omg.domain.game.dto.GameNotificationDto;
 import com.ssafy.omg.domain.game.dto.GameResultResponse;
+import com.ssafy.omg.domain.game.dto.IndividualMessageDto;
 import com.ssafy.omg.domain.game.dto.MainMessageDto;
 import com.ssafy.omg.domain.game.dto.RoundStartNotificationDto;
 import com.ssafy.omg.domain.game.dto.StockFluctuationResponse;
 import com.ssafy.omg.domain.game.dto.TimeNotificationDto;
-import com.ssafy.omg.domain.game.dto.IndividualMessageDto;
 import com.ssafy.omg.domain.game.entity.Game;
 import com.ssafy.omg.domain.game.entity.GameEvent;
 import com.ssafy.omg.domain.game.entity.RoundStatus;
@@ -84,6 +84,10 @@ public class GameScheduler {
      * @throws BaseException
      */
     private void updateRoundStatus(Game game) throws BaseException {
+
+        if (game.isGameFinished()) {
+            return;
+        }
 
         switch (game.getRoundStatus()) {
             case TUTORIAL:
@@ -398,6 +402,10 @@ public class GameScheduler {
 
 
     private void handleGameFinish(Game game) throws BaseException {
+        if (game.isGameFinished()) {
+            return;
+        }
+
         if (game.getTime() == 2) {
             notifyPlayers(game.getGameId(), GAME_FINISHED, "게임이 종료되었습니다! 결과를 합산중입니다...");
             gameService.addInterestToTotalDebtAndLoanProducts(game);
@@ -464,10 +472,17 @@ public class GameScheduler {
     }
 
     private void endGame(Game game) throws BaseException {
+        if (game.isGameFinished()) {
+            return;
+        }
+
         notifyPlayers(game.getGameId(), GAME_FINISHED, "게임 결과");
         GameResultResponse result = gameService.gameResult(game);
         StompPayload<GameResultResponse> gameResultResponseStompPayload = new StompPayload<>("GAME_RESULT", game.getGameId(), "GAME_MANAGER", result);
         messagingTemplate.convertAndSend("/sub/" + game.getGameId() + "/game", gameResultResponseStompPayload);
         log.debug("게임 결과 : {}", result);
+
+        game.finishGame();
+        gameRepository.saveGameToRedis(game);
     }
 }
