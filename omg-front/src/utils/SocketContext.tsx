@@ -6,6 +6,7 @@ import { useGoldStore } from '@/stores/useGoldStore';
 import { useLoanStore } from '@/stores/useLoanStore';
 import { useMainBoardStore } from '@/stores/useMainBoardStore';
 import { useOtherUserStore } from '@/stores/useOtherUserState';
+import { usePersonalBoardStore } from '@/stores/usePersonalBoardStore';
 import { useSocketMessage } from '@/stores/useSocketMessage';
 import { useStockStore } from '@/stores/useStockStore';
 import useUser from '@/stores/useUser';
@@ -50,26 +51,26 @@ const defaultContextValue: SocketContextType = {
   online: false,
   player: [],
   chatMessages: [],
-  connect: () => { },
-  disconnect: () => { },
-  roomSubscription: () => { },
-  leaveRoom: () => { },
-  chatSubscription: () => { },
-  sendMessage: () => { },
+  connect: () => {},
+  disconnect: () => {},
+  roomSubscription: () => {},
+  leaveRoom: () => {},
+  chatSubscription: () => {},
+  sendMessage: () => {},
   hostPlayer: '',
-  startGame: () => { },
-  rendered_complete: () => { },
-  gameSubscription: () => { },
+  startGame: () => {},
+  rendered_complete: () => {},
+  gameSubscription: () => {},
   players: [],
-  movePlayer: () => { },
-  initGameSetting: () => { },
+  movePlayer: () => {},
+  initGameSetting: () => {},
   allRendered: false,
-  purchaseGold: () => { },
-  takeLoan: () => { },
-  repayLoan: () => { },
-  buyStock: () => { },
-  sellStock: () => { },
-  enterLoan: () => { },
+  purchaseGold: () => {},
+  takeLoan: () => {},
+  repayLoan: () => {},
+  buyStock: () => {},
+  sellStock: () => {},
+  enterLoan: () => {},
   roundTimer: 120,
   presentRound: 1,
 };
@@ -99,6 +100,7 @@ export default function SocketProvider({ children }: SocketProviderProps) {
   } = useSocketMessage();
   const { setGameData } = useGameStore();
   const { setMainBoardData } = useMainBoardStore();
+  const { setPersonalBoardData } = usePersonalBoardStore();
   const { setStockMarketData } = useStockStore();
   const { setGoldMarketData } = useGoldStore();
   const { setLoanData } = useLoanStore();
@@ -238,6 +240,10 @@ export default function SocketProvider({ children }: SocketProviderProps) {
           case 'GAME_INITIALIZED':
             const initGameData = parsedMessage.data.game;
             if (initGameData.gameId === roomId) {
+              console.log(
+                '게임 이니셜라이즈 게임 세팅하려고 받는 정보 체크 !!!!!!!!! ',
+                initGameData,
+              );
               setGameData(initGameData);
             }
             const initPlayerData = parsedMessage.data.game.players;
@@ -294,15 +300,18 @@ export default function SocketProvider({ children }: SocketProviderProps) {
 
           case 'SUCCESS_PURCHASE_GOLD':
             if (currentUser === nickname) {
+              setPersonalBoardData(parsedMessage.data);
               setGoldPurchaseMessage({
                 message: `금괴를 성공적으로 구매했습니다! 현재 소유 금괴 수량: ${parsedMessage.data.goldOwned}`,
                 isCompleted: true,
               });
+              console.log('금 매입 성공', parsedMessage.data);
             }
             break;
 
           case 'SUCCESS_TAKE_LOAN':
             if (currentUser === nickname) {
+              setPersonalBoardData(parsedMessage.data);
               setLoanData(parsedMessage.data);
               console.log('대출 신청 성공', parsedMessage.data);
               setLoanMessage({
@@ -314,8 +323,9 @@ export default function SocketProvider({ children }: SocketProviderProps) {
 
           case 'SUCCESS_REPAY_LOAN':
             if (currentUser === nickname) {
-              console.log('대출 상환 성공', parsedMessage.data);
+              setPersonalBoardData(parsedMessage.data);
               setLoanData(parsedMessage.data);
+              console.log('대출 상환 성공', parsedMessage.data);
               setRepayLoanMessage({
                 message: parsedMessage.data.totalDebt,
                 isCompleted: true,
@@ -335,7 +345,8 @@ export default function SocketProvider({ children }: SocketProviderProps) {
           case 'GOLD_ALREADY_PURCHASED':
             if (currentUser === nickname) {
               setGoldPurchaseMessage({
-                message: '이미 한 라운드 내에서 금괴를 구매했습니다.',
+                message:
+                  '이미 거래(주식 매수/주식 매도/금 매입 중 1)를 수행했습니다.',
                 isCompleted: false,
               });
             }
@@ -410,19 +421,17 @@ export default function SocketProvider({ children }: SocketProviderProps) {
 
           case 'SUCCESS_BUY_STOCK':
             if (currentUser === nickname) {
-              setGameData(parsedMessage.data);
+              setPersonalBoardData(parsedMessage.data);
               setBuyMessage({
                 message: '매수 완료!',
                 isCompleted: true,
               });
               console.log('매수 성공', parsedMessage.data);
-              setStockMarketData(parsedMessage.data);
             }
             break;
 
           case 'INSUFFICIENT_CASH':
             if (currentUser === nickname) {
-              setGameData(parsedMessage.data);
               setBuyMessage({
                 message: '돈이 부족합니다.',
                 isCompleted: false,
@@ -433,7 +442,6 @@ export default function SocketProvider({ children }: SocketProviderProps) {
 
           case 'STOCK_NOT_AVAILABLE':
             if (currentUser === nickname) {
-              setGameData(parsedMessage.data);
               setBuyMessage({
                 message: '다른 사람이 이미 구매해서 개수가 부족합니다.',
                 isCompleted: false,
@@ -445,21 +453,40 @@ export default function SocketProvider({ children }: SocketProviderProps) {
             }
             break;
 
+          case 'STOCK_ALREADY_PURCHASED':
+            if (currentUser === nickname) {
+              setBuyMessage({
+                message:
+                  '이미 거래(주식 매수/주식 매도/금 매입 중 1)를 수행했습니다.',
+                isCompleted: true,
+              });
+            }
+            break;
+
           case 'SUCCESS_SELL_STOCK':
             if (currentUser === nickname) {
-              setGameData(parsedMessage.data);
+              setPersonalBoardData(parsedMessage.data);
               setSellMessage({
                 message: '매도 성공!',
                 isCompleted: true,
               });
-              setStockMarketData(parsedMessage.data);
+              console.log('매도 성공', parsedMessage.data);
+            }
+            break;
+
+          case 'STOCK_ALREADY_SOLD':
+            if (currentUser === nickname) {
+              setSellMessage({
+                message:
+                  '이미 거래(주식 매수/주식 매도/금 매입 중 1)를 수행했습니다.',
+                isCompleted: true,
+              });
             }
             break;
 
           case 'STOCK_FLUCTUATION':
-            setGameData(parsedMessage.data);
             setGameRoundMessage(parsedMessage.data);
-            console.log('경제상황 발생', parsedMessage.data);
+            console.log('주가 변동 발생', parsedMessage.data);
             break;
 
           case 'STOCK_MARKET_INFO':
@@ -474,14 +501,22 @@ export default function SocketProvider({ children }: SocketProviderProps) {
 
           case 'SUCCESS_CALCULATE_LOANLIMIT':
             if (currentUser === nickname) {
+              setPersonalBoardData(parsedMessage.data);
               setLoanData(parsedMessage.data);
-              console.log('대출 입장', parsedMessage.data);
+              console.log('대출 한도 계산 완료', parsedMessage.data);
             }
             break;
 
           case 'MAIN_MESSAGE_NOTIFICATION':
             setMainBoardData(parsedMessage.data);
             console.log('메인판 정보 업데이트', parsedMessage.data);
+            break;
+
+          case 'INDIVIDUAL_MESSAGE_NOTIFICATION':
+            if (currentUser === nickname) {
+              setPersonalBoardData(parsedMessage.data); // 현재 사용자와 nickname이 일치하는 경우에만 업데이트
+              console.log('개인 판 정보 업데이트', parsedMessage.data);
+            }
             break;
         }
       },
