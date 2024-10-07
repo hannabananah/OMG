@@ -485,6 +485,7 @@ export default function SocketProvider({ children }: SocketProviderProps) {
             break;
 
           case 'STOCK_FLUCTUATION':
+            setMainBoardData(parsedMessage.data);
             setGameRoundMessage(parsedMessage.data);
             console.log('주가 변동 발생', parsedMessage.data);
             break;
