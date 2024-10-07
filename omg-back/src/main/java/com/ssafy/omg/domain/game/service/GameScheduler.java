@@ -9,6 +9,7 @@ import com.ssafy.omg.domain.game.dto.MainMessageDto;
 import com.ssafy.omg.domain.game.dto.RoundStartNotificationDto;
 import com.ssafy.omg.domain.game.dto.StockFluctuationResponse;
 import com.ssafy.omg.domain.game.dto.TimeNotificationDto;
+import com.ssafy.omg.domain.game.dto.IndividualMessageDto;
 import com.ssafy.omg.domain.game.entity.Game;
 import com.ssafy.omg.domain.game.entity.GameEvent;
 import com.ssafy.omg.domain.game.entity.GameStatus;
@@ -145,6 +146,8 @@ public class GameScheduler {
         if (game.getTime() == 2) {
 //            notifyPlayers(game.getGameId(), ROUND_START, +game.getRound() + "라운드가 시작됩니다!");
             notifyRoundStart(game.getGameId(), ROUND_START, game.getRound() + "라운드가 시작됩니다!", game.getRound());
+            notifyMainMessage(game.getGameId(), "GAME_MANAGER");
+            notifyPlayersIndividualMessage(game.getGameId());
         } else if (game.getTime() == 0) {
             game.setRoundStatus(APPLY_PREVIOUS_EVENT);
             game.setTime(5);
@@ -434,6 +437,16 @@ public class GameScheduler {
 
         StompPayload<TimeNotificationDto> payload = new StompPayload<>("GAME_NOTIFICATION", gameId, "GAME_MANAGER", timeNotificationDto);
         messagingTemplate.convertAndSend("/sub/" + gameId + "/game", payload);
+    }
+
+    private void notifyPlayersIndividualMessage(String gameId) throws BaseException {
+        List<String> playerNicknames = gameRepository.findPlayerList(gameId);
+
+        for (String playerNickname : playerNicknames) {
+            IndividualMessageDto individualMessage = gameService.getIndividualMessage(gameId, playerNickname);
+            StompPayload<IndividualMessageDto> response = new StompPayload<>("INDIVIDUAL_MESSAGE_NOTIFICATION", gameId, playerNickname, individualMessage);
+            messagingTemplate.convertAndSend("/sub/" + gameId + "/game", response);
+        }
     }
 
     private void endGame(Game game) {
