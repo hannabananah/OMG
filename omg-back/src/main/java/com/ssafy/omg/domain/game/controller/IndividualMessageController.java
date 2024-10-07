@@ -9,11 +9,11 @@ import com.ssafy.omg.domain.game.dto.BattleClickDto;
 import com.ssafy.omg.domain.game.dto.BattleRequestDto;
 import com.ssafy.omg.domain.game.dto.IndividualMessageDto;
 import com.ssafy.omg.domain.game.dto.StockRequest;
-import com.ssafy.omg.domain.game.service.battle.GameBattleService;
 import com.ssafy.omg.domain.game.entity.Game;
 import com.ssafy.omg.domain.game.service.GameBroadcastService;
 import com.ssafy.omg.domain.game.service.GameScheduler;
 import com.ssafy.omg.domain.game.service.GameService;
+import com.ssafy.omg.domain.game.service.battle.GameBattleService;
 import com.ssafy.omg.domain.socket.dto.StompPayload;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -53,6 +53,7 @@ public class IndividualMessageController {
             messagingTemplate.convertAndSend("/sub/" + roomId + "/game", response);
             Game game = gameRepository.findArenaByRoomId(roomId).get().getGame();
             gameScheduler.updateAndBroadcastMarketInfo(game, "GOLD");
+            gameScheduler.notifyPlayersRankingMessage(game);
             return new BaseResponse<>(response);
         } catch (MessageException e) {
             IndividualMessageDto individualMessage = gameService.getIndividualMessage(roomId, userNickname);
@@ -179,6 +180,7 @@ public class IndividualMessageController {
             Game game = gameRepository.findArenaByRoomId(roomId).get().getGame();
             gameScheduler.updateAndBroadcastMarketInfo(game, "STOCK");
             gameScheduler.notifyMainMessage(roomId, "GAME_MANAGER");
+            gameScheduler.notifyPlayersRankingMessage(game);
         } catch (BaseException e) {
             IndividualMessageDto individualMessage = gameService.getIndividualMessage(roomId, userNickname);
             response = new StompPayload<>("STOCK_ALREADY_SOLD", roomId, userNickname, individualMessage);
@@ -201,6 +203,7 @@ public class IndividualMessageController {
             Game game = gameRepository.findArenaByRoomId(roomId).get().getGame();
             gameScheduler.updateAndBroadcastMarketInfo(game, "STOCK");
             gameScheduler.notifyMainMessage(roomId, "GAME_MANAGER");
+            gameScheduler.notifyPlayersRankingMessage(game);
         } catch (MessageException e) {
             IndividualMessageDto individualMessage = gameService.getIndividualMessage(roomId, userNickname);
             response = new StompPayload<>(e.getStatus().name(), roomId, userNickname, individualMessage);

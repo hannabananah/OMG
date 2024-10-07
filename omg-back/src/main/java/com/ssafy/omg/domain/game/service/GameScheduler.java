@@ -3,14 +3,7 @@ package com.ssafy.omg.domain.game.service;
 import com.ssafy.omg.config.baseresponse.BaseException;
 import com.ssafy.omg.domain.arena.entity.Arena;
 import com.ssafy.omg.domain.game.GameRepository;
-import com.ssafy.omg.domain.game.dto.GameEventDto;
-import com.ssafy.omg.domain.game.dto.GameNotificationDto;
-import com.ssafy.omg.domain.game.dto.GameResultResponse;
-import com.ssafy.omg.domain.game.dto.IndividualMessageDto;
-import com.ssafy.omg.domain.game.dto.MainMessageDto;
-import com.ssafy.omg.domain.game.dto.RoundStartNotificationDto;
-import com.ssafy.omg.domain.game.dto.StockFluctuationResponse;
-import com.ssafy.omg.domain.game.dto.TimeNotificationDto;
+import com.ssafy.omg.domain.game.dto.*;
 import com.ssafy.omg.domain.game.entity.Game;
 import com.ssafy.omg.domain.game.entity.GameEvent;
 import com.ssafy.omg.domain.game.entity.RoundStatus;
@@ -30,18 +23,8 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import static com.ssafy.omg.config.baseresponse.BaseResponseStatus.ARENA_NOT_FOUND;
-import static com.ssafy.omg.config.baseresponse.BaseResponseStatus.INVALID_MARKET_INFO;
-import static com.ssafy.omg.config.baseresponse.BaseResponseStatus.INVALID_ROUND_STATUS;
-import static com.ssafy.omg.config.baseresponse.BaseResponseStatus.ROUND_STATUS_ERROR;
-import static com.ssafy.omg.domain.game.entity.RoundStatus.APPLY_PREVIOUS_EVENT;
-import static com.ssafy.omg.domain.game.entity.RoundStatus.ECONOMIC_EVENT_NEWS;
-import static com.ssafy.omg.domain.game.entity.RoundStatus.GAME_FINISHED;
-import static com.ssafy.omg.domain.game.entity.RoundStatus.PREPARING_NEXT_ROUND;
-import static com.ssafy.omg.domain.game.entity.RoundStatus.ROUND_END;
-import static com.ssafy.omg.domain.game.entity.RoundStatus.ROUND_IN_PROGRESS;
-import static com.ssafy.omg.domain.game.entity.RoundStatus.ROUND_START;
-import static com.ssafy.omg.domain.game.entity.RoundStatus.STOCK_FLUCTUATION;
+import static com.ssafy.omg.config.baseresponse.BaseResponseStatus.*;
+import static com.ssafy.omg.domain.game.entity.RoundStatus.*;
 
 @Slf4j
 @Component
@@ -153,6 +136,7 @@ public class GameScheduler {
         if (game.getTime() == 2) {
 //            notifyPlayers(game.getGameId(), ROUND_START, +game.getRound() + "라운드가 시작됩니다!");
             notifyRoundStart(game.getGameId(), ROUND_START, game.getRound() + "라운드가 시작됩니다!", game.getRound());
+            notifyPlayersRankingMessage(game);
         } else if (game.getTime() == 0) {
             game.setRoundStatus(APPLY_PREVIOUS_EVENT);
             game.setTime(5);
@@ -294,6 +278,7 @@ public class GameScheduler {
         } else if (game.getTime() == 119 || game.getTime() % 20 == 0) {
             updateAndBroadcastMarketInfo(game, "STOCK");
             updateAndBroadcastMarketInfo(game, "GOLD");
+            notifyPlayersRankingMessage(game);
 
 //            int remainTime = (game.getTime() == 119) ? 120 : game.getTime();
 //            gameService.setStockPriceChangeInfo(game, game.getRound(), remainTime);
@@ -345,6 +330,7 @@ public class GameScheduler {
             messagingTemplate.convertAndSend("/sub/" + game.getGameId() + "/game", payload);
 
             notifyMainMessage(game.getGameId(), "GAME_MANAGER");
+            notifyPlayersRankingMessage(game);
         } else {
 //            if (game.getPauseTime() > 0) {
 //                game.setPauseTime(game.getPauseTime() - 1);
@@ -469,6 +455,13 @@ public class GameScheduler {
             StompPayload<IndividualMessageDto> response = new StompPayload<>("INDIVIDUAL_MESSAGE_NOTIFICATION", gameId, playerNickname, individualMessage);
             messagingTemplate.convertAndSend("/sub/" + gameId + "/game", response);
         }
+    }
+
+    // 랭킹 고지 : 라운드 시작시, 20초마다, 주가 변동, 개인 거래
+    public void notifyPlayersRankingMessage(Game game) throws BaseException {
+        PlayerRankingResponse playerRankingResponse = gameService.getPlayerRanking(game);
+        StompPayload<PlayerRankingResponse> payload = new StompPayload<>("RANKING_NOTIFICATION", game.getGameId(), "GAME_MANAGER", playerRankingResponse);
+        messagingTemplate.convertAndSend("/sub/" + game.getGameId() + "/game", payload);
     }
 
     private void endGame(Game game) throws BaseException {
