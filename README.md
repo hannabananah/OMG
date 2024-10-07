@@ -1,6 +1,91 @@
 ## 📆 특화 프로젝트 진행 상황
 
 <details>
+  <summary>7주차</summary>
+
+### 🔖 10/07(월)
+
+- [x] GameStore에 데이터 필드 추가/삭제 변경 사항 반영
+
+- [x] GameStore의 GameData 세팅 관련 오류 수정
+
+  - [x] 내부 players 배열 중 해당 player의 정보만 업데이트 하는 방식으로 setPlayerDataByNickname 메서드 추가하여, 거래 시 서버에서 주는 데이터만 업데이트
+  - [x] setGameStore(일부 필드만 업데이트 가능하도록 Partial 처리)
+
+- [x] Personal Board (개인 판) 서버 데이터 세팅
+
+  - [x] 앞서 (위에 적은) useGameStore로 개인 판 데이터 사용하던 것 제거 (setPlayerDataByNickname 메서드 제거)
+  - [x] SocketContext에 INDIVIDUAL_MESSAGE_NOTIFICATION 개인 판 초기 세팅 추가
+  - [x] usePersonalBoardStore 전역 스토어 생성
+  - [x] PersonalBoard에 usePersonalBoardStore 서버 정보 연동 및 업데이트
+  - [x] 개인 판에서도 게임 라운드 넘어 감에 따라 대출 이자 더해지는 값으로 총 대출액을 갱신 할 수 있게 추가 작업
+    - [x] PersonalBoard에 useEffect로 enterLoan 함수 추가
+    - [x] SocketContext에서 대출 한도 계산 완료 시에도 setPersonalBoardData 해서 총 대출액 갱신
+
+- [x] Personal Board (개인 판) 서버 데이터 활용
+
+  - [x] StockBuy(주식 매수)
+    - [x] 변경 한 usePersonalBoardStore로 서버 데이터 연동
+    - [x] SUCCESS_BUY_STOCK 시 데이터 업데이트
+  - [x] StockSell(주식 매도)
+    - [x] SUCCESS_SELL_STOCK 시 데이터 업데이트
+  - [x] GoldBuy(금 매입)
+    - [x] useMainBoardStore, usePersonalBoardStore 데이터 연동
+    - [x] SUCCESS_PURCHASE_GOLD 시 데이터 업데이트
+  - [x] 대출/상환
+    - [x] SUCCESS_TAKE_LOAN, SUCCESS_REPAY_LOAN 시 데이터 업데이트
+  - [x] MyRoom(내 방)
+    - [x] usePersonalBoardStore 서버 데이터로 변경
+
+- [x] Main Board (메인 판) 관련 서버 데이터 추가 연동
+
+  - [x] useMainBoardStore 일부 필드 단위로 업데이트 가능하도록 수정
+  - [x] SocketContext에서 주가 변동 시 MainBoard 세팅(tradableStockCnt) 변동 반영
+
+- [x] MainMap
+
+  - [x] 주식 매도 관련 테스트 코드 제거
+  - [x] 거래소 버튼 제거
+  - [x] 특정 좌표 도착 시 거래소 모달 열리도록 수정(주식 시장 / 금고 / 대출 및 상환)
+
+- [x] 한 ROUND 내 거래 횟수 1번으로 제한 및 알림
+
+  - [x] 주식 매도 할 때, 이미 한 ROUND 내에서 거래 한 경우 STOCK_ALREADY_SOLD 받아서 alert 추가
+  - [x] 주식 매수 할 때, 이미 한 ROUND 내에서 거래 한 경우 STOCK_ALREADY_PURCHASED 받아서 alert 추가
+
+- [x] 데일리 KPT 회고
+
+  - **Keep (잘해오고 있는 것들)**
+
+    - 월요일 게임 시연을 위해 팀원 모두가 저번 주 모든 휴일을 투자하여 오프라인으로 만나서 기본적인 게임 기능이 동작하는 것에 우선 순위를 두고 작업을 마쳤다.
+    - 해당 과정에서 의문이 들거나, 데이터 관련 추가/삭제 되어야 할 사항을 백-프론트 간 활발히 논의하고, 구두 및 API 작업 이중으로 상황을 공유했다.
+    - 다양한 상황을 테스트 해보면서 서버 측 데이터가 제대로 연동되어 업데이트된 사항을 모든 컴포넌트에서 반영하고 있는 지 체크하며 오류를 점검했다.
+    - 메인 판, 개인 판에 대한 정보를 분리하여 전역 store를 생성하고 해당 정보를 공유하니, 필요한 시점마다 상태 관리를 반영해주기 수월했다.
+    - redis, lombok, jdk 등 서버 측 관련 설정(?)이 되어 있지 않은 문제에 대해서 혼자 고민하지 않고, 이미 잘 알고 계시는 정민님께 요청하여 빠르게 문제를 해결하고 메인 작업에 집중할 수 있었다.
+
+  - **Problem(문제되는 점들)**
+
+    - 게임의 흐름, 로직에 집중하다 보니 전체적으로 아직 UI 작업이 이뤄지지 않았다.
+    - 캐릭터 이동에 따른 카메라 시점 전환 개선이 필요하다.
+    - 각 유저들 간에 어떤 행위를 하고 있는 지, 어디에 위치하는 지의 실시간 정보가 제공되지 않아, 게임성이 부족하다.
+    - 캐릭터 밝기 문제, 캐릭터가 맵에 파묻혀 있거나, 떠있거나 하는 등 렌더링에 문제가 있다.
+    - 맵에 적용된 물리 엔진에 의해 특정 위치(금 거래소)로 내려 갔을 때 다시 올라 오지 못하는 문제가 있다.
+    - 전체적인 게임 액션이 부족하다.
+
+  - **Try(새롭게 시도해볼 것들)**
+
+    - blendar에서 캐릭터 다시 생성(리깅 및 빛 조절, 점프 동작 추가) => 맵 올라 갈 수 있는 지 테스트 필요
+    - 메인 판, 개인 판, 경제 이벤트 등 개별 컴포넌트들 UI 작업
+    - 거래소 입장 시 카메라 줌 아웃 하면서 거래소 전체 보여주기, 거래소 퇴장 시 카메라 줌 인 하면서 원래 캐릭터 시점으로
+    - 게임성 살리기 위해, 유저 실시간 랭킹 및 거래 중인지 여부, 어떤 거래소에서 어떤 행위 했는 지 정보 제공
+    - 미니 맵 제공
+    - alert 및 입력 받는 window 기본 창들 커스텀
+    - 라운드 변하는 것에 대한 확실한 액션, 주가 변동 시 이벤트 알람 고려해 볼 것
+    - 주식을 살릴 수 있는 방법 고민해 볼 것
+
+</details>
+
+<details>
   <summary>6주차</summary>
 
 ### 🔖 10/06(일)
