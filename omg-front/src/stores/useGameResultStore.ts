@@ -2,6 +2,7 @@ import { create } from 'zustand';
 
 interface PlayerResult {
   nickname: string;
+  finalCash: number;
   finalGoldCnt: number;
   finalStockCnt: number[];
   finalNetWorth: number;

@@ -520,6 +520,8 @@ export default function SocketProvider({ children }: SocketProviderProps) {
             setGameResultData(parsedMessage.data);
             setIsGameResultVisible(true);
             console.log('게임 최종결과', parsedMessage.data);
+            break;
+
 
           case 'INDIVIDUAL_MESSAGE_NOTIFICATION':
             if (currentUser === nickname) {
