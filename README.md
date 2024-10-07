@@ -3,6 +3,27 @@
 <details>
   <summary>6주차</summary>
 
+### 🔖 10/06(일)
+
+- [x] 인텔리제이 Java jdk 21로 변경한 거 다운 받음
+- [x] 초기 setGameData 부분 오류 수정(nickname => roomId)
+- [x] Main Board (메인 판)
+  - [x] 서버 데이터 useGameStore에서 분리하여 useMainBoardStore에서 관리하도록 변경
+  - [x] Gauge 및 MarketState 데이터 MainBoard 데이터와 같도록 수정
+- [x] Personal Board (개인 판) 컴포넌트 생성
+  - [x] useGameStore에서 서버 데이터 연동
+  - [x] GoldBuy랑 StockBuy에서 보유 현금 데이터 서버 데이터로 수정
+  - [x] 개인 판 주식 개수 index 수정
+- [x] 주식 매도
+  - [x] 화면에 MyRoom에서 가져온 주식들 띄워주기
+  - [x] 가져온 주식이 없는 경우 noSellingItem으로 상태 인식 후, '매도 할 주식이 없습니다' UI 추가
+  - [x] 판매하려고 가져온 주식들만 필터링해서 3D 에셋으로 수량과 함께 렌더링
+  - [x] 판매할 주식이 있는 경우에만 '매도하기' 버튼 보이도록 수정
+- [x] MyRoom (내 방)
+  - [x] 서버 데이터로 변경
+  - [x] 선택한 주식 아이템들 carryingData에 세팅
+  - [x] 보유 아이템 필터링 부분 오류 수정: 보유 아이템 없으면 빈 배열 처리하여 slice 메서드 오류 발생하지 않도록
+
 ### 🔖 10/05(토)
 
 - [x] 금괴 시장 UI 작업 및 서버 데이터 연동
