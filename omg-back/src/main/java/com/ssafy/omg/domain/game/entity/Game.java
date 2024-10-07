@@ -1,5 +1,6 @@
 package com.ssafy.omg.domain.game.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.ssafy.omg.domain.player.entity.Player;
 import lombok.AllArgsConstructor;
@@ -70,4 +71,15 @@ public class Game {
             }
         }
     }
+
+    @JsonIgnore
+    public void finishGame() {
+        this.gameStatus = GameStatus.GAME_FINISHED;
+    }
+
+    @JsonIgnore
+    public boolean isGameFinished() {
+        return this.gameStatus == GameStatus.GAME_FINISHED;
+    }
+
 }
