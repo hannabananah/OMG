@@ -1,4 +1,12 @@
-import { Suspense, useContext, useEffect, useMemo, useState } from 'react';
+import {
+  Fragment,
+  Suspense,
+  useContext,
+  useEffect,
+  useMemo,
+  useState,
+} from 'react';
+import { IoVolumeHigh, IoVolumeMuteSharp } from 'react-icons/io5';
 
 import { CharacterInfo } from '@/assets/data/characterInfo';
 import Character from '@/components/character/Character';
@@ -6,9 +14,11 @@ import Chatting from '@/components/chat/Chatting';
 import Button from '@/components/common/Button';
 import ExitButton from '@/components/common/ExitButton';
 import MainAlert from '@/components/common/MainAlert';
+import Notification from '@/components/common/Notification';
 import Round from '@/components/common/Round';
 import Timer from '@/components/common/Timer';
 import EventCard from '@/components/game/EventCard';
+import GameResult from '@/components/game/GameResult';
 import Map from '@/components/main-map/Map';
 import StockMarket from '@/components/stock-market/StockMarket';
 import useModalStore from '@/stores/useModalStore';
@@ -26,7 +36,6 @@ import LoanMarket from '../loan-market/LoanMarket';
 import MainBoard from '../main-board/MainBoard';
 import MyRoom from '../my-room/MyRoom';
 import PersonalBoard from '../personal-board/PersonalBoard';
-import GameResult from '@/components/game/GameResult';
 
 export const Controls = {
   forward: 'forward',
@@ -38,19 +47,27 @@ export const Controls = {
 
 export default function MainMap() {
   const { characterType } = useUser();
-  const { socket, online, initGameSetting, allRendered, isGameResultVisible, roundTimer, presentRound } =
-    useContext(SocketContext);
+  const {
+    socket,
+    online,
+    initGameSetting,
+    allRendered,
+    isGameResultVisible,
+    roundTimer,
+    presentRound,
+  } = useContext(SocketContext);
 
   const { otherUsers } = useOtherUserStore();
 
   const { modals, openModal } = useModalStore();
-
   const { eventCardMessage, gameRoundMessage } = useSocketMessage();
   const [isChatOpen, setIsChatOpen] = useState(false);
   const [isVisible, setIsVisible] = useState(false);
   const [isAlertVisible, setIsAlertVisible] = useState(false);
   const [isTimerVisible, setIsTimerVisible] = useState(false);
   const [isRoundVisible, setIsRoundVisible] = useState(false);
+  const [bgm, setBgm] = useState(null);
+  const [isMuted, setIsMuted] = useState(false);
 
   const keyboardMap = useMemo(
     () => [
@@ -125,6 +142,45 @@ export default function MainMap() {
 
     return () => clearTimeout(timer);
   }, [gameRoundMessage]);
+
+  useEffect(() => {
+    const audio = new Audio('/music/background.mp3');
+    audio.loop = true;
+    setBgm(audio);
+
+    if (!isMuted) {
+      audio.play();
+    }
+
+    return () => {
+      audio.pause();
+      audio.currentTime = 0;
+    };
+  }, []);
+
+  const handleNotificationSound = () => {
+    if (bgm) {
+      bgm.pause();
+    }
+
+    const alertSound = new Audio('/music/bell-alert.mp3');
+    alertSound.play();
+
+    setTimeout(() => {
+      if (bgm && !isMuted) {
+        bgm.play();
+      }
+    }, 2000);
+  };
+
+  const toggleMute = () => {
+    if (isMuted) {
+      bgm?.play();
+    } else {
+      bgm?.pause();
+    }
+    setIsMuted(!isMuted);
+  };
 
   const characterKeys = Object.keys(CharacterInfo) as Array<
     keyof typeof CharacterInfo
@@ -220,6 +276,7 @@ export default function MainMap() {
       <section className='absolute z-10 flex flex-col items-end gap-4 top-10 right-10'>
         {isRoundVisible && <Round presentRound={presentRound} />}
         {isTimerVisible && <Timer time={roundTimer} />}
+        <Notification onNewNotification={handleNotificationSound} />
       </section>
 
       {/* TODO: 삭제해야됨, EventCard 모달 위치 */}
@@ -275,14 +332,23 @@ export default function MainMap() {
         </div>
       )}
 
-      {/* 채팅 및 종료 버튼 고정 렌더링 */}
-      <section className='absolute bottom-0 left-0 z-10 flex items-end justify-between w-full p-10 text-white text-omg-40b'>
+      {/* 채팅 및 음소거, 종료 버튼 고정 렌더링 */}
+      <section className='absolute bottom-0 left-0 z-10 flex items-end justify-between w-full p-10 text-white text-omg-40b '>
         {!isChatOpen ? (
           <ChatButton isWhite={true} onClick={openChattingModal} />
         ) : (
           <Chatting closeChattingModal={closeChattingModal} />
         )}
-        <ExitButton />
+        <div className='flex flex-col'>
+          <button
+            className='mb-4 text-omg-50b'
+            onClick={toggleMute}
+            aria-label={isMuted ? 'Unmute' : 'Mute'}
+          >
+            {isMuted ? <IoVolumeMuteSharp /> : <IoVolumeHigh />}
+          </button>
+          <ExitButton />
+        </div>
       </section>
 
       <KeyboardControls map={keyboardMap}>
@@ -291,7 +357,7 @@ export default function MainMap() {
             {/* <OrbitControls /> */}
 
             <Physics timeStep='vary' colliders={false}>
-              <ambientLight intensity={1.5} />{' '}
+              <ambientLight intensity={1.5} />
               <directionalLight
                 intensity={2.0}
                 position={[10, 15, 10]}
@@ -315,9 +381,8 @@ export default function MainMap() {
               />
               {/* 다른 유저들 캐릭터 */}
               {otherCharacters.map(userCharacter => (
-                <>
+                <Fragment key={userCharacter.id}>
                   <Character
-                    key={userCharacter.id}
                     characterURL={userCharacter.url}
                     characterScale={userCharacter.scale}
                     position={userCharacter.position}
@@ -337,7 +402,7 @@ export default function MainMap() {
                     penumbra={0.2}
                     castShadow
                   />
-                </>
+                </Fragment>
               ))}
             </Physics>
           </Suspense>
