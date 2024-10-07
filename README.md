@@ -3,6 +3,26 @@
 <details>
   <summary>6주차</summary>
 
+### 🔖 10/04(금)
+
+- [x] 서버 연결 오류 해결
+  - [x] 인텔리제이 Lombok 플러그인 설치
+  - [x] Redis Insight 설치 (시각화 도구)
+  - [x] redis-server => redis-cli => ping
+- [x] 집에서 주식 매도할 아이템 들고 가기 테스트
+- [x] 주가 차트
+  - [x] 트리 아이템 순서 매핑 오류 수정
+  - [x] 라운드 서버 데이터로 변경
+- [x] 주식 매수/매도 후 message 초기화
+- [x] 금괴 시장 정보 => 서버 데이터 받아서 전역 상태로 저장
+  - [x] SocketContext에 GOLD_MARKET_INFO 케이스 추가 (금괴 시장 데이터 업데이트)
+  - [x] useGoldStore 생성하여 서버에서 받아온 데이터 전역에서 상태 관리
+  - [x] MainMap에 남아 있던 금 구매 성공 message 제거 후, SocketContext에 message 형식 이전
+  - [x] GoldBuy 컴포넌트에 서버 데이터 연동(금 매입 요청 버튼, message 세팅, 금 가격, 최대 거래 가능 수량)
+- [x] 주가 지분 비율 Bar 차트 오류 수정
+  - [x] 플레이어 이름 shorten 메서드 적용하면서, 이름이 같아져서 하나로 인식되던 문제 있었음
+  - [x] 플레이어 닉네임 글자수 자체를 줄여서 shorten 제거하고 그대로 사용
+
 ### 🔖 10/03(목)
 
 - [x] 주식 매수
