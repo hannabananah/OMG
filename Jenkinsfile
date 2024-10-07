@@ -4,8 +4,8 @@ pipeline {
     environment {
         BACKEND_IMAGE = 'backend'
         FRONTEND_IMAGE = 'frontend'
-        VITE_APP_BASE_URL = 'http://j11a206.p.ssafy.io/api/'
-        VITE_APP_SOCKET_URL = 'ws://j11a206.p.ssafy.io/omg'
+        VITE_APP_BASE_URL = 'https://j11a206.p.ssafy.io/api/'
+        VITE_APP_SOCKET_URL = 'wss://j11a206.p.ssafy.io/omg'
     }
 
     stages {
