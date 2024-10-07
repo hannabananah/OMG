@@ -26,6 +26,7 @@ import LoanMarket from '../loan-market/LoanMarket';
 import MainBoard from '../main-board/MainBoard';
 import MyRoom from '../my-room/MyRoom';
 import PersonalBoard from '../personal-board/PersonalBoard';
+import GameResult from '@/components/game/GameResult';
 
 export const Controls = {
   forward: 'forward',
@@ -37,7 +38,7 @@ export const Controls = {
 
 export default function MainMap() {
   const { characterType } = useUser();
-  const { socket, online, initGameSetting, allRendered } =
+  const { socket, online, initGameSetting, allRendered, isGameResultVisible, roundTimer, presentRound } =
     useContext(SocketContext);
 
   const { otherUsers } = useOtherUserStore();
@@ -45,7 +46,6 @@ export default function MainMap() {
   const { modals, openModal } = useModalStore();
 
   const { eventCardMessage, gameRoundMessage } = useSocketMessage();
-  const { roundTimer, presentRound } = useContext(SocketContext);
   const [isChatOpen, setIsChatOpen] = useState(false);
   const [isVisible, setIsVisible] = useState(false);
   const [isAlertVisible, setIsAlertVisible] = useState(false);
@@ -212,6 +212,9 @@ export default function MainMap() {
 
       {/* 대출 시장 모달 */}
       {modals.loanMarket && <LoanMarket />}
+
+      {/* 게임 결과 모달 */}
+      {isGameResultVisible && <GameResult />}
 
       {/* Round & Timer & Chat 고정 위치 렌더링 */}
       <section className='absolute z-10 flex flex-col items-end gap-4 top-10 right-10'>
