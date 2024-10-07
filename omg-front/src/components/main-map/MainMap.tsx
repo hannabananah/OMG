@@ -11,7 +11,6 @@ import Timer from '@/components/common/Timer';
 import EventCard from '@/components/game/EventCard';
 import Map from '@/components/main-map/Map';
 import StockMarket from '@/components/stock-market/StockMarket';
-import { useGameStore } from '@/stores/useGameStore';
 import useModalStore from '@/stores/useModalStore';
 import { useOtherUserStore } from '@/stores/useOtherUserState';
 import { useSocketMessage } from '@/stores/useSocketMessage';
@@ -37,26 +36,16 @@ export const Controls = {
   pickup: 'pickup',
 };
 
-const stockTypes = [
-  { name: 'candy', id: 1 },
-  { name: 'cupcake', id: 2 },
-  { name: 'gift', id: 3 },
-  { name: 'hat', id: 4 },
-  { name: 'socks', id: 5 },
-];
-
 export default function MainMap() {
   const { characterType } = useUser();
   const { socket, online, initGameSetting, allRendered, isGameResultVisible, roundTimer, presentRound } =
     useContext(SocketContext);
-  const { gameData, carryingCount, setCarryingCount } = useGameStore();
 
   const { otherUsers } = useOtherUserStore();
 
   const { modals, openModal } = useModalStore();
 
   const { eventCardMessage, gameRoundMessage } = useSocketMessage();
-  const { tradableStockCnt } = gameData || {};
   const [isChatOpen, setIsChatOpen] = useState(false);
   const [isVisible, setIsVisible] = useState(false);
   const [isAlertVisible, setIsAlertVisible] = useState(false);
@@ -104,11 +93,6 @@ export default function MainMap() {
     }
   }, [gameRoundMessage]);
 
-  // TODO: 삭제해야됨, 주식 매도 집에서 들고갈때
-  useEffect(() => {
-    console.log('carryingCount has changed:', carryingCount);
-  }, [carryingCount]);
-
   // TODO: 삭제해야됨, 라운드 알림 모달
   useEffect(() => {
     if (!gameRoundMessage.message) return;
@@ -142,22 +126,6 @@ export default function MainMap() {
     return () => clearTimeout(timer);
   }, [gameRoundMessage]);
 
-  // TODO: 삭제해야됨, 주식 매도 집에서 들고갈때
-  const handleClickStock = (stockId: number) => {
-    setCarryingCount((prevData: number[]) => {
-      const newCarryingCount = [...prevData];
-
-      if (newCarryingCount[stockId] + 1 > tradableStockCnt) {
-        alert(`${tradableStockCnt}를 초과해서 선택할 수 없습니다.`);
-        return prevData;
-      }
-
-      if (stockId >= 0 && stockId < newCarryingCount.length) {
-        newCarryingCount[stockId] += 1;
-      }
-      return newCarryingCount;
-    });
-  };
   const characterKeys = Object.keys(CharacterInfo) as Array<
     keyof typeof CharacterInfo
   >;
@@ -199,23 +167,23 @@ export default function MainMap() {
     }
   };
 
-  const openStockMarketModal = () => {
-    if (!modals.stockMarket) {
-      openModal('stockMarket');
-    }
-  };
+  // const openStockMarketModal = () => {
+  //   if (!modals.stockMarket) {
+  //     openModal('stockMarket');
+  //   }
+  // };
 
-  const openGoldMarketModal = () => {
-    if (!modals.goldMarket) {
-      openModal('goldMarket');
-    }
-  };
+  // const openGoldMarketModal = () => {
+  //   if (!modals.goldMarket) {
+  //     openModal('goldMarket');
+  //   }
+  // };
 
-  const openLoanMarketModal = () => {
-    if (!modals.loanMarket) {
-      openModal('loanMarket');
-    }
-  };
+  // const openLoanMarketModal = () => {
+  //   if (!modals.loanMarket) {
+  //     openModal('loanMarket');
+  //   }
+  // };
 
   const openChattingModal = () => {
     setIsChatOpen(true);
@@ -247,19 +215,6 @@ export default function MainMap() {
 
       {/* 게임 결과 모달 */}
       {isGameResultVisible && <GameResult />}
-
-      {/* 주식 매도 수량 선택(집에서) */}
-      <div className='px-10 py-2'>
-        {stockTypes.map(stock => (
-          <button
-            key={stock.id}
-            className='mr-5'
-            onClick={() => handleClickStock(stock.id)}
-          >
-            {stock.name}
-          </button>
-        ))}
-      </div>
 
       {/* Round & Timer & Chat 고정 위치 렌더링 */}
       <section className='absolute z-10 flex flex-col items-end gap-4 top-10 right-10'>
@@ -294,23 +249,23 @@ export default function MainMap() {
           onClick={openMyRoomModal}
         />
         {/* TODO: 삭제해야됨, 임시 주식 시장 버튼 */}
-        <Button
+        {/* <Button
           text='임시 주식 시장 버튼'
           type='mainmap'
           onClick={openStockMarketModal}
-        />
+        /> */}
         {/* TODO: 삭제해야됨, 임시 금 시장 버튼 */}
-        <Button
+        {/* <Button
           text='임시 금 시장 버튼'
           type='mainmap'
           onClick={openGoldMarketModal}
-        />
+        /> */}
         {/* TODO: 삭제해야됨, 임시 대출 시장 버튼 */}
-        <Button
+        {/* <Button
           text='임시 대출 시장 버튼'
           type='mainmap'
           onClick={openLoanMarketModal}
-        />
+        /> */}
       </section>
 
       {/* TODO: 삭제해야됨 */}
@@ -334,8 +289,9 @@ export default function MainMap() {
         <Canvas>
           <Suspense>
             {/* <OrbitControls /> */}
+
             <Physics timeStep='vary' colliders={false}>
-              <ambientLight intensity={1.5} />
+              <ambientLight intensity={1.5} />{' '}
               <directionalLight
                 intensity={2.0}
                 position={[10, 15, 10]}

@@ -9,7 +9,9 @@ interface MainBoardStore {
   remainingUntilChange: number;
 
   // 새로운 메인 보드 데이터 업데이트
-  setMainBoardData: (data: Omit<MainBoardStore, 'setMainBoardData'>) => void;
+  setMainBoardData: (
+    data: Partial<Omit<MainBoardStore, 'setMainBoardData'>>,
+  ) => void;
 }
 
 export const useMainBoardStore = create<MainBoardStore>(set => ({
@@ -21,7 +23,8 @@ export const useMainBoardStore = create<MainBoardStore>(set => ({
   remainingUntilChange: 0,
 
   setMainBoardData: data =>
-    set(() => ({
-      ...data,
+    set(state => ({
+      ...state, // 기존 상태 유지
+      ...data, // 새로운 데이터 덮어쓰기
     })),
 }));

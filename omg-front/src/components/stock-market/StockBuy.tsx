@@ -3,9 +3,10 @@ import { useContext, useEffect } from 'react';
 import { itemNameList } from '@/assets/data/stockMarketData';
 import { getTreeItemImagePath } from '@/hooks/useStock';
 import { useGameStore } from '@/stores/useGameStore';
+import { useMainBoardStore } from '@/stores/useMainBoardStore';
+import { usePersonalBoardStore } from '@/stores/usePersonalBoardStore';
 import { useSocketMessage } from '@/stores/useSocketMessage';
 import { useStockStore } from '@/stores/useStockStore';
-import useUser from '@/stores/useUser';
 import { SocketContext } from '@/utils/SocketContext';
 
 import Button from '../common/Button';
@@ -15,21 +16,14 @@ export default function StockBuy() {
   const { buyStock } = useContext(SocketContext);
   const { stockPrices, leftStocks } = useStockStore();
 
-  const { gameData, selectedCount, setSelectedCount } = useGameStore();
+  const { selectedCount, setSelectedCount } = useGameStore();
+
+  const { tradableStockCnt } = useMainBoardStore();
+  const { cash } = usePersonalBoardStore();
+
   const { buyStockMessage, setBuyMessage } = useSocketMessage();
 
-  const { players, tradableStockCnt } = gameData || {};
-
-  const { nickname } = useUser();
-
-  const MAX_TRADE_COUNT = tradableStockCnt || 1;
-
-  // 내 nickname에 해당하는 플레이어 정보 찾기
-  const myPlayerInfo = Array.isArray(players)
-    ? players.find(player => player.nickname === nickname)
-    : null;
-
-  const { cash } = myPlayerInfo || {};
+  const MAX_TRADE_COUNT = tradableStockCnt;
   const MY_MONEY = cash;
 
   useEffect(() => {
