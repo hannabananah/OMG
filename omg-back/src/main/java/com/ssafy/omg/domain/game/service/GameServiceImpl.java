@@ -247,12 +247,12 @@ public class GameServiceImpl implements GameService {
         int finalGoldPrice = game.getGoldPrice();
         System.out.println("Final Gold Price: " + finalGoldPrice);
 
-        int[] finalStockPrices = new int[5];
+        int[] finalStockPrices = new int[6];
         StockInfo[] marketStocks = game.getMarketStocks();
-        for (int i = 0; i < 5; i++) {
-            int[] state = marketStocks[i + 1].getState();
+        for (int i = 1; i < 6; i++) {
+            int[] state = marketStocks[i].getState();
             finalStockPrices[i] = stockState.getStockStandard()[state[0]][state[1]].getPrice();
-            System.out.println("Final Stock Price for stock " + (i + 1) + ": " + finalStockPrices[i]);
+            System.out.println("Final Stock Price for stock " + (i) + ": " + finalStockPrices[i]);
         }
 
         List<Player> players = game.getPlayers();
