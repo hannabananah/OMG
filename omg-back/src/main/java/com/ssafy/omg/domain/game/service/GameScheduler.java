@@ -149,8 +149,6 @@ public class GameScheduler {
         if (game.getTime() == 2) {
 //            notifyPlayers(game.getGameId(), ROUND_START, +game.getRound() + "라운드가 시작됩니다!");
             notifyRoundStart(game.getGameId(), ROUND_START, game.getRound() + "라운드가 시작됩니다!", game.getRound());
-            notifyMainMessage(game.getGameId(), "GAME_MANAGER");
-            notifyPlayersIndividualMessage(game.getGameId());
         } else if (game.getTime() == 0) {
             game.setRoundStatus(APPLY_PREVIOUS_EVENT);
             game.setTime(5);
@@ -455,7 +453,7 @@ public class GameScheduler {
         messagingTemplate.convertAndSend("/sub/" + gameId + "/game", payload);
     }
 
-    private void notifyPlayersIndividualMessage(String gameId) throws BaseException {
+    public void notifyPlayersIndividualMessage(String gameId) throws BaseException {
         List<String> playerNicknames = gameRepository.findPlayerList(gameId);
 
         for (String playerNickname : playerNicknames) {
