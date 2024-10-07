@@ -453,6 +453,16 @@ export default function SocketProvider({ children }: SocketProviderProps) {
             }
             break;
 
+          case 'STOCK_ALREADY_PURCHASED':
+            if (currentUser === nickname) {
+              setBuyMessage({
+                message:
+                  '이미 거래(주식 매수/주식 매도/금 매입 중 1)를 수행했습니다.',
+                isCompleted: true,
+              });
+            }
+            break;
+
           case 'SUCCESS_SELL_STOCK':
             if (currentUser === nickname) {
               setPersonalBoardData(parsedMessage.data);
@@ -491,6 +501,7 @@ export default function SocketProvider({ children }: SocketProviderProps) {
 
           case 'SUCCESS_CALCULATE_LOANLIMIT':
             if (currentUser === nickname) {
+              setPersonalBoardData(parsedMessage.data);
               setLoanData(parsedMessage.data);
               console.log('대출 한도 계산 완료', parsedMessage.data);
             }
