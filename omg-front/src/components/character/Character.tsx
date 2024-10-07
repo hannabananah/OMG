@@ -20,6 +20,7 @@ interface Props {
   characterURL: string;
   characterScale: number[];
   isOwnCharacter?: boolean;
+  startPosition?: [number, number, number];
 }
 
 export default function Character({
@@ -29,12 +30,15 @@ export default function Character({
   characterURL,
   characterScale,
   isOwnCharacter = false,
+  startPosition,
 }: Props) {
   const { movePlayer, allRendered } = useContext(SocketContext);
 
   const [localActionToggle, setLocalActionToggle] = useState(false);
   const [characterPosition, setCharacterPosition] = useState(
-    new THREE.Vector3(),
+    new THREE.Vector3(
+      ...(isOwnCharacter && startPosition ? startPosition : [0, 0, 0]), // 본인 캐릭터에만 startPosition을 반영
+    ),
   ); // 캐릭터 기본 위치
   const [rotation, setRotation] = useState(0);
   const movementStateRef = useRef<'idle' | 'walking' | 'running'>('idle');
