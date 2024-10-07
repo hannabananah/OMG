@@ -199,6 +199,14 @@ export default function Character({
           newPosition.z += moveDistance;
         }
 
+        // 캐릭터 위치가 변했을 때만 서버로 전송
+        if (!newPosition.equals(prevPositionRef.current)) {
+          const positionArray = newPosition.toArray();
+          const directionArray = [Math.sin(rotation), 0, Math.cos(rotation)];
+          movePlayer(positionArray, directionArray, localActionToggle);
+          prevPositionRef.current.copy(newPosition);
+        }
+
         // 캐릭터 위치 업데이트
         setCharacterPosition(newPosition);
         scene.position.copy(newPosition);
@@ -267,14 +275,16 @@ export default function Character({
 
   return (
     <>
-      <IntroCamera
-        characterPosition={characterPosition}
-        characterDirection={
-          new THREE.Vector3(Math.sin(rotation), 0, Math.cos(rotation))
-        }
-        characterRotation={new THREE.Euler(0, rotation, 0)}
-        scale={characterScale}
-      />
+      {isOwnCharacter && (
+        <IntroCamera
+          characterPosition={characterPosition}
+          characterDirection={
+            new THREE.Vector3(Math.sin(rotation), 0, Math.cos(rotation))
+          }
+          characterRotation={new THREE.Euler(0, rotation, 0)}
+          scale={characterScale}
+        />
+      )}
 
       <RigidBody type='dynamic' colliders={false} lockRotations={true}>
         <primitive
