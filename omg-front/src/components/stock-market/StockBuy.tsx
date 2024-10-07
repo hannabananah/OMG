@@ -3,6 +3,7 @@ import { useContext, useEffect } from 'react';
 import { itemNameList } from '@/assets/data/stockMarketData';
 import { getTreeItemImagePath } from '@/hooks/useStock';
 import { useGameStore } from '@/stores/useGameStore';
+import { useMainBoardStore } from '@/stores/useMainBoardStore';
 import { useSocketMessage } from '@/stores/useSocketMessage';
 import { useStockStore } from '@/stores/useStockStore';
 import useUser from '@/stores/useUser';
@@ -16,9 +17,11 @@ export default function StockBuy() {
   const { stockPrices, leftStocks } = useStockStore();
 
   const { gameData, selectedCount, setSelectedCount } = useGameStore();
+  const { tradableStockCnt } = useMainBoardStore();
+
   const { buyStockMessage, setBuyMessage } = useSocketMessage();
 
-  const { players, tradableStockCnt } = gameData || {};
+  const { players } = gameData || {};
 
   const { nickname } = useUser();
 

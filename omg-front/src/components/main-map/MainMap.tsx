@@ -2,6 +2,7 @@ import { Suspense, useContext, useEffect, useMemo, useState } from 'react';
 
 import { CharacterInfo } from '@/assets/data/characterInfo';
 import Character from '@/components/character/Character';
+import Chatting from '@/components/chat/Chatting';
 import Button from '@/components/common/Button';
 import ExitButton from '@/components/common/ExitButton';
 import MainAlert from '@/components/common/MainAlert';
@@ -11,6 +12,7 @@ import EventCard from '@/components/game/EventCard';
 import Map from '@/components/main-map/Map';
 import StockMarket from '@/components/stock-market/StockMarket';
 import { useGameStore } from '@/stores/useGameStore';
+import { useMainBoardStore } from '@/stores/useMainBoardStore';
 import useModalStore from '@/stores/useModalStore';
 import { useOtherUserStore } from '@/stores/useOtherUserState';
 import { useSocketMessage } from '@/stores/useSocketMessage';
@@ -19,7 +21,7 @@ import { SocketContext } from '@/utils/SocketContext';
 import { KeyboardControls, OrbitControls } from '@react-three/drei';
 import { Canvas } from '@react-three/fiber';
 import { Physics } from '@react-three/rapier';
-import Chatting from '@/components/chat/Chatting'
+
 import IntroCamera from '../camera/IntroCamera';
 import ChatButton from '../common/ChatButton';
 import GoldMarket from '../gold-market/GoldMarket';
@@ -51,12 +53,12 @@ export default function MainMap() {
   const { gameData, carryingCount, setCarryingCount } = useGameStore();
 
   const { otherUsers } = useOtherUserStore();
+  const { tradableStockCnt } = useMainBoardStore();
 
   const { modals, openModal } = useModalStore();
 
   const { eventCardMessage, gameRoundMessage } = useSocketMessage();
   const { roundTimer, presentRound } = useContext(SocketContext);
-  const { tradableStockCnt } = gameData || {};
   const [isChatOpen, setIsChatOpen] = useState(false);
   const [isVisible, setIsVisible] = useState(false);
   const [isAlertVisible, setIsAlertVisible] = useState(false);
@@ -79,6 +81,12 @@ export default function MainMap() {
       initGameSetting();
     }
   }, [allRendered]);
+
+  useEffect(() => {
+    if (socket && online && allRendered) {
+      console.log('서버에서 받아온 gameData 확인!!!!!!!!!!!!!!', gameData);
+    }
+  }, [allRendered, gameData]);
 
   useEffect(() => {
     if (!eventCardMessage.title && !eventCardMessage.content) return;

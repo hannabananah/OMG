@@ -1,19 +1,34 @@
 export interface Player {
-  nickname: string;
-  characterType: number;
-  position: number[];
-  direction: number[];
-  hasLoan: number;
-  loanPrincipal: number;
-  loanInterest: number;
-  totalDebt: number;
-  cash: number;
-  stock: number[];
-  goldOwned: number;
   action: string | null;
-  state: string;
-  isConnected: number;
   actionToggle: boolean;
+  battleState: boolean; // 추가
+  carryingGolds: number; // 추가
+  carryingStocks: number[]; // 추가
+  cash: number;
+  characterMovement: boolean; // 추가 (줍기 행동 유무)
+  characterType: number;
+  direction: number[];
+  goldOwned: number;
+  isConnected: number;
+  loanProducts: []; // 추가, 따로 TreeSet<LoanProduct> 있음
+  nickname: string;
+  position: number[];
+  state: string;
+  stock: number[];
+  totalDebt: number;
+}
+
+export interface GameEvent {
+  id: number;
+  title: string;
+  content: string;
+  value: number;
+  affectedStockGroup: string;
+}
+
+export interface MarketStock {
+  cnt: number;
+  state: [number, number];
 }
 
 export interface ChatMessage {
@@ -79,11 +94,6 @@ export interface StockPriceDataInfo {
 export interface PossessionDataInfo {
   treeItemName: StockItem; // 고정 필드
   [playerNickname: string]: number | StockItem; // 동적 키는 number 또는 StockItemnumber
-}
-
-export interface MarketStock {
-  cnt: number;
-  state: [number, number];
 }
 
 // 금 시세 차트 데이터

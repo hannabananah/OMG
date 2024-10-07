@@ -50,26 +50,26 @@ const defaultContextValue: SocketContextType = {
   online: false,
   player: [],
   chatMessages: [],
-  connect: () => { },
-  disconnect: () => { },
-  roomSubscription: () => { },
-  leaveRoom: () => { },
-  chatSubscription: () => { },
-  sendMessage: () => { },
+  connect: () => {},
+  disconnect: () => {},
+  roomSubscription: () => {},
+  leaveRoom: () => {},
+  chatSubscription: () => {},
+  sendMessage: () => {},
   hostPlayer: '',
-  startGame: () => { },
-  rendered_complete: () => { },
-  gameSubscription: () => { },
+  startGame: () => {},
+  rendered_complete: () => {},
+  gameSubscription: () => {},
   players: [],
-  movePlayer: () => { },
-  initGameSetting: () => { },
+  movePlayer: () => {},
+  initGameSetting: () => {},
   allRendered: false,
-  purchaseGold: () => { },
-  takeLoan: () => { },
-  repayLoan: () => { },
-  buyStock: () => { },
-  sellStock: () => { },
-  enterLoan: () => { },
+  purchaseGold: () => {},
+  takeLoan: () => {},
+  repayLoan: () => {},
+  buyStock: () => {},
+  sellStock: () => {},
+  enterLoan: () => {},
   roundTimer: 120,
   presentRound: 1,
 };
@@ -97,7 +97,7 @@ export default function SocketProvider({ children }: SocketProviderProps) {
     setEventCardMessage,
     setGameRoundMessage,
   } = useSocketMessage();
-  const { setGameData } = useGameStore();
+  const { setGameData, setPlayerDataByNickname } = useGameStore();
   const { setMainBoardData } = useMainBoardStore();
   const { setStockMarketData } = useStockStore();
   const { setGoldMarketData } = useGoldStore();
@@ -238,6 +238,10 @@ export default function SocketProvider({ children }: SocketProviderProps) {
           case 'GAME_INITIALIZED':
             const initGameData = parsedMessage.data.game;
             if (initGameData.gameId === roomId) {
+              console.log(
+                '게임 이니셜라이즈 게임 세팅하려고 받는 정보 체크 !!!!!!!!! ',
+                initGameData,
+              );
               setGameData(initGameData);
             }
             const initPlayerData = parsedMessage.data.game.players;
@@ -294,10 +298,13 @@ export default function SocketProvider({ children }: SocketProviderProps) {
 
           case 'SUCCESS_PURCHASE_GOLD':
             if (currentUser === nickname) {
+              // players 배열에서 해당 nickname에 맞는 플레이어 업데이트
+              setPlayerDataByNickname(nickname, parsedMessage.data);
               setGoldPurchaseMessage({
                 message: `금괴를 성공적으로 구매했습니다! 현재 소유 금괴 수량: ${parsedMessage.data.goldOwned}`,
                 isCompleted: true,
               });
+              console.log('금 매입 성공', parsedMessage.data);
             }
             break;
 
@@ -410,19 +417,18 @@ export default function SocketProvider({ children }: SocketProviderProps) {
 
           case 'SUCCESS_BUY_STOCK':
             if (currentUser === nickname) {
-              setGameData(parsedMessage.data);
+              // players 배열에서 해당 nickname에 맞는 플레이어 업데이트
+              setPlayerDataByNickname(nickname, parsedMessage.data);
               setBuyMessage({
                 message: '매수 완료!',
                 isCompleted: true,
               });
               console.log('매수 성공', parsedMessage.data);
-              setStockMarketData(parsedMessage.data);
             }
             break;
 
           case 'INSUFFICIENT_CASH':
             if (currentUser === nickname) {
-              setGameData(parsedMessage.data);
               setBuyMessage({
                 message: '돈이 부족합니다.',
                 isCompleted: false,
@@ -433,7 +439,6 @@ export default function SocketProvider({ children }: SocketProviderProps) {
 
           case 'STOCK_NOT_AVAILABLE':
             if (currentUser === nickname) {
-              setGameData(parsedMessage.data);
               setBuyMessage({
                 message: '다른 사람이 이미 구매해서 개수가 부족합니다.',
                 isCompleted: false,
@@ -447,19 +452,20 @@ export default function SocketProvider({ children }: SocketProviderProps) {
 
           case 'SUCCESS_SELL_STOCK':
             if (currentUser === nickname) {
-              setGameData(parsedMessage.data);
+              // players 배열에서 해당 nickname에 맞는 플레이어 업데이트
+              setPlayerDataByNickname(nickname, parsedMessage.data);
               setSellMessage({
                 message: '매도 성공!',
                 isCompleted: true,
               });
               setStockMarketData(parsedMessage.data);
+              console.log('매도 성공', parsedMessage.data);
             }
             break;
 
           case 'STOCK_FLUCTUATION':
-            setGameData(parsedMessage.data);
             setGameRoundMessage(parsedMessage.data);
-            console.log('경제상황 발생', parsedMessage.data);
+            console.log('주가 변동 발생', parsedMessage.data);
             break;
 
           case 'STOCK_MARKET_INFO':
