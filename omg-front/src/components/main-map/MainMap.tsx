@@ -2,6 +2,7 @@ import { Suspense, useContext, useEffect, useMemo, useState } from 'react';
 
 import { CharacterInfo } from '@/assets/data/characterInfo';
 import Character from '@/components/character/Character';
+import Chatting from '@/components/chat/Chatting';
 import Button from '@/components/common/Button';
 import ExitButton from '@/components/common/ExitButton';
 import MainAlert from '@/components/common/MainAlert';
@@ -20,6 +21,7 @@ import { KeyboardControls, OrbitControls } from '@react-three/drei';
 import { Canvas } from '@react-three/fiber';
 import { Physics } from '@react-three/rapier';
 
+import IntroCamera from '../camera/IntroCamera';
 import ChatButton from '../common/ChatButton';
 import GoldMarket from '../gold-market/GoldMarket';
 import LoanMarket from '../loan-market/LoanMarket';
@@ -56,7 +58,7 @@ export default function MainMap() {
   const { eventCardMessage, gameRoundMessage } = useSocketMessage();
   const { roundTimer, presentRound } = useContext(SocketContext);
   const { tradableStockCnt } = gameData || {};
-
+  const [isChatOpen, setIsChatOpen] = useState(false);
   const [isVisible, setIsVisible] = useState(false);
   const [isAlertVisible, setIsAlertVisible] = useState(false);
   const [isTimerVisible, setIsTimerVisible] = useState(false);
@@ -216,6 +218,14 @@ export default function MainMap() {
     }
   };
 
+  const openChattingModal = () => {
+    setIsChatOpen(true);
+  };
+
+  const closeChattingModal = () => {
+    setIsChatOpen(false);
+  };
+
   return (
     <main className='relative w-full h-screen overflow-hidden'>
       {/* 메인판 Modal */}
@@ -309,8 +319,12 @@ export default function MainMap() {
       )}
 
       {/* 채팅 및 종료 버튼 고정 렌더링 */}
-      <section className='absolute bottom-0 left-0 z-10 flex items-center justify-between w-full text-white py-14 px-14 text-omg-40b'>
-        <ChatButton isWhite={true} />
+      <section className='absolute bottom-0 left-0 z-10 flex items-end justify-between w-full p-10 text-white text-omg-40b'>
+        {!isChatOpen ? (
+          <ChatButton isWhite={true} onClick={openChattingModal} />
+        ) : (
+          <Chatting closeChattingModal={closeChattingModal} />
+        )}
         <ExitButton />
       </section>
 
@@ -318,11 +332,14 @@ export default function MainMap() {
         <Canvas shadows>
           <Suspense>
             {/* <OrbitControls /> */}
-
-            <Physics timeStep='vary' colliders={false} debug>
-              <ambientLight intensity={2} />
-              <directionalLight intensity={2} />
-
+            <Physics timeStep='vary' colliders={false}>
+              <ambientLight intensity={1.5} />
+              <directionalLight
+                intensity={2.0}
+                position={[10, 15, 10]}
+                castShadow
+              />
+              <pointLight intensity={2.0} position={[0, 10, 0]} />
               <Map />
               {/* 본인 캐릭터 */}
               <Character
@@ -332,18 +349,38 @@ export default function MainMap() {
                 startPosition={selectedCharacter.startPosition}
                 characterCamera={selectedCharacter.cameraSettings}
               />
-
+              <spotLight
+                position={[0, 10, 5]}
+                angle={0.5}
+                intensity={10}
+                penumbra={0.3}
+                castShadow
+              />
               {/* 다른 유저들 캐릭터 */}
               {otherCharacters.map(userCharacter => (
-                <Character
-                  key={userCharacter.id}
-                  characterURL={userCharacter.url}
-                  characterScale={userCharacter.scale}
-                  position={userCharacter.position}
-                  direction={userCharacter.direction}
-                  actionToggle={userCharacter.actionToggle}
-                  isOwnCharacter={false}
-                />
+                <>
+                  <Character
+                    key={userCharacter.id}
+                    characterURL={userCharacter.url}
+                    characterScale={userCharacter.scale}
+                    position={userCharacter.position}
+                    direction={userCharacter.direction}
+                    actionToggle={userCharacter.actionToggle}
+                    isOwnCharacter={false}
+                  />
+
+                  <spotLight
+                    position={[
+                      userCharacter.position[0],
+                      userCharacter.position[1] + 8,
+                      userCharacter.position[2] - 3,
+                    ]}
+                    angle={0.8}
+                    intensity={7}
+                    penumbra={0.2}
+                    castShadow
+                  />
+                </>
               ))}
             </Physics>
           </Suspense>
