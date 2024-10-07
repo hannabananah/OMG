@@ -345,7 +345,8 @@ export default function SocketProvider({ children }: SocketProviderProps) {
           case 'GOLD_ALREADY_PURCHASED':
             if (currentUser === nickname) {
               setGoldPurchaseMessage({
-                message: '이미 한 라운드 내에서 금괴를 구매했습니다.',
+                message:
+                  '이미 거래(주식 매수/주식 매도/금 매입 중 1)를 수행했습니다.',
                 isCompleted: false,
               });
             }
@@ -460,6 +461,16 @@ export default function SocketProvider({ children }: SocketProviderProps) {
                 isCompleted: true,
               });
               console.log('매도 성공', parsedMessage.data);
+            }
+            break;
+
+          case 'STOCK_ALREADY_SOLD':
+            if (currentUser === nickname) {
+              setSellMessage({
+                message:
+                  '이미 거래(주식 매수/주식 매도/금 매입 중 1)를 수행했습니다.',
+                isCompleted: true,
+              });
             }
             break;
 
