@@ -205,6 +205,10 @@ public class IndividualMessageController {
             IndividualMessageDto individualMessage = gameService.getIndividualMessage(roomId, userNickname);
             response = new StompPayload<>(e.getStatus().name(), roomId, userNickname, individualMessage);
             messagingTemplate.convertAndSend("/sub/" + roomId + "/game", response);
+        } catch (BaseException e) {
+            IndividualMessageDto individualMessage = gameService.getIndividualMessage(roomId, userNickname);
+            response = new StompPayload<>("STOCK_ALREADY_PURCHASED", roomId, userNickname, individualMessage);
+            messagingTemplate.convertAndSend("/sub/" + roomId + "/game", response);
         }
     }
 
