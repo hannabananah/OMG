@@ -1,9 +1,9 @@
 import { useContext, useEffect, useRef, useState } from 'react';
-import { TbFoldDown } from "react-icons/tb";
+import { TbFoldDown } from 'react-icons/tb';
+
 import ChatInputForm from '@/components/chat/ChatInputForm';
 import ChatMessage from '@/components/chat/ChatMessage';
 import { SocketContext } from '@/utils/SocketContext';
-
 
 interface ChattingProps {
   closeChattingModal: () => void;
@@ -35,8 +35,11 @@ export default function Chatting({ closeChattingModal }: ChattingProps) {
   }, [chatMessages]);
 
   return (
-    <div className='relative w-2/5 py-3 mb-4 bg-white bg-opacity-90 h-52 rounded-t-10 text-omg-14 font-omg-chat'>
-      <button className="absolute p-2 -m-2 text-gray hover:text-black top-2 right-4" onClick={closeChattingModal}>
+    <div className='absolute z-40 w-[300px] py-3 mb-6 bg-white bg-opacity-90 h-52 rounded-t-10 text-omg-14 font-omg-chat'>
+      <button
+        className='absolute p-2 -m-2 text-gray hover:text-black top-2 right-4'
+        onClick={closeChattingModal}
+      >
         <TbFoldDown size={24} />
       </button>
 
