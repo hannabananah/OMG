@@ -155,3 +155,71 @@ button:disabled {
     color: transparent;
   }
 }
+
+@keyframes blink {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0;
+  }
+}
+
+.blink-animation {
+  animation: blink 0.2s ease-in-out infinite;
+}
+
+@keyframes rocket-exit {
+  0% {
+    transform: translateY(0);
+  }
+  100% {
+    transform: translateY(-100vh);
+  }
+}
+
+@keyframes shake-exit {
+  0% {
+    transform: translateX(0);
+    transform: translateY(0);
+  }
+  10% {
+    transform: translateX(-5px);
+  }
+  20% {
+    transform: translateX(5px);
+  }
+  30% {
+    transform: translateX(-5px);
+  }
+  40% {
+    transform: translateX(5px);
+  }
+  50% {
+    transform: translateX(-5px);
+  }
+  60% {
+    transform: translateX(5px);
+  }
+  70% {
+    transform: translateX(-5px);
+  }
+  80% {
+    transform: translateX(5px);
+  }
+  90% {
+    transform: translateX(0);
+  }
+  100% {
+    transform: translateY(100vh);
+  }
+}
+
+.rocket-exit {
+  animation: rocket-exit 0.8s ease forwards;
+}
+
+.shake-exit {
+  animation: shake-exit 0.8s ease forwards;
+}
