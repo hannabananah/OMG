@@ -39,9 +39,8 @@ export default function Character({
 
   const [localActionToggle, setLocalActionToggle] = useState(false);
   const [characterPosition, setCharacterPosition] = useState(
-    new THREE.Vector3(),
-    // ...(isOwnCharacter && startPosition ? startPosition : [0, 0, 0]),
-  ); // 캐릭터 기본 위치
+    new THREE.Vector3(...startPosition),
+  );
   const [rotation, setRotation] = useState(0);
   const movementStateRef = useRef<'idle' | 'walking' | 'running'>('idle');
   const prevPositionRef = useRef(new THREE.Vector3()); // 캐릭터 이전 위치
@@ -82,6 +81,7 @@ export default function Character({
         z: characterPosition.z,
       });
       prevPositionRef.current.copy(characterPosition); // 현재 위치를 이전 위치로 업데이트
+
       const insideStockMarket = isInZone(characterPosition, zones.stockMarket);
       if (insideStockMarket && !isInStockMarketZone) {
         setIsInStockMarketZone(true);
