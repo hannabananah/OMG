@@ -16,6 +16,7 @@ interface SocketMessageState {
   repayLoanMessage?: { message: string; isCompleted: boolean };
   goldPurchaseMessage?: { message: string; isCompleted: boolean };
   eventCardMessage: EventMessage;
+  eventEffectMessage: Pick<EventMessage, 'roundStatus' | 'value'>;
   gameRoundMessage: { roundStatus: string; message?: string };
   setRoomMessage: (newRoomMessage: unknown) => void;
   setGameMessage: (newGameMessage: unknown) => void;
@@ -40,6 +41,9 @@ interface SocketMessageState {
     isCompleted: boolean;
   }) => void;
   setEventCardMessage: (newEventMessage: EventMessage) => void;
+  setEventEffectMessage: (
+    newEventEffectMessage: Pick<EventMessage, 'roundStatus' | 'value'>,
+  ) => void;
   setGameRoundMessage: (newGameRoundMessage: {
     roundStatus: string;
     message: string;
@@ -106,6 +110,16 @@ export const useSocketMessage = create<SocketMessageState>(set => ({
     set(state => ({
       ...state,
       eventCardMessage: newEventMessage,
+    }));
+  },
+  eventEffectMessage: {
+    roundStatus: '',
+    value: 0,
+  },
+  setEventEffectMessage: newEventEffectMessage => {
+    set(state => ({
+      ...state,
+      eventEffectMessage: newEventEffectMessage,
     }));
   },
   gameRoundMessage: { roundStatus: null, message: null },
