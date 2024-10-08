@@ -38,6 +38,8 @@ export default {
         'omg-title': 'OKDDUNG',
         'omg-body': 'Katuri',
         'omg-chat': 'SUITE',
+        'omg-event-title': 'Partial',
+        'omg-event-content': 'Laundry',
       },
       colors: {
         white1: '#FFFFFF',
