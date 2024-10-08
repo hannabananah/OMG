@@ -201,12 +201,6 @@ export default function MainMap() {
     };
   });
 
-  const openPersonalSettingsModal = () => {
-    if (!modals.personalBoard) {
-      openModal('personalBoard');
-    }
-  };
-
   const openPersonalMissionModal = () => {
     alert('게임 미션 모달 띄워주기');
   };
@@ -245,9 +239,6 @@ export default function MainMap() {
 
   return (
     <main className='relative w-full h-screen overflow-hidden'>
-      {/* 개인판 Modal */}
-      {modals.personalBoard && <PersonalBoard />}
-
       {/* 내 방 Modal */}
       {modals.myRoom && <MyRoom />}
 
@@ -284,11 +275,6 @@ export default function MainMap() {
 
       {/* 모달 모음 */}
       <section className='absolute z-10 flex flex-col items-start gap-4 left-10 top-20'>
-        <Button
-          text='개인 판'
-          type='mainmap'
-          onClick={openPersonalSettingsModal}
-        />
         <Button
           text='게임 미션'
           type='mainmap'
@@ -328,7 +314,7 @@ export default function MainMap() {
       )}
 
       {/* 채팅 및 음소거, 종료 버튼 고정 렌더링 */}
-      <section className='absolute bottom-0 left-0 z-10 flex items-end justify-between w-full p-10 text-white text-omg-40b '>
+      <section className='absolute bottom-0 left-0 z-10 flex items-end justify-between w-full p-10 text-white text-omg-40b'>
         {!isChatOpen ? (
           <ChatButton isWhite={true} onClick={openChattingModal} />
         ) : (
@@ -404,6 +390,9 @@ export default function MainMap() {
           </Suspense>
         </Canvas>
       </KeyboardControls>
+
+      {/* 개인판 영역 */}
+      <PersonalBoard />
     </main>
   );
 }

@@ -2,7 +2,7 @@ import type { GameEvent, MarketStock, Player } from '@/types';
 import { create } from 'zustand';
 
 interface GameData {
-  currentEvent: GameEvent | null; // 추가
+  currentEvent: GameEvent | null;
   currentInterestRate: number;
   currentStockPriceLevel: number;
   economicEvent: number[];
@@ -10,7 +10,7 @@ interface GameData {
   gameStatus: string;
   goldBuyTrack: number[];
   goldPrice: number;
-  goldPriceChart: number[]; // 추가
+  goldPriceChart: number[];
   goldPriceIncreaseCnt: number;
   isPaused: boolean;
   marketStocks: MarketStock[];
@@ -21,10 +21,11 @@ interface GameData {
   round: number;
   roundStatus: string;
   stockBuyTrack: number[];
-  stockPriceChangeInfo: number[][]; // 추가
+  stockPriceChangeInfo: number[][];
   stockSellTrack: number[];
   stockTokensPocket: number[];
   time: number;
+  playerRanking?: string[];
 }
 
 interface GameStore {
