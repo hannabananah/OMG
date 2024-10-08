@@ -3,13 +3,9 @@ package com.ssafy.omg.domain.game.service;
 import com.ssafy.omg.config.baseresponse.BaseException;
 import com.ssafy.omg.domain.arena.entity.Arena;
 import com.ssafy.omg.domain.game.GameRepository;
-import com.ssafy.omg.domain.game.dto.GameStatusDto;
-import com.ssafy.omg.domain.game.dto.PlayerResponse;
+import com.ssafy.omg.domain.game.dto.PlayerMinimapDto;
 import com.ssafy.omg.domain.game.dto.PlayerStateDto;
 import com.ssafy.omg.domain.game.entity.Game;
-import com.ssafy.omg.domain.game.entity.GameStatus;
-import com.ssafy.omg.domain.player.entity.Player;
-import com.ssafy.omg.domain.socket.dto.StompPayload;
 import com.ssafy.omg.domain.socket.dto.StompResponsePayload;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
@@ -17,7 +13,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.messaging.simp.SimpMessageSendingOperations;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -28,7 +23,6 @@ import java.util.stream.Collectors;
 
 import static com.ssafy.omg.config.baseresponse.BaseResponseStatus.ARENA_NOT_FOUND;
 import static com.ssafy.omg.config.baseresponse.BaseResponseStatus.GAME_NOT_FOUND;
-import static com.ssafy.omg.config.baseresponse.BaseResponseStatus.PLAYER_NOT_FOUND;
 
 @Slf4j
 @Service
@@ -81,9 +75,26 @@ public class GameBroadcastService {
 
         gameRepository.saveArena(roomId, arena);
 
-        StompResponsePayload<List<PlayerStateDto>> payload = new StompResponsePayload<>("PLAYER_STATE", playerStateDtos);
+        StompResponsePayload<List<PlayerStateDto>> payload1 = new StompResponsePayload<>("PLAYER_STATE", playerStateDtos);
 
         log.debug("send payload roomId = {}", roomId);
-        messagingTemplate.convertAndSend("/sub/" + roomId + "/game", payload);
+        messagingTemplate.convertAndSend("/sub/" + roomId + "/game", payload1);
+
+        List<PlayerMinimapDto> playerMinimapDtos = game.getPlayers().stream()
+                .map(p -> new PlayerMinimapDto(p.getNickname(), convertPositionToPixelLocation(p.getPosition())))
+                .toList();
+
+        StompResponsePayload<List<PlayerMinimapDto>> payload2 = new StompResponsePayload<>("PLAYER_MINIMAP", playerMinimapDtos);
+        messagingTemplate.convertAndSend("/sub/" + roomId + "/game", payload2);
+    }
+
+    private double[] convertPositionToPixelLocation(double[] position) {
+        double positionX = position[0];
+        double positionZ = position[2];
+
+        double locationX = (-positionX + 120) * (380.0 / 240.0) + 20;
+        double locationY = (-positionZ + 120) * (380.0 / 240.0) + 20;
+
+        return new double[] {locationX, locationY};
     }
 }
