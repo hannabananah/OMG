@@ -33,9 +33,9 @@ import { Physics } from '@react-three/rapier';
 import ChatButton from '../common/ChatButton';
 import GoldMarket from '../gold-market/GoldMarket';
 import LoanMarket from '../loan-market/LoanMarket';
-import MainBoard from '../main-board/MainBoard';
 import MyRoom from '../my-room/MyRoom';
 import PersonalBoard from '../personal-board/PersonalBoard';
+import MarketStatusBoard from './MarketStatusBoard';
 
 export const Controls = {
   forward: 'forward',
@@ -201,12 +201,6 @@ export default function MainMap() {
     };
   });
 
-  const openMainSettingsModal = () => {
-    if (!modals.mainBoard) {
-      openModal('mainBoard');
-    }
-  };
-
   const openPersonalSettingsModal = () => {
     if (!modals.personalBoard) {
       openModal('personalBoard');
@@ -251,9 +245,6 @@ export default function MainMap() {
 
   return (
     <main className='relative w-full h-screen overflow-hidden'>
-      {/* 메인판 Modal */}
-      {modals.mainBoard && <MainBoard />}
-
       {/* 개인판 Modal */}
       {modals.personalBoard && <PersonalBoard />}
 
@@ -272,8 +263,13 @@ export default function MainMap() {
       {/* 게임 결과 모달 */}
       {isGameResultVisible && <GameResult />}
 
+      {/* 마퀴 애니메이션 */}
+      <section className='absolute top-0 left-0 z-20 w-full'>
+        <MarketStatusBoard />
+      </section>
+
       {/* Round & Timer & Chat 고정 위치 렌더링 */}
-      <section className='absolute z-10 flex flex-col items-end gap-4 top-10 right-10'>
+      <section className='absolute z-10 flex flex-col items-end gap-4 top-20 right-10'>
         {isRoundVisible && <Round presentRound={presentRound} />}
         {isTimerVisible && <Timer time={roundTimer} />}
         <Notification onNewNotification={handleNotificationSound} />
@@ -287,8 +283,7 @@ export default function MainMap() {
       )}
 
       {/* 모달 모음 */}
-      <section className='absolute z-10 flex flex-col items-start gap-4 left-10 top-10'>
-        <Button text='메인 판' type='mainmap' onClick={openMainSettingsModal} />
+      <section className='absolute z-10 flex flex-col items-start gap-4 left-10 top-20'>
         <Button
           text='개인 판'
           type='mainmap'
