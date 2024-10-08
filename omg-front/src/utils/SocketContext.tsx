@@ -519,6 +519,10 @@ export default function SocketProvider({ children }: SocketProviderProps) {
               setPersonalBoardData(parsedMessage.data);
             }
             break;
+
+          case 'RANKING_NOTIFICATION':
+            setGameData(parsedMessage.data);
+            break;
         }
       },
       { id: subGameId },
