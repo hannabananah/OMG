@@ -383,6 +383,7 @@ export default function MainMap() {
                     position={userCharacter.position}
                     direction={userCharacter.direction}
                     actionToggle={userCharacter.actionToggle}
+                    startPosition={userCharacter.startPosition}
                     isOwnCharacter={false}
                   />
 
