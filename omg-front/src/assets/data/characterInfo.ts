@@ -1,8 +1,8 @@
 export const CharacterInfo = {
   santa: {
     url: '/models/santa/santa.gltf',
+    startPosition: [0, 0, 0] as [number, number, number],
     scale: [2.5, 2.5, 2.5],
-    startPosition: [1, 0, 5] as [number, number, number],
   },
   elf: {
     url: '/models/elf/elf.gltf',
