@@ -11,7 +11,7 @@ export default function Button({ text, type, onClick, disabled }: ButtonProps) {
   const buttonStyles = {
     mainmap: `text-omg-24b bg-white rounded-10 drop-shadow-xl px-8 py-2`,
     trade: `text-omg-24 bg-blue text-white rounded-10 px-16 py-2`,
-    count: 'text-omg-14 px-3 py-1 bg-white rounded-10',
+    count: 'text-omg-14 px-3 py-1 bg-white rounded-10 drop-shadow-xl',
   };
 
   return (

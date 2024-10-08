@@ -1,6 +1,7 @@
 import { ReactNode, createContext, useEffect, useMemo, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 
+import { useGameResultStore } from '@/stores/useGameResultStore';
 import { useGameStore } from '@/stores/useGameStore';
 import { useGoldStore } from '@/stores/useGoldStore';
 import { useLoanStore } from '@/stores/useLoanStore';
@@ -44,6 +45,8 @@ interface SocketContextType {
   roundTimer: number;
   presentRound: number;
   enterLoan: () => void;
+  isGameResultVisible: boolean;
+  transactionMessage: string;
 }
 
 const defaultContextValue: SocketContextType = {
@@ -73,6 +76,8 @@ const defaultContextValue: SocketContextType = {
   enterLoan: () => {},
   roundTimer: 120,
   presentRound: 1,
+  isGameResultVisible: false,
+  transactionMessage: '',
 };
 
 export const SocketContext =
@@ -104,7 +109,9 @@ export default function SocketProvider({ children }: SocketProviderProps) {
   const { setStockMarketData } = useStockStore();
   const { setGoldMarketData } = useGoldStore();
   const { setLoanData } = useLoanStore();
-
+  const { setGameResultData } = useGameResultStore();
+  const { setOtherUsers, transactionMessage, setTransactionMessage } =
+    useOtherUserStore();
   const [socket, setSocket] = useState<Client | null>(null);
   const [online, setOnline] = useState(false);
   const [player, setPlayer] = useState<string[]>([]);
@@ -115,6 +122,7 @@ export default function SocketProvider({ children }: SocketProviderProps) {
   const navigate = useNavigate();
   const [roundTimer, setRoundTimer] = useState(120);
   const [presentRound, setPresentRound] = useState(1);
+  const [isGameResultVisible, setIsGameResultVisible] = useState(false);
 
   const roomTopic = `/sub/${roomId}/room`;
   const chatTopic = `/sub/${roomId}/chat`;
@@ -153,7 +161,7 @@ export default function SocketProvider({ children }: SocketProviderProps) {
   const connect = () => {
     const stompClient = new Client({
       brokerURL: base_url,
-      debug: str => console.log(str),
+      // debug: str => console.log(str),
       onConnect: () => {
         setSocket(stompClient);
         setOnline(true);
@@ -204,7 +212,6 @@ export default function SocketProvider({ children }: SocketProviderProps) {
             );
             break;
           case 'START_BUTTON_CLICKED':
-            console.log('호스트가 게임을 시작했습니다');
             navigate(`/game/${roomId}`);
             break;
           case 'RENDERED_COMPLETE':
@@ -240,16 +247,12 @@ export default function SocketProvider({ children }: SocketProviderProps) {
           case 'GAME_INITIALIZED':
             const initGameData = parsedMessage.data.game;
             if (initGameData.gameId === roomId) {
-              console.log(
-                '게임 이니셜라이즈 게임 세팅하려고 받는 정보 체크 !!!!!!!!! ',
-                initGameData,
-              );
               setGameData(initGameData);
             }
             const initPlayerData = parsedMessage.data.game.players;
             setGameMessage(initPlayerData);
             setPlayers(initPlayerData);
-            useOtherUserStore.getState().setOtherUsers(
+            setOtherUsers(
               initPlayerData.map((player: Player) => ({
                 id: player.nickname,
                 characterType: player.characterType,
@@ -274,7 +277,6 @@ export default function SocketProvider({ children }: SocketProviderProps) {
             break;
 
           case 'PLAYER_STATE':
-            console.log('16ms마다 들어오는 실시간 게임 정보');
             const otherPlayersData = parsedMessage.data.filter(
               (player: Player) => player.nickname !== nickname,
             );
@@ -305,7 +307,10 @@ export default function SocketProvider({ children }: SocketProviderProps) {
                 message: `금괴를 성공적으로 구매했습니다! 현재 소유 금괴 수량: ${parsedMessage.data.goldOwned}`,
                 isCompleted: true,
               });
-              console.log('금 매입 성공', parsedMessage.data);
+            } else {
+              setTransactionMessage(
+                `${currentUser}님이 금괴 ${parsedMessage.data.goldOwned}개를 구매했습니다!`,
+              );
             }
             break;
 
@@ -313,11 +318,14 @@ export default function SocketProvider({ children }: SocketProviderProps) {
             if (currentUser === nickname) {
               setPersonalBoardData(parsedMessage.data);
               setLoanData(parsedMessage.data);
-              console.log('대출 신청 성공', parsedMessage.data);
               setLoanMessage({
                 message: parsedMessage.data.currentLoanPrincipal,
                 isCompleted: true,
               });
+            } else {
+              setTransactionMessage(
+                `${currentUser}님이 $${parsedMessage.data.currentLoanPrincipal}를 대출 받았습니다!`,
+              );
             }
             break;
 
@@ -325,11 +333,12 @@ export default function SocketProvider({ children }: SocketProviderProps) {
             if (currentUser === nickname) {
               setPersonalBoardData(parsedMessage.data);
               setLoanData(parsedMessage.data);
-              console.log('대출 상환 성공', parsedMessage.data);
               setRepayLoanMessage({
                 message: parsedMessage.data.totalDebt,
                 isCompleted: true,
               });
+            } else {
+              setTransactionMessage(`${currentUser}님이 대출금을 갚았습니다!`);
             }
             break;
 
@@ -354,7 +363,6 @@ export default function SocketProvider({ children }: SocketProviderProps) {
 
           case 'AMOUNT_OUT_OF_RANGE':
             if (currentUser === nickname) {
-              console.log('대출 한도 초과');
               setLoanMessage({
                 message: '가능한 대출한도를 넘었습니다.',
                 isCompleted: false,
@@ -364,7 +372,6 @@ export default function SocketProvider({ children }: SocketProviderProps) {
 
           case 'LOAN_ALREADY_TAKEN':
             if (currentUser === nickname) {
-              console.log('이미 대출');
               setLoanMessage({
                 message: '이미 대출을 받았습니다.',
                 isCompleted: false,
@@ -374,7 +381,6 @@ export default function SocketProvider({ children }: SocketProviderProps) {
 
           case 'AMOUNT_EXCEED_DEBT':
             if (currentUser === nickname) {
-              console.log('대출 상환금이 부채금 초과');
               setRepayLoanMessage({
                 message: '상환금액이 총 부채금액 보다 큽니다.',
                 isCompleted: false,
@@ -384,7 +390,6 @@ export default function SocketProvider({ children }: SocketProviderProps) {
 
           case 'AMOUNT_EXCEED_CASH':
             if (currentUser === nickname) {
-              console.log('대출 상환금이 보유자산 초과');
               setRepayLoanMessage({
                 message: '상환금액이 보유 현금 자산 보다 큽니다.',
                 isCompleted: false,
@@ -393,7 +398,6 @@ export default function SocketProvider({ children }: SocketProviderProps) {
             break;
 
           case 'GAME_NOTIFICATION':
-            console.log('parsedMessage', parsedMessage);
             if (
               parsedMessage.data.roundStatus === 'APPLY_PREVIOUS_EVENT' ||
               parsedMessage.data.roundStatus === 'ECONOMIC_EVENT_NEWS'
@@ -426,7 +430,8 @@ export default function SocketProvider({ children }: SocketProviderProps) {
                 message: '매수 완료!',
                 isCompleted: true,
               });
-              console.log('매수 성공', parsedMessage.data);
+            } else {
+              setTransactionMessage(`${currentUser}님이 주식을 매수했습니다!`);
             }
             break;
 
@@ -436,7 +441,6 @@ export default function SocketProvider({ children }: SocketProviderProps) {
                 message: '돈이 부족합니다.',
                 isCompleted: false,
               });
-              console.log('돈이 부족합니다.', parsedMessage.data);
             }
             break;
 
@@ -446,10 +450,6 @@ export default function SocketProvider({ children }: SocketProviderProps) {
                 message: '다른 사람이 이미 구매해서 개수가 부족합니다.',
                 isCompleted: false,
               });
-              console.log(
-                '다른 사람이 이미 구매해서 개수가 부족합니다.',
-                parsedMessage.data,
-              );
             }
             break;
 
@@ -470,7 +470,8 @@ export default function SocketProvider({ children }: SocketProviderProps) {
                 message: '매도 성공!',
                 isCompleted: true,
               });
-              console.log('매도 성공', parsedMessage.data);
+            } else {
+              setTransactionMessage(`${currentUser}님이 주식을 매도했습니다!`);
             }
             break;
 
@@ -485,37 +486,37 @@ export default function SocketProvider({ children }: SocketProviderProps) {
             break;
 
           case 'STOCK_FLUCTUATION':
+            setMainBoardData(parsedMessage.data);
             setGameRoundMessage(parsedMessage.data);
-            console.log('주가 변동 발생', parsedMessage.data);
             break;
 
           case 'STOCK_MARKET_INFO':
             setStockMarketData(parsedMessage.data);
-            console.log('주식 시장 데이터 업데이트', parsedMessage.data);
             break;
 
           case 'GOLD_MARKET_INFO':
             setGoldMarketData(parsedMessage.data);
-            console.log('금괴 시장 데이터 업데이트', parsedMessage.data);
             break;
 
           case 'SUCCESS_CALCULATE_LOANLIMIT':
             if (currentUser === nickname) {
               setPersonalBoardData(parsedMessage.data);
               setLoanData(parsedMessage.data);
-              console.log('대출 한도 계산 완료', parsedMessage.data);
             }
             break;
 
           case 'MAIN_MESSAGE_NOTIFICATION':
             setMainBoardData(parsedMessage.data);
-            console.log('메인판 정보 업데이트', parsedMessage.data);
+            break;
+
+          case 'GAME_RESULT':
+            setGameResultData(parsedMessage.data);
+            setIsGameResultVisible(true);
             break;
 
           case 'INDIVIDUAL_MESSAGE_NOTIFICATION':
             if (currentUser === nickname) {
-              setPersonalBoardData(parsedMessage.data); // 현재 사용자와 nickname이 일치하는 경우에만 업데이트
-              console.log('개인 판 정보 업데이트', parsedMessage.data);
+              setPersonalBoardData(parsedMessage.data);
             }
             break;
         }
@@ -693,7 +694,6 @@ export default function SocketProvider({ children }: SocketProviderProps) {
       sender: nickname,
       data: loanAmount,
     };
-    console.log('대출 신청', messagePayload);
     socket.publish({
       destination: '/pub/take-loan',
       body: JSON.stringify(messagePayload),
@@ -709,7 +709,6 @@ export default function SocketProvider({ children }: SocketProviderProps) {
       sender: nickname,
       data: repayLoanAmount,
     };
-    console.log('대출 상환', messagePayload);
     socket.publish({
       destination: '/pub/repay-loan',
       body: JSON.stringify(messagePayload),
@@ -740,7 +739,6 @@ export default function SocketProvider({ children }: SocketProviderProps) {
       sender: nickname,
       data: { stocks },
     };
-    console.log('매도messagePayload', messagePayload);
     socket.publish({
       destination: '/pub/sell-stock',
       body: JSON.stringify(messagePayload),
@@ -795,6 +793,8 @@ export default function SocketProvider({ children }: SocketProviderProps) {
       roundTimer,
       presentRound,
       enterLoan,
+      isGameResultVisible,
+      transactionMessage,
     }),
     [
       socket,
@@ -813,6 +813,8 @@ export default function SocketProvider({ children }: SocketProviderProps) {
       roundTimer,
       presentRound,
       enterLoan,
+      isGameResultVisible,
+      transactionMessage,
     ],
   );
 
