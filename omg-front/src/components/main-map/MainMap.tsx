@@ -288,7 +288,7 @@ export default function MainMap() {
             {/* <OrbitControls /> */}
 
             <Physics timeStep='vary' colliders={false}>
-              <ambientLight intensity={1.5} />{' '}
+              <ambientLight intensity={1.5} />
               <directionalLight
                 intensity={2.0}
                 position={[10, 15, 10]}

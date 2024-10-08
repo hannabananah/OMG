@@ -36,9 +36,8 @@ export default function Character({
 
   const [localActionToggle, setLocalActionToggle] = useState(false);
   const [characterPosition, setCharacterPosition] = useState(
-    new THREE.Vector3(
-      ...(isOwnCharacter && startPosition ? startPosition : [0, 0, 0]), // 본인 캐릭터에만 startPosition을 반영
-    ),
+    new THREE.Vector3(),
+    // ...(isOwnCharacter && startPosition ? startPosition : [0, 0, 0]),
   ); // 캐릭터 기본 위치
   const [rotation, setRotation] = useState(0);
   const movementStateRef = useRef<'idle' | 'walking' | 'running'>('idle');
@@ -80,7 +79,6 @@ export default function Character({
         z: characterPosition.z,
       });
       prevPositionRef.current.copy(characterPosition); // 현재 위치를 이전 위치로 업데이트
-
       const insideStockMarket = isInZone(characterPosition, zones.stockMarket);
       if (insideStockMarket && !isInStockMarketZone) {
         setIsInStockMarketZone(true);
@@ -89,7 +87,6 @@ export default function Character({
         setIsInStockMarketZone(false);
         console.log('주식 시장 벗어남');
       }
-
       const insideLoanMarket = isInZone(characterPosition, zones.loanMarket);
       if (insideLoanMarket && !isInLoanMarketZone) {
         setIsInLoanMarketZone(true);
@@ -98,7 +95,6 @@ export default function Character({
         setIsInLoanMarketZone(false);
         console.log('대출 방 벗어남');
       }
-
       const insideGoldMarket = isInZone(characterPosition, zones.goldMarket);
       if (insideGoldMarket && !isInGoldMarketZone) {
         setIsInGoldMarketZone(true);
@@ -107,7 +103,6 @@ export default function Character({
         setIsInGoldMarketZone(false);
         console.log('금 거래소 벗어남');
       }
-
       const insideSantaHouse = isInZone(characterPosition, zones.santaHouse);
       if (insideSantaHouse && !isInSantaHouseZone) {
         setIsInSantaHouseZone(true);
@@ -116,7 +111,6 @@ export default function Character({
         setIsInSantaHouseZone(false);
         console.log('산타 집 벗어남');
       }
-
       const insideSnowmanHouse = isInZone(
         characterPosition,
         zones.snowmanHouse,
@@ -130,7 +124,6 @@ export default function Character({
         setIsInSnowmanHouseZone(false);
         console.log('snowman 집 진입');
       }
-
       const insideElfHouse = isInZone(characterPosition, zones.elfHouse);
       if (insideElfHouse && !isInElfHouseZone) {
         // elf 집에 진입
@@ -141,7 +134,6 @@ export default function Character({
         setIsInElfHouseZone(false);
         console.log('elf 집 벗어남');
       }
-
       const insideGingerbreadHouse = isInZone(
         characterPosition,
         zones.gingerbreadHouse,
@@ -177,14 +169,11 @@ export default function Character({
     mixer.current?.update(delta);
     if (scene) {
       scene.rotation.y = rotation;
-
       if (isOwnCharacter) {
         // 이동 속도 설정
         const moveDistance = 0.1;
-
         // 현재 캐릭터 위치 복사
         const newPosition = characterPosition.clone();
-
         // 키 입력에 따른 위치 변경
         if (leftPressed) {
           newPosition.x += moveDistance;
@@ -198,7 +187,6 @@ export default function Character({
         if (forwardPressed) {
           newPosition.z += moveDistance;
         }
-
         // 캐릭터 위치가 변했을 때만 서버로 전송
         if (!newPosition.equals(prevPositionRef.current)) {
           const positionArray = newPosition.toArray();
@@ -206,11 +194,9 @@ export default function Character({
           movePlayer(positionArray, directionArray, localActionToggle);
           prevPositionRef.current.copy(newPosition);
         }
-
         // 캐릭터 위치 업데이트
         setCharacterPosition(newPosition);
         scene.position.copy(newPosition);
-
         // 걷기 및 달리기 상태
         if (
           movementStateRef.current === 'walking' ||
@@ -229,8 +215,7 @@ export default function Character({
           scene.position.copy(newForwardPosition);
         }
       } else if (position && Array.isArray(position) && position.length === 3) {
-        scene.position.set(...(position as [number, number, number]));
-
+        setCharacterPosition(new THREE.Vector3(...position));
         if (direction && Array.isArray(direction) && direction.length === 3) {
           const [dirX, , dirZ] = direction;
           const newRotation = Math.atan2(dirX, dirZ);
@@ -291,6 +276,7 @@ export default function Character({
           object={scene}
           scale={characterScale}
           position={characterPosition}
+          startPosition={startPosition}
         />
 
         <CuboidCollider
@@ -313,7 +299,7 @@ export default function Character({
             <Item
               key={`${item.itemName}-${itemIndex}-${index}`}
               disabled={true}
-              characterPosition={characterPosition}
+              position={characterPosition}
               index={index + itemIndex * 2}
               itemName={item.itemName}
             />

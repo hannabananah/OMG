@@ -5,6 +5,7 @@ interface OtherUserState {
     id: string;
     characterType: number;
     position: number[];
+    startPosition: number[];
     direction: number[];
     actionToggle: boolean;
   }>;
@@ -13,6 +14,7 @@ interface OtherUserState {
       id: string;
       characterType: number;
       position: number[];
+      startPosition: number[];
       direction: number[];
       actionToggle: boolean;
     }>,

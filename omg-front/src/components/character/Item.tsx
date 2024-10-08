@@ -5,23 +5,23 @@ import * as THREE from 'three';
 
 interface ItemProps {
   disabled: boolean;
-  characterPosition: THREE.Vector3;
+  position: THREE.Vector3;
   index: number;
   itemName: StockItem;
 }
 
 export default function Item({
   disabled,
-  characterPosition,
+  position,
   index,
   itemName,
 }: ItemProps) {
   const { scene } = useGLTF(`/models/${itemName}/${itemName}.gltf`); // 전달된 모델 경로를 사용
 
   const itemPosition = new THREE.Vector3(
-    characterPosition.x,
-    characterPosition.y + 3.7 + index * 0.5, // 인덱스에 따라 높이를 조정
-    characterPosition.z,
+    position.x,
+    position.y + 4.5 + index * 0.5, // 인덱스에 따라 높이를 조정
+    position.z,
   );
 
   // 애니메이션 적용
