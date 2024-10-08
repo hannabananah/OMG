@@ -16,10 +16,10 @@ export default function ChatButton({
   };
 
   return (
-    <button onClick={handleClick} aria-label="채팅 모달 열기">
+    <button onClick={handleClick} aria-label='채팅 모달 열기'>
       <img
         src={isWhite ? '/assets/white-chat.png' : '/assets/chat.png'}
-        alt="채팅 아이콘"
+        alt='채팅 아이콘'
       />
     </button>
   );

@@ -35,15 +35,15 @@ export default function PersonalBoard() {
   const renderRankImage = () => {
     if (rank === 1)
       return (
-        <Rank1 className='absolute -right-[2px] z-20 object-contain w-24 h-auto top-1 drop-shadow-md' />
+        <Rank1 className='absolute -right-[2px] z-20 object-contain w-24 h-auto -top-2 drop-shadow-md' />
       );
     if (rank === 2)
       return (
-        <Rank2 className='absolute -right-[4px] z-20 object-contain w-24 h-auto top-1 drop-shadow-md' />
+        <Rank2 className='absolute -right-[3px] z-20 object-contain w-24 h-auto -top-1 drop-shadow-md' />
       );
     if (rank === 3)
       return (
-        <Rank3 className='absolute -right-[2px] z-20 object-contain w-24 h-auto top-2 drop-shadow-md' />
+        <Rank3 className='absolute -right-[1px] z-20 object-contain w-24 h-auto -top-1 drop-shadow-md' />
       );
     return null;
   };
@@ -70,17 +70,18 @@ export default function PersonalBoard() {
   const characterImageUrl = `/assets/${Object.keys(CharacterInfo)[characterType]}.png`;
 
   return (
-    <section className='absolute bottom-0 flex justify-center w-full h-24'>
-      <div className='flex w-1/3 h-full bg-white1 bg-opacity-55 rounded-10'>
-        <div className='relative flex h-full px-4'>
+    <section className='flex justify-center flex-1 h-[104px] -mb-6 text-black'>
+      <div className='w-[435px] flex h-full py-2 bg-white1 bg-opacity-55 rounded-t-10'>
+        <div className='relative flex flex-col justify-center h-full px-4'>
           {rank !== null && rank !== 4 && renderRankImage()}
-          <div className='flex items-center justify-center flex-1 h-full'>
+          <div className='flex items-center justify-center'>
             <img
               src={characterImageUrl}
               alt={`${nickname} character`}
               className='object-contain w-14 h-14 drop-shadow-md'
             />
           </div>
+          <span className='mt-2 text-omg-11 font-omg-body'>{nickname}</span>
         </div>
         <div className='flex flex-col flex-1 h-full'>
           <div className='flex items-center flex-1 w-full h-1/2'>
@@ -105,7 +106,7 @@ export default function PersonalBoard() {
                     </span>
                   </div>
                   <span className='absolute top-0 text-black right-2 font-omg-body text-omg-14'>
-                    {stock[idx]}
+                    {stock[idx + 1]}
                   </span>
                 </div>
               ))}

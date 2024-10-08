@@ -58,7 +58,7 @@ export default function MarketStatusBoard() {
         >
           <div className='flex items-center gap-6'>
             {/* 주식 */}
-            <section className='flex items-center gap-3 text-white'>
+            <section className='flex items-center gap-3 ml-6 text-white'>
               <h4 className='text-omg-18'>[실시간 주가]</h4>
               <div className='flex items-center gap-4'>
                 {stockItems.map((item, idx) => (
