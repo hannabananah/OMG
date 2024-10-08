@@ -7,6 +7,7 @@ import { animated, useSpring } from '@react-spring/web';
 const calcX = (y: number, ly: number) =>
   -(y - ly - window.innerHeight / 2) / 20;
 const calcY = (x: number, lx: number) => (x - lx - window.innerWidth / 2) / 20;
+
 export default function EventCard() {
   const { eventCardMessage } = useSocketMessage();
   const [eventCardTitle, setEventCardTitle] = useState('');
@@ -15,7 +16,9 @@ export default function EventCard() {
 
   useEffect(() => {
     if (!eventCardMessage.title) return;
-
+    if (randomImage) {
+      setRandomImage('');
+    }
     setEventCardTitle(eventCardMessage.title);
     setEventCardContent(eventCardMessage.content);
 
