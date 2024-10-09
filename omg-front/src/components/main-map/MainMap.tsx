@@ -11,6 +11,7 @@ import { IoVolumeHigh, IoVolumeMuteSharp } from 'react-icons/io5';
 import { CharacterInfo } from '@/assets/data/characterInfo';
 import Character from '@/components/character/Character';
 import Chatting from '@/components/chat/Chatting';
+import Button from '@/components/common/Button';
 import ExitButton from '@/components/common/ExitButton';
 import MainAlert from '@/components/common/MainAlert';
 import Notification from '@/components/common/Notification';
@@ -20,7 +21,6 @@ import EventCard from '@/components/game/EventCard';
 import EventEffect from '@/components/game/EventEffect';
 import GameResult from '@/components/game/GameResult';
 import Map from '@/components/main-map/Map';
-import MiniMap from '@/components/mini-map/MiniMap';
 import StockMarket from '@/components/stock-market/StockMarket';
 import useModalStore from '@/stores/useModalStore';
 import { useOtherUserStore } from '@/stores/useOtherUserState';
@@ -60,7 +60,7 @@ export default function MainMap() {
 
   const { otherUsers } = useOtherUserStore();
 
-  const { modals } = useModalStore();
+  const { modals, openModal } = useModalStore();
   const { nickname } = useUser();
 
   const { eventCardMessage, eventEffectMessage, gameRoundMessage } =
@@ -220,6 +220,12 @@ export default function MainMap() {
     };
   });
 
+  const openMyRoomModal = () => {
+    if (!modals[nickname]?.myRoom) {
+      openModal('myRoom', nickname);
+    }
+  };
+
   const openChattingModal = () => {
     setIsChatOpen(true);
   };
@@ -285,10 +291,14 @@ export default function MainMap() {
           <EventEffect />
         </div>
       )}
-
-      <section className='absolute z-10 left-4 top-20 drop-shadow-2xl'>
-        {/* 미니맵 */}
-        <MiniMap />
+      {/* 모달 모음 */}
+      <section className='absolute z-10 flex flex-col items-start gap-4 left-10 top-20'>
+        {/* TODO: 삭제해야됨, 임시 내 방 버튼 */}
+        <Button
+          text='임시 내 방 버튼'
+          type='mainmap'
+          onClick={openMyRoomModal}
+        />
       </section>
 
       {/* TODO: 삭제해야됨 */}
@@ -302,7 +312,6 @@ export default function MainMap() {
       <section className='absolute bottom-0 left-0 z-10 flex items-end justify-between w-full p-6 text-white text-omg-40b'>
         <ChatButton isWhite={true} onClick={openChattingModal} />
         {isChatOpen && <Chatting closeChattingModal={closeChattingModal} />}
-
         {/* 개인판 영역 */}
         {isBoardVisible && <PersonalBoard />}
         <div className='flex flex-col'>
