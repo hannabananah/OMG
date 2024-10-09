@@ -3,6 +3,7 @@ import { useContext, useEffect, useMemo, useRef, useState } from 'react';
 import { Controls } from '@/components/main-map/MainMap';
 import { useCharacter } from '@/stores/useCharacter';
 import useModalStore from '@/stores/useModalStore';
+import useUser from '@/stores/useUser';
 import { StockItem } from '@/types';
 import { SocketContext } from '@/utils/SocketContext';
 import { useKeyboardControls } from '@react-three/drei';
@@ -36,6 +37,7 @@ export default function Character({
   const { movePlayer, allRendered } = useContext(SocketContext);
 
   const { modals, openModal, closeModal } = useModalStore();
+  const { nickname } = useUser();
 
   const [localActionToggle, setLocalActionToggle] = useState(false);
   const [characterPosition, setCharacterPosition] = useState(
@@ -68,6 +70,19 @@ export default function Character({
     isOwnCharacter,
   });
 
+  // 특정 거래소 좌표에 입장/퇴장한 유저에게만 해당 거래소 모달 열고 닫기
+  const openModalForPlayer = (modalId: string, playerNickname: string) => {
+    if (!modals[playerNickname]?.[modalId]) {
+      openModal(modalId, playerNickname);
+    }
+  };
+
+  const closeModalForPlayer = (modalId: string, playerNickname: string) => {
+    if (modals[playerNickname]?.[modalId]) {
+      closeModal(modalId, playerNickname);
+    }
+  };
+
   useEffect(() => {
     const prevPosition = prevPositionRef.current;
     if (
@@ -85,43 +100,31 @@ export default function Character({
       const insideStockMarket = isInZone(characterPosition, zones.stockMarket);
       if (insideStockMarket && !isInStockMarketZone) {
         setIsInStockMarketZone(true);
-        if (!modals.stockMarket) {
-          openModal('stockMarket');
-        }
+        openModalForPlayer('stockMarket', nickname);
         console.log('주식 시장 진입');
       } else if (!insideStockMarket && isInStockMarketZone) {
         setIsInStockMarketZone(false);
-        if (modals.stockMarket) {
-          closeModal('stockMarket');
-        }
+        closeModalForPlayer('stockMarket', nickname);
         console.log('주식 시장 벗어남');
       }
       const insideLoanMarket = isInZone(characterPosition, zones.loanMarket);
       if (insideLoanMarket && !isInLoanMarketZone) {
         setIsInLoanMarketZone(true);
-        if (!modals.loanMarket) {
-          openModal('loanMarket');
-        }
+        openModalForPlayer('loanMarket', nickname);
         console.log('대출 방 진입');
       } else if (!insideLoanMarket && isInLoanMarketZone) {
         setIsInLoanMarketZone(false);
-        if (modals.loanMarket) {
-          closeModal('loanMarket');
-        }
+        closeModalForPlayer('loanMarket', nickname);
         console.log('대출 방 벗어남');
       }
       const insideGoldMarket = isInZone(characterPosition, zones.goldMarket);
       if (insideGoldMarket && !isInGoldMarketZone) {
         setIsInGoldMarketZone(true);
-        if (!modals.goldMarket) {
-          openModal('goldMarket');
-        }
+        openModalForPlayer('goldMarket', nickname);
         console.log('금 거래소 진입');
       } else if (!insideGoldMarket && isInGoldMarketZone) {
         setIsInGoldMarketZone(false);
-        if (modals.goldMarket) {
-          closeModal('goldMarket');
-        }
+        closeModalForPlayer('goldMarket', nickname);
         console.log('금 거래소 벗어남');
       }
       const insideSantaHouse = isInZone(characterPosition, zones.santaHouse);
