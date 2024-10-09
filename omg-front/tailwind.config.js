@@ -34,6 +34,7 @@ export default {
       40: '40px',
       100: '100px',
     },
+    // dropShadow: {},
     extend: {
       fontFamily: {
         'omg-title': 'OKDDUNG',
@@ -58,9 +59,6 @@ export default {
         blue: '#0371F8',
         gray: '#888',
         lightgray: '#ddd',
-      },
-      dropShadow: {
-        heavy: '0 10px 15px rgba(0, 0, 0, 1)',
       },
     },
   },
