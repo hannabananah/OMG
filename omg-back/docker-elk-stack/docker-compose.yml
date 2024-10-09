@@ -46,6 +46,7 @@ services:
       kafka:
         condition: service_started
     environment:
+      - SLACK_WEBHOOK_URL=${SLACK_WEBHOOK_URL}
       - LANG=en_US.UTF-8
       - LC_ALL=en_US.UTF-8
       - LS_JAVA_OPTS=-Xmx1g -Xms1g
