@@ -41,6 +41,16 @@ button:disabled {
   scrollbar-width: none;
 }
 
+/* ToastAlert 커스텀 아이콘 outline 기본 스타일 제거 */
+.no-icon-style {
+  background: none !important;
+  box-shadow: none !important;
+  width: auto !important;
+  height: auto !important;
+  padding: 0 !important;
+  border: none !important;
+}
+
 @font-face {
   font-family: 'OKDDUNG';
   src: url('https://fastly.jsdelivr.net/gh/projectnoonnu/noonfonts_2206-02@1.0/OKDDUNG.woff2')

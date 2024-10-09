@@ -33,6 +33,7 @@
         "react-use-gesture": "^9.1.3",
         "sockjs": "^0.3.24",
         "sockjs-client": "^1.6.1",
+        "sweetalert2": "^11.14.2",
         "three": "^0.168.0",
         "zustand": "^4.5.5"
     },
