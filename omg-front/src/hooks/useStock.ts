@@ -1,5 +1,7 @@
+import { characterTypeImages } from '@/assets/data/characterInfo';
 import { itemNameList } from '@/assets/data/stockMarketData';
 import {
+  Player,
   PossessionDataInfo,
   StockDataItem,
   StockDataItemInKorean,
@@ -139,6 +141,17 @@ export const getTreeItemImagePath = (item: StockItem) => `/assets/${item}.png`;
 // 3) 플레이어 닉네임이 긴 경우, 잘라서 보여주기 위한 커스텀 함수
 export const shortenName = (name: string) => {
   return name.length > 10 ? `${name.slice(0, 10)}...` : name;
+};
+
+// 4) 닉네임에 맞는 캐릭터 타입 이미지 가져오는 함수
+export const getCharacterImageByNickname = (
+  nickname: string,
+  players: Player[],
+): string => {
+  const player = players.find(p => p.nickname === nickname);
+  return player
+    ? characterTypeImages[player.characterType]
+    : '/assets/santa.png';
 };
 
 // 3. 메인 판
