@@ -8,7 +8,7 @@ export default function ExitButton({ showText = false }) {
     if (!showText) {
       const confirmed = window.confirm('게임을 종료하시겠습니까?');
       if (confirmed) {
-        navigate('/lobby');
+        navigate('/');
       }
     } else {
       const confirmed = window.confirm('방을 나가시겠습니까?');
