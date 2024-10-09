@@ -60,7 +60,7 @@ export default function MainMap() {
 
   const { otherUsers } = useOtherUserStore();
 
-  const { modals, openModal } = useModalStore();
+  const { modals } = useModalStore();
   const { nickname } = useUser();
 
   const { eventCardMessage, eventEffectMessage, gameRoundMessage } =
