@@ -8,9 +8,10 @@ import useModalStore from '@/stores/useModalStore';
 import useUser from '@/stores/useUser';
 import { LoanMarketView } from '@/types';
 import { SocketContext } from '@/utils/SocketContext';
+import { ToastAlert } from '@/utils/ToastAlert';
 
 import BackButton from '../common/BackButton';
-import LoanActionButton from './LoanActionButton';
+import Button from '../common/Button';
 import LoanInfo from './LoanInfo';
 import LoanLogicModal from './LoanLogicModal';
 import LoanReport from './LoanReport';
@@ -26,9 +27,18 @@ export default function LoanMarket() {
   const [isReportVisible, setIsReportVisible] = useState(true);
   const [isTooltipVisible, setIsTooltipVisible] = useState(false);
 
+  const [moneyAmount, setMoneyAmount] = useState<string>('');
+
   useEffect(() => {
     enterLoan();
   }, []);
+
+  const handleMoneyAmountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    if (!isNaN(Number(value))) {
+      setMoneyAmount(value);
+    }
+  };
 
   const handleCloseLoanMarket = (e: React.MouseEvent<HTMLDivElement>) => {
     if (e.target === e.currentTarget && modals[nickname]?.loanMarket) {
@@ -55,6 +65,32 @@ export default function LoanMarket() {
     setTimeout(() => {
       setIsTooltipVisible(false);
     }, 5000);
+  };
+
+  const handleTakeLoan = () => {
+    const amount = Number(moneyAmount);
+    if (amount <= 0) {
+      ToastAlert('유효한 대출 금액을 입력하세요.');
+      return;
+    }
+    takeLoan(amount);
+    setMoneyAmount('');
+  };
+
+  const handleRepayLoan = () => {
+    const amount = Number(moneyAmount);
+    if (amount <= 0) {
+      ToastAlert('유효한 상환 금액을 입력하세요.');
+      setMoneyAmount('');
+      return;
+    }
+    if (amount > totalDebt) {
+      ToastAlert('총 대출액을 초과합니다. 유효한 상환 금액을 입력하세요.');
+      setMoneyAmount('');
+      return;
+    }
+    repayLoan(amount);
+    setMoneyAmount('');
   };
 
   return (
@@ -100,19 +136,27 @@ export default function LoanMarket() {
           </div>
           <div className='flex flex-col items-center justify-center w-2/5 h-full gap-20'>
             <LoanInfo />
-            <div className='flex gap-4'>
-              <LoanActionButton
-                actionType='take'
-                buttonText='대출하기'
-                onAction={takeLoan}
+
+            {/* 금액 입력 및 대출/상환 버튼 */}
+            <div className='flex flex-col gap-6'>
+              <input
+                type='text'
+                className='w-full px-8 py-3 mx-2 rounded-20 text-omg-14'
+                placeholder='대출 또는 상환할 금액을 입력하세요.'
+                value={moneyAmount}
+                onChange={handleMoneyAmountChange}
               />
-              <LoanActionButton
-                actionType='repay'
-                buttonText='상환하기'
-                onAction={repayLoan}
-                disabled={totalDebt === 0}
-              />
+              <div className='flex gap-4'>
+                <Button text='대출하기' type='trade' onClick={handleTakeLoan} />
+                <Button
+                  text='상환하기'
+                  type='trade'
+                  onClick={handleRepayLoan}
+                  disabled={totalDebt === 0}
+                />
+              </div>
             </div>
+
             <div>
               <p className='underline text-omg-14'>
                 *해당 대출은 금리가 높은 상품부터 우선적으로 상환됩니다.

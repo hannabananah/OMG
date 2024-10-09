@@ -81,9 +81,7 @@ function Deck() {
               <div className='flex flex-col h-full my-2 justify-evenly'>
                 <div className='grid grid-cols-3 gap-4'>
                   <div className='flex flex-col items-center'>
-                    <h4 className='text-omg-24'>
-                      {product.round}
-                    </h4>
+                    <h4 className='text-omg-24'>{product.round}</h4>
                     <span className='text-omg-14 text-gray'>대출한 라운드</span>
                   </div>
                   <div className='flex flex-col items-center'>
@@ -93,23 +91,17 @@ function Deck() {
                     <span className='text-omg-14 text-gray'>대출 시각</span>
                   </div>
                   <div className='flex flex-col items-center'>
-                    <h4 className='text-omg-24'>
-                      {product.interestRate}%
-                    </h4>
+                    <h4 className='text-omg-24'>{product.interestRate}%</h4>
                     <span className='text-omg-14 text-gray'>금리</span>
                   </div>
                 </div>
                 <div className='grid grid-cols-2 gap-4 mt-4'>
                   <div className='flex flex-col items-center'>
-                    <h4 className='text-omg-24'>
-                      {product.loanPrincipal}
-                    </h4>
+                    <h4 className='text-omg-24'>{product.loanPrincipal}</h4>
                     <span className='text-omg-14 text-gray'>갚아야 할 돈</span>
                   </div>
                   <div className='flex flex-col items-center'>
-                    <h4 className='text-omg-24'>
-                      {product.loanInterest}
-                    </h4>
+                    <h4 className='text-omg-24'>{product.loanInterest}</h4>
                     <span className='text-omg-14 text-gray'>
                       현재 대출상품에 적용된 이자
                     </span>
