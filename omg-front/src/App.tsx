@@ -9,9 +9,6 @@ const queryClient = new QueryClient();
 
 Modal.setAppElement('#root');
 
-const Login = loadable(() => import('@/pages/Login'), {
-  fallback: <div>로그인 로딩중</div>,
-});
 const Lobby = loadable(() => import('@/pages/Lobby'), {
   fallback: <div>로비 입장 로딩중</div>,
 });
@@ -29,8 +26,7 @@ export default function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <Routes>
-        <Route path='/' element={<Login />} />
-        <Route path='/lobby' element={<Lobby />} />
+        <Route path='/' element={<Lobby />} />
 
         <Route
           path='/waiting/:roomId'

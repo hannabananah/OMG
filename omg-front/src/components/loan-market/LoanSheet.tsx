@@ -1,4 +1,5 @@
 import { useLoanStore } from '@/stores/useLoanStore';
+import formatNumberWithCommas from '@/utils/formatNumberWithCommas';
 import { formatTime } from '@/utils/formatTime';
 
 const TableHeader = ({ headers }: { headers: string[] }) => (
@@ -49,10 +50,16 @@ export default function LoanSheet() {
               {loanProducts.map((product, index) => (
                 <tr key={index}>
                   <TableCell value={`${product.round} 라운드`} />
-                  <TableCell value={formatTime(product.loanTimestampInSeconds)} />
+                  <TableCell
+                    value={formatTime(product.loanTimestampInSeconds)}
+                  />
                   <TableCell value={`${product.interestRate}%`} />
-                  <TableCell value={`$${product.loanPrincipal}`} />
-                  <TableCell value={`$${product.loanInterest}`} />
+                  <TableCell
+                    value={`$${formatNumberWithCommas(product.loanPrincipal)}`}
+                  />
+                  <TableCell
+                    value={`$${formatNumberWithCommas(product.loanInterest)}`}
+                  />
                 </tr>
               ))}
             </tbody>
