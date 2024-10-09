@@ -212,7 +212,7 @@ public class GameScheduler {
                 System.out.println();
 //            notifyPlayers(game.getGameId(), APPLY_PREVIOUS_EVENT, "이전 라운드의 경제 이벤트가 적용되었습니다.");
             } catch (BaseException e) {
-                log.error("경제 이벤트 반영 중 에러 발생 : {}", e.getMessage());
+                log.warn("경제 이벤트 반영 중 에러 발생 : {}", e.getMessage());
                 game.setRoundStatus(ECONOMIC_EVENT_NEWS);
                 game.setTime(5);
             }
@@ -252,7 +252,7 @@ public class GameScheduler {
                     messagingTemplate.convertAndSend("/sub/" + game.getGameId() + "/game", payload);
                 }
             } catch (BaseException e) {
-                log.error("경제 이벤트 생성 중 에러 발생: {}", e.getStatus().getMessage());
+                log.warn("경제 이벤트 생성 중 에러 발생: {}", e.getStatus().getMessage());
                 if (game.getRound() == 10) {
                     game.setRoundStatus(ROUND_IN_PROGRESS);
                     game.setTime(120);
