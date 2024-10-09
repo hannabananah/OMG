@@ -14,7 +14,6 @@ interface LineChartProps {
 }
 
 export default function LineChart({ stockData }: LineChartProps) {
-  // const [currentRound, _] = useState(1); // 현재 라운드 설정
   const { presentRound } = useContext(SocketContext);
 
   // stockData의 id(StockItem) => 한글로 변환
@@ -31,10 +30,20 @@ export default function LineChart({ stockData }: LineChartProps) {
   );
   const maxPrice = getMaxPrice(stockDataWithKoreanTreeItemName);
 
+  // 차트 선 겹치지 않고 모두 보여지도록 하기 위해, y값에 라인마다 오프셋을 추가
+  const adjustedData = filteredData.map((data, index) => ({
+    ...data,
+    data: data.data.map(point => ({
+      ...point,
+      y: point.y + index * 0.02,
+    })),
+  }));
+
   return (
     <ResponsiveLine
-      data={filteredData} // 현재 ROUND까지의 데이터만 활용
-      margin={{ top: 10, right: 110, bottom: 80, left: 80 }}
+      data={adjustedData} // 현재 ROUND까지의 데이터만 활용
+      colors={['#23A50F', '#FF782A', '#FEB833', '#FF50A3', '#5C43FD']} // 원하는 색상 배열로 설정
+      margin={{ top: 10, right: 120, bottom: 80, left: 80 }}
       xScale={{ type: 'linear', min: 0, max: presentRound * 6 }} // 각 라운드가 6개의 데이터로 나뉨
       yScale={{ type: 'linear', min: 0, max: maxPrice }} // 동적으로 최대 값 조정
       axisBottom={{
@@ -51,13 +60,13 @@ export default function LineChart({ stockData }: LineChartProps) {
       }}
       gridXValues={Array.from({ length: presentRound }, (_, i) => (i + 1) * 6)} // x축의 그리드 라인도 라운드 끝에만 표시
       enablePoints={true}
-      pointSize={10}
+      pointSize={6}
       pointColor={{ theme: 'background' }}
       pointBorderWidth={2}
       pointBorderColor={{ from: 'serieColor' }}
       pointLabelYOffset={-12}
       useMesh={true}
-      lineWidth={3} // 라인 두께 조절
+      lineWidth={4} // 라인 두께 조절
       theme={{
         grid: {
           line: {
