@@ -1,3 +1,5 @@
+import { IoMdPin } from 'react-icons/io';
+
 import MiniElf from '@/assets/img/mini-elf.svg?react';
 import MiniGingerbread from '@/assets/img/mini-gingerbread.svg?react';
 import MiniSanta from '@/assets/img/mini-santa.svg?react';
@@ -23,6 +25,17 @@ const renderMiniCharacterImage = (characterType: number) => {
   }
 };
 
+const renderPin = (left: number, top: number, label: string) => (
+  <div
+    className={`absolute flex justify-center group left-[${left}px] top-[${top}px]`}
+  >
+    <IoMdPin className='relative bounce-animation' color='red' size={24} />
+    <span className='absolute bottom-0 p-1 text-center text-black transition-all scale-0 font-omg-event-content text-omg-14 break-keep left-7 rounded-5 bg-white2 group-hover:scale-100'>
+      {label}
+    </span>
+  </div>
+);
+
 export default function MiniMap() {
   const { playerMinimap } = useMiniMapStore();
   const { otherUsers } = useOtherUserStore();
@@ -43,6 +56,9 @@ export default function MiniMap() {
         alt='Mini-map'
         className='w-[380px] h-[380px]'
       />
+      {renderPin(154, 136, '주식 거래소')}
+      {renderPin(130, 54, '대출')}
+      {renderPin(270, 188, '금 거래소')}
 
       {playerMinimap.map((player, index) => {
         const playerCharacterType =
@@ -52,14 +68,19 @@ export default function MiniMap() {
 
         return (
           <div
+            className='absolute flex justify-center group'
             key={index}
-            className='absolute flex items-center just-center'
             style={{
               left: `${player.position[0]}px`,
               top: `${player.position[1]}px`,
             }}
           >
-            {renderMiniCharacterImage(playerCharacterType)}
+            <div className='relative drop-shadow-lg animate-subtle-pulse'>
+              {renderMiniCharacterImage(playerCharacterType)}
+            </div>
+            <span className='absolute bottom-0 z-20 p-1 text-center text-black transition-all scale-0 font-omg-event-content text-omg-14 break-keep left-8 rounded-5 bg-white2 group-hover:scale-100'>
+              {player.nickname}
+            </span>
           </div>
         );
       })}
