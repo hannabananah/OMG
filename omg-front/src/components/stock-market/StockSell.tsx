@@ -4,6 +4,7 @@ import { itemNameList } from '@/assets/data/stockMarketData';
 import { useGameStore } from '@/stores/useGameStore';
 import { useSocketMessage } from '@/stores/useSocketMessage';
 import { SocketContext } from '@/utils/SocketContext';
+import { ToastAlert } from '@/utils/ToastAlert';
 import { Html, OrbitControls } from '@react-three/drei';
 import { Canvas } from '@react-three/fiber';
 
@@ -22,7 +23,7 @@ export default function StockSell() {
 
   useEffect(() => {
     if (sellStockMessage.message) {
-      alert(sellStockMessage.message);
+      ToastAlert(sellStockMessage.message);
       setSellMessage({ message: '', isCompleted: false });
     }
   }, [sellStockMessage]);
@@ -31,7 +32,7 @@ export default function StockSell() {
 
   const handleSelling = () => {
     if (noSellingItem) {
-      alert('매도할 주식이 없습니다.');
+      ToastAlert('매도할 주식이 없습니다.');
       return;
     }
     console.log('carryingCount', carryingCount);

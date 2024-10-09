@@ -8,6 +8,7 @@ import { usePersonalBoardStore } from '@/stores/usePersonalBoardStore';
 import { useSocketMessage } from '@/stores/useSocketMessage';
 import { useStockStore } from '@/stores/useStockStore';
 import { SocketContext } from '@/utils/SocketContext';
+import { ToastAlert } from '@/utils/ToastAlert';
 import formatNumberWithCommas from '@/utils/formatNumberWithCommas';
 
 import Button from '../common/Button';
@@ -29,7 +30,7 @@ export default function StockBuy() {
 
   useEffect(() => {
     if (buyStockMessage.message) {
-      alert(buyStockMessage.message);
+      ToastAlert(buyStockMessage.message);
       setBuyMessage({ message: '', isCompleted: false });
     }
   }, [buyStockMessage]);
@@ -50,14 +51,14 @@ export default function StockBuy() {
 
     // 최대 거래 가능 수량 넘으면 alert
     if (totalSelectedCount + value > MAX_TRADE_COUNT) {
-      alert(`최대 거래 가능 수량은 ${MAX_TRADE_COUNT}개 입니다.`);
+      ToastAlert(`최대 거래 가능 수량은 ${MAX_TRADE_COUNT}개 입니다.`);
       return;
     }
 
     // 보유 현금 초과하면 alert
     const newTotalPrice = totalPrice + value * stockPrices[idx + 1];
     if (newTotalPrice > MY_MONEY) {
-      alert(
+      ToastAlert(
         `보유한 현금 $${formatNumberWithCommas(MY_MONEY)}을 초과할 수 없습니다.`,
       );
       return;

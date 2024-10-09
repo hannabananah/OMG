@@ -17,6 +17,7 @@ import useModalStore from '@/stores/useModalStore';
 import { usePersonalBoardStore } from '@/stores/usePersonalBoardStore';
 import useUser from '@/stores/useUser';
 import { SocketContext } from '@/utils/SocketContext';
+import { ToastAlert } from '@/utils/ToastAlert';
 import formatNumberWithCommas from '@/utils/formatNumberWithCommas';
 import { Html, OrbitControls } from '@react-three/drei';
 import { Canvas } from '@react-three/fiber';
@@ -103,8 +104,25 @@ export default function MyRoom() {
   };
 
   const goToSellStockItem = () => {
-    console.log('판매 할 수량: ', selectedCounts);
-    alert(`판매 할 수량: ${selectedCounts}`);
+    // 선택된 아이템 필터링 (1번 인덱스부터 사용)
+    const selectedItems = selectedCounts
+      .slice(1)
+      .map((count, index) => {
+        if (count > 0) {
+          return `${treeItemNameInKorean(itemNameList[index])} ${count}개`;
+        }
+        return null;
+      })
+      .filter(Boolean) // null 값 제거
+      .join(', '); // 선택된 아이템을 문자열로 합침
+
+    // 뭐 선택했는 지 alert
+    if (selectedItems) {
+      ToastAlert(`판매 할 주식: ${selectedItems}`);
+    } else {
+      ToastAlert('아이템을 선택하지 않았습니다.');
+    }
+
     setCarryingCount(selectedCounts);
   };
 

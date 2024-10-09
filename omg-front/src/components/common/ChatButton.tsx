@@ -1,3 +1,5 @@
+import { ToastAlert } from '@/utils/ToastAlert';
+
 interface ChatButtonProps {
   isWhite?: boolean;
   onClick?: () => void;
@@ -11,7 +13,7 @@ export default function ChatButton({
     if (onClick) {
       onClick();
     } else {
-      alert('채팅 모달을 엽니다.');
+      ToastAlert('채팅 모달을 엽니다.');
     }
   };
 

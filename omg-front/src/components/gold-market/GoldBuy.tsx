@@ -5,6 +5,7 @@ import { useMainBoardStore } from '@/stores/useMainBoardStore';
 import { usePersonalBoardStore } from '@/stores/usePersonalBoardStore';
 import { useSocketMessage } from '@/stores/useSocketMessage';
 import { SocketContext } from '@/utils/SocketContext';
+import { ToastAlert } from '@/utils/ToastAlert';
 import formatNumberWithCommas from '@/utils/formatNumberWithCommas';
 import { OrbitControls } from '@react-three/drei';
 import { Canvas } from '@react-three/fiber';
@@ -32,7 +33,7 @@ export default function GoldBuy() {
 
   useEffect(() => {
     if (goldPurchaseMessage.message) {
-      alert(goldPurchaseMessage.message);
+      ToastAlert(goldPurchaseMessage.message);
       setGoldPurchaseMessage({ message: '', isCompleted: false });
     }
   }, [goldPurchaseMessage]);
@@ -43,13 +44,13 @@ export default function GoldBuy() {
 
     // 최대 거래 가능 수량 넘으면 alert
     if (newGoldCount > MAX_TRADE_COUNT) {
-      alert(`최대 거래 가능 수량은 ${MAX_TRADE_COUNT}개 입니다.`);
+      ToastAlert(`최대 거래 가능 수량은 ${MAX_TRADE_COUNT}개 입니다.`);
       return;
     }
 
     // 보유 현금 초과하면 alert
     if (GOLD_PRICE * newGoldCount > MY_MONEY) {
-      alert(
+      ToastAlert(
         `보유한 현금 $${formatNumberWithCommas(MY_MONEY)}을 초과할 수 없습니다.`,
       );
       return;
@@ -61,7 +62,7 @@ export default function GoldBuy() {
   // 매입 버튼: 서버로 goldCount 전송 !
   const handleBuying = () => {
     if (goldCount <= 0) {
-      alert('금은 0개 이상 매입해야 합니다.');
+      ToastAlert('금은 0개 이상 매입해야 합니다.');
       return;
     }
 
@@ -92,7 +93,13 @@ export default function GoldBuy() {
             <directionalLight position={[2, 5, 2]} intensity={2} />
             <pointLight position={[-5, 5, 5]} intensity={1} />
             <GoldModel />
-            <OrbitControls enableZoom={false} />
+            <OrbitControls
+              enableZoom={false}
+              enablePan={false}
+              enableRotate={true} // 회전만 가능하게 설정
+              minDistance={0} // 거리를 제한하지 않도록 설정
+              maxDistance={Infinity} // 최대 거리 제한 제거
+            />
           </Canvas>
 
           {/* 수량 선택 */}
