@@ -87,27 +87,30 @@ export default function StockBuy() {
 
       {/* 주식 구매 영역 */}
       <section className='w-[50%] flex justify-center items-center'>
-        <div className='flex flex-col w-full h-full gap-10 px-20 py-10'>
-          {/* 이미지 & 주가 & 남은 수량 & 수량 선택 */}
-          <ul className='flex flex-col gap-8'>
+        <div className='flex flex-col w-full h-full gap-8 py-10 px-28'>
+          {/* 이미지 & 남은 수량 & 주가 & 수량 선택 */}
+          <ul className='flex flex-col gap-4'>
             {itemNameList.map((treeItem, idx) => (
               <li
                 key={idx}
                 className='flex items-center justify-between text-omg-18'
               >
-                {/* 이미지 */}
-                <div className='w-10 h-10'>
-                  <img
-                    src={getTreeItemImagePath(treeItem)}
-                    className='object-contain w-full h-full'
-                  />
+                {/* 이미지 & 남은 수량 */}
+                <div className='flex flex-col items-center gap-2'>
+                  <div className='w-10 h-10'>
+                    <img
+                      src={getTreeItemImagePath(treeItem)}
+                      className='object-contain w-full h-full'
+                    />
+                  </div>
+                  <p className='text-omg-14'>{leftStocks[idx + 1]}개 남음</p>
                 </div>
+
                 {/* 주가 */}
-                <p>${formatNumberWithCommas(stockPrices[idx + 1])}</p>
-                {/* 남은 수량 */}
-                <p className='text-omg-14'>
-                  남은 수량: {leftStocks[idx + 1]}개
+                <p className='text-omg-24'>
+                  ${formatNumberWithCommas(stockPrices[idx + 1])}
                 </p>
+
                 {/* 수량 선택 */}
                 <div className='flex items-center'>
                   <Button
@@ -116,7 +119,7 @@ export default function StockBuy() {
                     onClick={() => handleCountChange(idx, -1)}
                     disabled={selectedCount[idx + 1] === 0}
                   />
-                  <p className='mx-4 text-omg-18'>{selectedCount[idx + 1]}</p>
+                  <p className='mx-4 text-omg-18'>{selectedCount[idx + 1]}개</p>
                   <Button
                     text='+'
                     type='count'
@@ -127,14 +130,11 @@ export default function StockBuy() {
             ))}
           </ul>
 
-          {/* 총 가격 표시 */}
-          <div className='flex justify-between text-omg-18'>
-            <p>총 가격:</p>
-            <p>${formatNumberWithCommas(totalPrice)}</p>
-          </div>
-
-          {/* 매수 버튼 */}
-          <div className='flex items-center justify-center'>
+          {/* 총 가격 & 매수 버튼 */}
+          <div className='flex items-center justify-center gap-10'>
+            <p className='text-omg-24'>
+              총 ${formatNumberWithCommas(totalPrice)}
+            </p>
             <Button text='매수하기' type='trade' onClick={handleBuying} />
           </div>
         </div>

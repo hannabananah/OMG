@@ -215,11 +215,7 @@ export default function MyRoom() {
           <p>
             예상 판매 수익: ${formatNumberWithCommas(calculateTotalRevenue())}
           </p>
-          <Button
-            text='주식 시장에 팔러 가기'
-            type='trade'
-            onClick={goToSellStockItem}
-          />
+          <Button text='팔러가기' type='trade' onClick={goToSellStockItem} />
         </div>
       </main>
     </div>

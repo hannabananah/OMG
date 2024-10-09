@@ -31,6 +31,7 @@ export default function LineChart({ goldData }: LineChartProps) {
       margin={{ top: 20, right: 30, bottom: 70, left: 80 }}
       xScale={{ type: 'linear', min: 0, max: presentRound * 6 }} // 각 라운드가 6개의 데이터로 나뉨
       yScale={{ type: 'linear', min: 0, max: maxPrice }} // 동적으로 최대 금 가격 조정
+      colors={['#FEB833']}
       axisBottom={{
         tickValues: Array.from({ length: presentRound }, (_, i) => (i + 1) * 6), // 각 라운드 끝에만 틱 설정 (6, 12, 18, ...)
         format: x => `${x / 6}라운드`, // x축에 라운드 단위로 표시
@@ -45,13 +46,13 @@ export default function LineChart({ goldData }: LineChartProps) {
       }}
       gridXValues={Array.from({ length: presentRound }, (_, i) => (i + 1) * 6)} // x축의 그리드 라인도 라운드 끝에만 표시
       enablePoints={true}
-      pointSize={10}
+      pointSize={6}
       pointColor={{ theme: 'background' }}
       pointBorderWidth={2}
       pointBorderColor={{ from: 'serieColor' }}
       pointLabelYOffset={-12}
       useMesh={true}
-      lineWidth={3} // 라인 두께
+      lineWidth={4} // 라인 두께
       theme={{
         grid: {
           line: {
