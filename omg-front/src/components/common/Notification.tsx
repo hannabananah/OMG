@@ -1,13 +1,17 @@
-// Notification.js
 import { useEffect, useMemo, useState } from 'react';
-import { FaInfoCircle } from 'react-icons/fa';
 
+import MiniElf from '@/assets/img/mini-elf.svg?react';
+import MiniGingerbread from '@/assets/img/mini-gingerbread.svg?react';
+import MiniSanta from '@/assets/img/mini-santa.svg?react';
+import MiniSnowman from '@/assets/img/mini-snowman.svg?react';
 import { useOtherUserStore } from '@/stores/useOtherUserState';
 import { animated, useTransition } from '@react-spring/web';
 
 interface Item {
   key: number;
   msg: string;
+  userNickname: string;
+  characterType: number | undefined;
 }
 
 interface NotificationProps {
@@ -18,7 +22,7 @@ export default function Notification({ onNewNotification }: NotificationProps) {
   const refMap = useMemo(() => new WeakMap(), []);
   const cancelMap = useMemo(() => new WeakMap(), []);
   const [items, setItems] = useState<Item[]>([]);
-  const { transactionMessage } = useOtherUserStore();
+  const { otherUsers, transactionMessage } = useOtherUserStore();
 
   const timeout = 3000;
   const transitions = useTransition(items, {
@@ -39,7 +43,17 @@ export default function Notification({ onNewNotification }: NotificationProps) {
 
   useEffect(() => {
     if (transactionMessage) {
-      const newItem = { key: (lastKey += 1), msg: transactionMessage };
+      const user = otherUsers.find(
+        user => user.id === transactionMessage.userNickname,
+      );
+      const characterType = user ? user.characterType : undefined;
+
+      const newItem = {
+        key: (lastKey += 1),
+        msg: transactionMessage.message,
+        userNickname: transactionMessage.userNickname,
+        characterType,
+      };
       setItems(prevItems => [...prevItems, newItem]);
       onNewNotification();
 
@@ -53,6 +67,23 @@ export default function Notification({ onNewNotification }: NotificationProps) {
     }
   }, [transactionMessage]);
 
+  const renderMiniCharacterImage = (characterType: number | undefined) => {
+    const imageClasses = 'w-8 h-8 drop-shadow-extra-heavy';
+
+    switch (characterType) {
+      case 0:
+        return <MiniSanta className={imageClasses} />;
+      case 1:
+        return <MiniElf className={imageClasses} />;
+      case 2:
+        return <MiniSnowman className={imageClasses} />;
+      case 3:
+        return <MiniGingerbread className={imageClasses} />;
+      default:
+        return null;
+    }
+  };
+
   return (
     <div className='fixed z-50 space-y-2 top-48 right-5'>
       {transitions((style, item) => (
@@ -62,7 +93,8 @@ export default function Notification({ onNewNotification }: NotificationProps) {
           style={style}
           className='flex items-center px-4 py-6 drop-shadow-lg rounded-10 text-gray bg-white1'
         >
-          <FaInfoCircle className='mr-2' size={20} />
+          {renderMiniCharacterImage(item.characterType)}
+          <span>{item.userNickname}</span>
           {item.msg}
         </animated.div>
       ))}
