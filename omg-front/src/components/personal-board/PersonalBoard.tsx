@@ -2,6 +2,8 @@ import { useContext, useEffect, useState } from 'react';
 
 import { CharacterInfo } from '@/assets/data/characterInfo';
 import { itemNameList } from '@/assets/data/stockMarketData';
+import PersonalBG1 from '@/assets/img/bg-personal1.svg?react';
+import PersonalBG2 from '@/assets/img/bg-personal2.svg?react';
 import Rank1 from '@/assets/img/rank1.svg?react';
 import Rank2 from '@/assets/img/rank2.svg?react';
 import Rank3 from '@/assets/img/rank3.svg?react';
@@ -35,15 +37,15 @@ export default function PersonalBoard() {
   const renderRankImage = () => {
     if (rank === 1)
       return (
-        <Rank1 className='absolute -right-[2px] z-20 object-contain w-24 h-auto top-1 drop-shadow-md' />
+        <Rank1 className='absolute -right-[2px] z-20 object-contain w-24 h-auto -top-2 drop-shadow-md' />
       );
     if (rank === 2)
       return (
-        <Rank2 className='absolute -right-[4px] z-20 object-contain w-24 h-auto top-1 drop-shadow-md' />
+        <Rank2 className='absolute -right-[3px] z-20 object-contain w-24 h-auto -top-1 drop-shadow-md' />
       );
     if (rank === 3)
       return (
-        <Rank3 className='absolute -right-[2px] z-20 object-contain w-24 h-auto top-2 drop-shadow-md' />
+        <Rank3 className='absolute -right-[1px] z-20 object-contain w-24 h-auto -top-1 drop-shadow-md' />
       );
     return null;
   };
@@ -70,17 +72,26 @@ export default function PersonalBoard() {
   const characterImageUrl = `/assets/${Object.keys(CharacterInfo)[characterType]}.png`;
 
   return (
-    <section className='absolute bottom-0 flex justify-center w-full h-24'>
-      <div className='flex w-1/3 h-full bg-white1 bg-opacity-55 rounded-10'>
-        <div className='relative flex h-full px-4'>
+    <section className='flex justify-center flex-1 h-[104px] -mb-6 text-black'>
+      <div className='w-[470px] relative flex h-full py-2 bg-white1 bg-opacity-85 border-t-4 border-x-4 border-white rounded-t-10 overflow-hidden items-center shadow-inner'>
+        <div className='absolute z-18 -top-2 -right-28'>
+          <PersonalBG1 className='w-1/2 h-1/2' />
+        </div>
+        <div className='absolute bottom-0 -left-3 z-18'>
+          <PersonalBG2 className='w-2/5 h-auto' />
+        </div>
+        <div className='relative flex flex-col justify-center h-full px-4'>
           {rank !== null && rank !== 4 && renderRankImage()}
-          <div className='flex items-center justify-center flex-1 h-full'>
+          <div className='flex items-center justify-center'>
             <img
               src={characterImageUrl}
               alt={`${nickname} character`}
               className='object-contain w-14 h-14 drop-shadow-md'
             />
           </div>
+          <span className='p-1 mt-2 text-center bg-white text-omg-10 font-omg-body rounded-5 drop-shadow-md'>
+            {nickname}
+          </span>
         </div>
         <div className='flex flex-col flex-1 h-full'>
           <div className='flex items-center flex-1 w-full h-1/2'>
@@ -105,7 +116,7 @@ export default function PersonalBoard() {
                     </span>
                   </div>
                   <span className='absolute top-0 text-black right-2 font-omg-body text-omg-14'>
-                    {stock[idx]}
+                    {stock[idx + 1]}
                   </span>
                 </div>
               ))}
@@ -122,7 +133,7 @@ export default function PersonalBoard() {
             </div>
           </div>
         </div>
-        <div className='relative flex flex-col items-center justify-center h-full px-4 text-omg-11 font-omg-body'>
+        <div className='relative flex flex-col items-center justify-center px-4 pr-12 h-4/5 text-omg-11 font-omg-body'>
           <span>보유 금 개수</span>
           {goldOwned !== 0 && renderGoldImages()}
           <span

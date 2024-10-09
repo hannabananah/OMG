@@ -101,6 +101,7 @@ export default function SocketProvider({ children }: SocketProviderProps) {
     setRepayLoanMessage,
     setGoldPurchaseMessage,
     setEventCardMessage,
+    setEventEffectMessage,
     setGameRoundMessage,
   } = useSocketMessage();
   const { setGameData } = useGameStore();
@@ -398,8 +399,9 @@ export default function SocketProvider({ children }: SocketProviderProps) {
             break;
 
           case 'GAME_NOTIFICATION':
-            if (
-              parsedMessage.data.roundStatus === 'APPLY_PREVIOUS_EVENT' ||
+            if (parsedMessage.data.roundStatus === 'APPLY_PREVIOUS_EVENT') {
+              setEventEffectMessage(parsedMessage.data);
+            } else if (
               parsedMessage.data.roundStatus === 'ECONOMIC_EVENT_NEWS'
             ) {
               setEventCardMessage(parsedMessage.data);

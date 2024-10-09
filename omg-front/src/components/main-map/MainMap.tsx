@@ -18,6 +18,7 @@ import Notification from '@/components/common/Notification';
 import Round from '@/components/common/Round';
 import Timer from '@/components/common/Timer';
 import EventCard from '@/components/game/EventCard';
+import EventEffect from '@/components/game/EventEffect';
 import GameResult from '@/components/game/GameResult';
 import Map from '@/components/main-map/Map';
 import StockMarket from '@/components/stock-market/StockMarket';
@@ -62,9 +63,12 @@ export default function MainMap() {
   const { modals, openModal } = useModalStore();
   const { nickname } = useUser();
 
-  const { eventCardMessage, gameRoundMessage } = useSocketMessage();
+  const { eventCardMessage, eventEffectMessage, gameRoundMessage } =
+    useSocketMessage();
+
   const [isChatOpen, setIsChatOpen] = useState(false);
-  const [isVisible, setIsVisible] = useState(false);
+  const [isEventCardVisible, setIsEventCardVisible] = useState(false);
+  const [isEventEffectVisible, setIsEventEffectVisible] = useState(false);
   const [isAlertVisible, setIsAlertVisible] = useState(false);
   const [isTimerVisible, setIsTimerVisible] = useState(false);
   const [isRoundVisible, setIsRoundVisible] = useState(false);
@@ -92,13 +96,23 @@ export default function MainMap() {
 
   useEffect(() => {
     if (!eventCardMessage.title && !eventCardMessage.content) return;
-    setIsVisible(true);
+    setIsEventCardVisible(true);
 
     const timer = setTimeout(() => {
-      setIsVisible(false);
+      setIsEventCardVisible(false);
     }, 5000);
     return () => clearTimeout(timer);
   }, [eventCardMessage]);
+
+  useEffect(() => {
+    if (!eventEffectMessage.value) return;
+    setIsEventEffectVisible(true);
+
+    const timer = setTimeout(() => {
+      setIsEventEffectVisible(false);
+    }, 5000);
+    return () => clearTimeout(timer);
+  }, [eventEffectMessage]);
 
   useEffect(() => {
     if (gameRoundMessage.message === '1' || gameRoundMessage.message === '10') {
@@ -266,13 +280,17 @@ export default function MainMap() {
         <Notification onNewNotification={handleNotificationSound} />
       </section>
 
-      {/* TODO: 삭제해야됨, EventCard 모달 위치 */}
-      {isVisible && (
+      {isEventCardVisible && (
         <div className='absolute z-30 flex items-center justify-center w-full h-full'>
           <EventCard />
         </div>
       )}
 
+      {isEventEffectVisible && (
+        <div className='absolute z-30 flex items-center justify-center w-full h-full'>
+          <EventEffect />
+        </div>
+      )}
       {/* 모달 모음 */}
       <section className='absolute z-10 flex flex-col items-start gap-4 left-10 top-20'>
         {/* TODO: 삭제해야됨, 임시 내 방 버튼 */}
@@ -291,12 +309,11 @@ export default function MainMap() {
       )}
 
       {/* 채팅 및 음소거, 종료 버튼 고정 렌더링 */}
-      <section className='absolute bottom-0 left-0 z-10 flex items-end justify-between w-full p-10 text-white text-omg-40b'>
-        {!isChatOpen ? (
-          <ChatButton isWhite={true} onClick={openChattingModal} />
-        ) : (
-          <Chatting closeChattingModal={closeChattingModal} />
-        )}
+      <section className='absolute bottom-0 left-0 z-10 flex items-end justify-between w-full p-6 text-white text-omg-40b'>
+        <ChatButton isWhite={true} onClick={openChattingModal} />
+        {isChatOpen && <Chatting closeChattingModal={closeChattingModal} />}
+        {/* 개인판 영역 */}
+        {isBoardVisible && <PersonalBoard />}
         <div className='flex flex-col'>
           <button
             className='mb-4 text-omg-50b'
@@ -367,9 +384,6 @@ export default function MainMap() {
           </Suspense>
         </Canvas>
       </KeyboardControls>
-
-      {/* 개인판 영역 */}
-      {isBoardVisible && <PersonalBoard />}
     </main>
   );
 }

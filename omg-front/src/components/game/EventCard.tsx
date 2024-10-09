@@ -7,22 +7,23 @@ import { animated, useSpring } from '@react-spring/web';
 const calcX = (y: number, ly: number) =>
   -(y - ly - window.innerHeight / 2) / 20;
 const calcY = (x: number, lx: number) => (x - lx - window.innerWidth / 2) / 20;
+
 export default function EventCard() {
   const { eventCardMessage } = useSocketMessage();
-  const [eventRoundStatus, setEventRoundStatus] = useState('');
   const [eventCardTitle, setEventCardTitle] = useState('');
   const [eventCardContent, setEventCardContent] = useState('');
-  const [eventCardValue, setEventCardValue] = useState(0);
-  const [isPositive, setIsPositive] = useState(false);
+  const [randomImage, setRandomImage] = useState('');
 
   useEffect(() => {
     if (!eventCardMessage.title) return;
-
-    setEventRoundStatus(eventCardMessage.roundStatus);
+    if (randomImage) {
+      setRandomImage('');
+    }
     setEventCardTitle(eventCardMessage.title);
     setEventCardContent(eventCardMessage.content);
-    setEventCardValue(eventCardMessage.value);
-    setIsPositive(eventCardMessage.value >= 0);
+
+    const randomNum = Math.floor(Math.random() * 3) + 1;
+    setRandomImage(`/assets/event-card${randomNum}.jpg`);
   }, [eventCardMessage]);
 
   const domTarget = useRef<HTMLDivElement | null>(null);
@@ -60,11 +61,11 @@ export default function EventCard() {
   );
   return (
     <div
-      className='flex items-center justify-center w-[360px] h-[500px]'
+      className='relative bg-cover bg-center flex items-center justify-center w-[360px] h-[500px]'
       ref={domTarget}
     >
       <animated.div
-        className='relative w-[360px] h-[500px] rounded-md bg-white-trans90 p-10 rounded-20'
+        className='relative w-[360px] h-[500px] rounded-md bg-white-trans90 rounded-20 overflow-hidden bg-center bg-cover text-white'
         style={{
           transform: 'perspective(600px)',
           x,
@@ -74,23 +75,24 @@ export default function EventCard() {
           rotateY,
         }}
       >
-        <div className='flex flex-col items-center h-full justify-evenly'>
-          <h2 className='basis-1/6 text-omg-28b font-omg-title break-keep'>
-            {eventCardTitle}
-          </h2>
-          {eventRoundStatus === 'APPLY_PREVIOUS_EVENT' && (
-            <span
-              className={`${isPositive ? 'text-red' : 'text-blue'} text-omg-18`}
-            >
-              {isPositive ? '금리 상승' : '금리 하락'} {eventCardValue}%
-            </span>
-          )}
-          <p className='break-words font-omg-body text-omg-18'>{eventCardContent}</p>
-          {eventRoundStatus === 'ECONOMIC_EVENT_NEWS' && (
-            <p className='underline font-omg-body text-omg-14'>
-              *해당 뉴스는 다음 라운드의 금리 변동에 영향을 줍니다.
+        <img
+          src={randomImage}
+          className='w-full h-full'
+          alt='event background'
+        />
+
+        <div className='absolute top-0 flex flex-col items-center justify-start w-full h-full px-10'>
+          <p className='w-full mt-3 text-center underline font-omg-body text-omg-11 break-keep'>
+            *해당 뉴스는 다음 라운드의 금리 변동에 영향을 줍니다.
+          </p>
+          <div className='flex flex-col justify-center mt-28'>
+            <h2 className='text-center text-omg-28b font-omg-event-title break-keep text-balance'>
+              {eventCardTitle}
+            </h2>
+            <p className='mt-24 text-left break-words font-omg-event-body text-omg-18'>
+              {eventCardContent}
             </p>
-          )}
+          </div>
         </div>
       </animated.div>
     </div>

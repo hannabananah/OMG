@@ -65,6 +65,22 @@ button:disabled {
   font-style: normal;
 }
 
+@font-face {
+  font-family: 'Laundry';
+  src: url('https://fastly.jsdelivr.net/gh/projectnoonnu/2403-2@1.0/TTLaundryGothicB.woff2')
+    format('woff2');
+  font-weight: 400;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: 'Partial';
+  src: url('https://fastly.jsdelivr.net/gh/projectnoonnu/noonfonts_2307-1@1.1/PartialSansKR-Regular.woff2')
+    format('woff2');
+  font-weight: normal;
+  font-style: normal;
+}
+
 @layer utilities {
   /* 'b'가 붙은 텍스트 크기에는 'OKDDUNG' 폰트 적용 */
   .text-omg-24b,
@@ -138,4 +154,72 @@ button:disabled {
     background-clip: text;
     color: transparent;
   }
+}
+
+@keyframes blink {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0;
+  }
+}
+
+.blink-animation {
+  animation: blink 0.2s ease-in-out infinite;
+}
+
+@keyframes rocket-exit {
+  0% {
+    transform: translateY(0);
+  }
+  100% {
+    transform: translateY(-100vh);
+  }
+}
+
+@keyframes shake-exit {
+  0% {
+    transform: translateX(0);
+    transform: translateY(0);
+  }
+  10% {
+    transform: translateX(-5px);
+  }
+  20% {
+    transform: translateX(5px);
+  }
+  30% {
+    transform: translateX(-5px);
+  }
+  40% {
+    transform: translateX(5px);
+  }
+  50% {
+    transform: translateX(-5px);
+  }
+  60% {
+    transform: translateX(5px);
+  }
+  70% {
+    transform: translateX(-5px);
+  }
+  80% {
+    transform: translateX(5px);
+  }
+  90% {
+    transform: translateX(0);
+  }
+  100% {
+    transform: translateY(100vh);
+  }
+}
+
+.rocket-exit {
+  animation: rocket-exit 0.8s ease forwards;
+}
+
+.shake-exit {
+  animation: shake-exit 0.8s ease forwards;
 }
