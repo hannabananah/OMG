@@ -1,4 +1,5 @@
 import { IoMdPin } from 'react-icons/io';
+import { IoHome } from 'react-icons/io5';
 
 import MiniElf from '@/assets/img/mini-elf.svg?react';
 import MiniGingerbread from '@/assets/img/mini-gingerbread.svg?react';
@@ -9,7 +10,7 @@ import { useOtherUserStore } from '@/stores/useOtherUserState';
 import useUser from '@/stores/useUser';
 
 const renderMiniCharacterImage = (characterType: number) => {
-  const imageClasses = 'w-8 h-8 drop-shadow-md';
+  const imageClasses = 'w-12 h-12 drop-shadow-md';
 
   switch (characterType) {
     case 0:
@@ -23,6 +24,13 @@ const renderMiniCharacterImage = (characterType: number) => {
     default:
       return null;
   }
+};
+
+const houseCoordinates: { [key: number]: { left: number; top: number } } = {
+  0: { left: 213, top: 26 },
+  1: { left: 30, top: 140 },
+  2: { left: 55, top: 186 },
+  3: { left: 177, top: 12 },
 };
 
 export default function MiniMap() {
@@ -47,7 +55,7 @@ export default function MiniMap() {
       />
       {/* 주식 거래소 */}
       <div className='absolute flex justify-center group left-[154px] top-[136px]'>
-        <IoMdPin className='relative bounce-animation ' color='red' size={24} />
+        <IoMdPin className='relative bounce-animation' color='red' size={24} />
         <span className='absolute bottom-0 p-1 text-center text-black transition-all scale-0 font-omg-event-content text-omg-14 break-keep left-7 rounded-5 bg-white2 group-hover:scale-100'>
           주식 거래소
         </span>
@@ -60,11 +68,26 @@ export default function MiniMap() {
           대출
         </span>
       </div>
+
       {/* 금 거래소 */}
       <div className='absolute flex justify-center group left-[270px] top-[188px]'>
         <IoMdPin className='relative bounce-animation' color='red' size={24} />
         <span className='absolute bottom-0 p-1 text-center text-black transition-all scale-0 font-omg-event-content text-omg-14 break-keep left-7 rounded-5 bg-white2 group-hover:scale-100'>
           금 거래소
+        </span>
+      </div>
+
+      {/* 본인집 */}
+      <div
+        className='absolute flex justify-center group'
+        style={{
+          left: `${houseCoordinates[characterType].left}px`,
+          top: `${houseCoordinates[characterType].top}px`,
+        }}
+      >
+        <IoHome className='relative bounce-animation' color='green' size={24} />
+        <span className='absolute bottom-0 p-1 text-center text-black transition-all scale-0 font-omg-event-content text-omg-14 break-keep left-7 rounded-5 bg-white2 group-hover:scale-100 text-nowrap'>
+          내 집
         </span>
       </div>
 
