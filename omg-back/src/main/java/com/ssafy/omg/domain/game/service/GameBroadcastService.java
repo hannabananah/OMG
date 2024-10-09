@@ -92,8 +92,8 @@ public class GameBroadcastService {
         double positionX = position[0];
         double positionZ = position[2];
 
-        double locationX = (-positionX + 120) * (380.0 / 240.0) + 10;
-        double locationY = (-positionZ + 120) * (380.0 / 240.0) + 10;
+        double locationX = (-positionX + 120) * (380.0 / 240.0) * (380.0 / 360.0) + 10;
+        double locationY = (-positionZ + 120) * (380.0 / 240.0) * (380.0 / 360.0) + 10;
 
         return new double[] {locationX, locationY};
     }

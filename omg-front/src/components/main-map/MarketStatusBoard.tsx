@@ -1,6 +1,8 @@
+import { useContext } from 'react';
 import Marquee from 'react-fast-marquee';
 
 import { useMainBoardStore } from '@/stores/useMainBoardStore';
+import { SocketContext } from '@/utils/SocketContext';
 
 import Gauge from '../common/Gauge';
 
@@ -12,6 +14,8 @@ export default function MarketStatusBoard() {
     currentStockPriceLevel,
     tradableStockCnt,
   } = useMainBoardStore();
+
+  const { presentRound } = useContext(SocketContext);
 
   const stockItems = [
     {
@@ -43,65 +47,87 @@ export default function MarketStatusBoard() {
   ];
 
   return (
-    <div className='relative'>
-      {/* 배경 이미지 */}
-      <div
-        className='absolute inset-0 bg-center bg-cover'
-        style={{ backgroundImage: "url('/assets/matrix.gif')", opacity: 0.9 }}
-      ></div>
-
-      <div className='relative'>
-        <Marquee
-          gradient={true}
-          speed={100}
-          className='h-16 bg-opacity-80 text-omg-14'
+    <Marquee
+      gradient={true}
+      speed={100}
+      className='h-16 bg-opacity-80 text-omg-14'
+    >
+      <div className='flex items-center gap-6'>
+        {/* 주식 */}
+        <section
+          className={`flex items-center gap-3 ml-6 ${
+            typeof presentRound === 'number'
+              ? presentRound % 2 === 0
+                ? 'text-white'
+                : 'text-black'
+              : 'text-black' // 기본 텍스트 색상
+          }`}
         >
-          <div className='flex items-center gap-6'>
-            {/* 주식 */}
-            <section className='flex items-center gap-3 ml-6 text-white'>
-              <h4 className='text-omg-18'>[실시간 주가]</h4>
-              <div className='flex items-center gap-4'>
-                {stockItems.map((item, idx) => (
-                  <div key={idx} className='flex items-center gap-2'>
-                    <img src={item.src} alt={item.name} width={item.width} />
-                    <p>${item.price}</p>
-                  </div>
-                ))}
+          <h4 className='text-omg-18'>[실시간 주가]</h4>
+          <div className='flex items-center gap-4'>
+            {stockItems.map((item, idx) => (
+              <div key={idx} className='flex items-center gap-2'>
+                <img src={item.src} alt={item.name} width={item.width} />
+                <p>${item.price}</p>
               </div>
-            </section>
-
-            {/* 금 */}
-            <section className='flex items-center gap-3 text-white'>
-              <h4 className='text-omg-18'>[실시간 금 시세]</h4>
-              <div className='flex items-center gap-2'>
-                <img src='/assets/gold.png' alt='gold' width={24} />
-                <p>${goldPrice}</p>
-              </div>
-            </section>
-
-            {/* 추가 시장 정보 */}
-            <section className='flex items-center gap-3 text-white'>
-              <h4 className='text-omg-18'>[실시간 시장 정보]</h4>
-              <div className='flex items-center gap-4'>
-                {infoItems.map((item, idx) => (
-                  <div key={idx} className='flex items-center gap-2'>
-                    <p>{item.label}</p>
-                    <p>{item.value}</p>
-                  </div>
-                ))}
-              </div>
-            </section>
-
-            {/* 가격 변동까지 남은 게이지 */}
-            <section className='flex items-center gap-3'>
-              <h4 className='text-white text-omg-18'>
-                [가격 변동까지 남은 게이지]
-              </h4>
-              <Gauge />
-            </section>
+            ))}
           </div>
-        </Marquee>
+        </section>
+
+        {/* 금 */}
+        <section
+          className={`flex items-center gap-3 ${
+            typeof presentRound === 'number'
+              ? presentRound % 2 === 0
+                ? 'text-white'
+                : 'text-black'
+              : 'text-black' // 기본 텍스트 색상
+          }`}
+        >
+          <h4 className='text-omg-18'>[실시간 금 시세]</h4>
+          <div className='flex items-center gap-2'>
+            <img src='/assets/gold.png' alt='gold' width={24} />
+            <p>${goldPrice}</p>
+          </div>
+        </section>
+
+        {/* 추가 시장 정보 */}
+        <section
+          className={`flex items-center gap-3 ${
+            typeof presentRound === 'number'
+              ? presentRound % 2 === 0
+                ? 'text-white'
+                : 'text-black'
+              : 'text-black' // 기본 텍스트 색상
+          }`}
+        >
+          <h4 className='text-omg-18'>[실시간 시장 정보]</h4>
+          <div className='flex items-center gap-4'>
+            {infoItems.map((item, idx) => (
+              <div key={idx} className='flex items-center gap-2'>
+                <p>{item.label}</p>
+                <p>{item.value}</p>
+              </div>
+            ))}
+          </div>
+        </section>
+
+        {/* 가격 변동까지 남은 게이지 */}
+        <section className='flex items-center gap-3'>
+          <h4
+            className={`${
+              typeof presentRound === 'number'
+                ? presentRound % 2 === 0
+                  ? 'text-white'
+                  : 'text-black'
+                : 'text-black' // 기본 텍스트 색상
+            } text-omg-18`}
+          >
+            [가격 변동까지 남은 게이지]
+          </h4>
+          <Gauge />
+        </section>
       </div>
-    </div>
+    </Marquee>
   );
 }
