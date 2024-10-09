@@ -13,6 +13,7 @@ import lombok.Setter;
 @NoArgsConstructor
 public class PlayerResult {
     private String nickname;        // 플레이어 닉네임
+    private int finalCash;          // 마지막 보유 현금
     private int finalGoldCnt;       // 마지막 보유 금 개수
     private int[] finalStockCnt;    // 마지막 보유 주식별 개수
     private int finalNetWorth;      // 마지막 순 자산 ( 부채 및 대출금 제외 )

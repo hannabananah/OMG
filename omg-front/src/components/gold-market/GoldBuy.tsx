@@ -1,7 +1,8 @@
 import { useContext, useEffect, useState } from 'react';
 
-import { useGameStore } from '@/stores/useGameStore';
 import { useGoldStore } from '@/stores/useGoldStore';
+import { useMainBoardStore } from '@/stores/useMainBoardStore';
+import { usePersonalBoardStore } from '@/stores/usePersonalBoardStore';
 import { useSocketMessage } from '@/stores/useSocketMessage';
 import { SocketContext } from '@/utils/SocketContext';
 
@@ -13,14 +14,14 @@ export default function GoldBuy() {
   const { purchaseGold } = useContext(SocketContext);
   const { goldPurchaseMessage, setGoldPurchaseMessage } = useSocketMessage();
 
+  const { tradableStockCnt } = useMainBoardStore();
+  const { cash } = usePersonalBoardStore();
+
   const { goldPrice, goldPriceChart } = useGoldStore();
   const GOLD_PRICE = goldPrice;
 
-  const { gameData } = useGameStore();
-  const { tradableStockCnt } = gameData || {};
-  const MAX_TRADE_COUNT = tradableStockCnt || 1; // 최대 거래 가능 수량
-
-  const MY_MONEY = 100; // TODO: 돈 정보 받아와야 함 (개인 판 정보로 부터)
+  const MAX_TRADE_COUNT = tradableStockCnt; // 최대 거래 가능 수량
+  const MY_MONEY = cash;
 
   // 선택한 금 개수
   const [goldCount, setGoldCount] = useState(0);

@@ -5,6 +5,7 @@ interface OtherUserState {
     id: string;
     characterType: number;
     position: number[];
+    startPosition: number[];
     direction: number[];
     actionToggle: boolean;
   }>;
@@ -13,6 +14,7 @@ interface OtherUserState {
       id: string;
       characterType: number;
       position: number[];
+      startPosition: number[];
       direction: number[];
       actionToggle: boolean;
     }>,
@@ -23,6 +25,12 @@ interface OtherUserState {
     direction: number[],
     actionToggle: boolean,
   ) => void;
+
+  transactionMessage: {
+    userNickname: string;
+    message: string;
+  } | null;
+  setTransactionMessage: (userNickname: string, message: string) => void;
 }
 
 export const useOtherUserStore = create<OtherUserState>(set => ({
@@ -34,4 +42,13 @@ export const useOtherUserStore = create<OtherUserState>(set => ({
         user.id === id ? { ...user, position, direction, actionToggle } : user,
       ),
     })),
+
+  transactionMessage: null,
+  setTransactionMessage: (userNickname, message) =>
+    set({
+      transactionMessage: {
+        userNickname,
+        message,
+      },
+    }),
 }));

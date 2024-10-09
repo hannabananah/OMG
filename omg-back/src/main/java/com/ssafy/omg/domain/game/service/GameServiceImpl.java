@@ -4,19 +4,8 @@ import com.ssafy.omg.config.baseresponse.BaseException;
 import com.ssafy.omg.config.baseresponse.MessageException;
 import com.ssafy.omg.domain.arena.entity.Arena;
 import com.ssafy.omg.domain.game.GameRepository;
-import com.ssafy.omg.domain.game.dto.GameResultResponse;
-import com.ssafy.omg.domain.game.dto.GoldMarketInfoResponse;
-import com.ssafy.omg.domain.game.dto.IndividualMessageDto;
-import com.ssafy.omg.domain.game.dto.MainMessageDto;
-import com.ssafy.omg.domain.game.dto.PlayerMoveRequest;
-import com.ssafy.omg.domain.game.dto.StockMarketResponse;
-import com.ssafy.omg.domain.game.dto.StockRequest;
-import com.ssafy.omg.domain.game.entity.Game;
-import com.ssafy.omg.domain.game.entity.GameEvent;
-import com.ssafy.omg.domain.game.entity.GameStatus;
-import com.ssafy.omg.domain.game.entity.LoanProduct;
-import com.ssafy.omg.domain.game.entity.StockInfo;
-import com.ssafy.omg.domain.game.entity.StockState;
+import com.ssafy.omg.domain.game.dto.*;
+import com.ssafy.omg.domain.game.entity.*;
 import com.ssafy.omg.domain.game.repository.GameEventRepository;
 import com.ssafy.omg.domain.player.dto.PlayerResult;
 import com.ssafy.omg.domain.player.entity.Player;
@@ -27,37 +16,13 @@ import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Random;
-import java.util.Set;
-import java.util.TreeSet;
+import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
-import java.util.Iterator;
 
-import static com.ssafy.omg.config.baseresponse.BaseResponseStatus.ARENA_NOT_FOUND;
-import static com.ssafy.omg.config.baseresponse.BaseResponseStatus.EVENT_NOT_FOUND;
-import static com.ssafy.omg.config.baseresponse.BaseResponseStatus.EXCEEDS_DIFF_RANGE;
-import static com.ssafy.omg.config.baseresponse.BaseResponseStatus.IMPOSSIBLE_STOCK_CNT;
-import static com.ssafy.omg.config.baseresponse.BaseResponseStatus.INSUFFICIENT_STOCK;
-import static com.ssafy.omg.config.baseresponse.BaseResponseStatus.INVALID_BLACK_TOKEN;
-import static com.ssafy.omg.config.baseresponse.BaseResponseStatus.INVALID_ROUND;
-import static com.ssafy.omg.config.baseresponse.BaseResponseStatus.INVALID_SELL_STOCKS;
-import static com.ssafy.omg.config.baseresponse.BaseResponseStatus.INVALID_STOCK_GROUP;
-import static com.ssafy.omg.config.baseresponse.BaseResponseStatus.PLAYER_NOT_FOUND;
-import static com.ssafy.omg.config.baseresponse.BaseResponseStatus.PLAYER_STATE_ERROR;
-import static com.ssafy.omg.config.baseresponse.BaseResponseStatus.REQUEST_ERROR;
-import static com.ssafy.omg.config.baseresponse.MessageResponseStatus.AMOUNT_EXCEED_CASH;
-import static com.ssafy.omg.config.baseresponse.MessageResponseStatus.AMOUNT_EXCEED_DEBT;
+import static com.ssafy.omg.config.baseresponse.BaseResponseStatus.*;
 import static com.ssafy.omg.config.baseresponse.MessageResponseStatus.AMOUNT_OUT_OF_RANGE;
-import static com.ssafy.omg.config.baseresponse.MessageResponseStatus.INSUFFICIENT_CASH;
-import static com.ssafy.omg.config.baseresponse.MessageResponseStatus.INVALID_STOCK_COUNT;
-import static com.ssafy.omg.config.baseresponse.MessageResponseStatus.OUT_OF_CASH;
-import static com.ssafy.omg.config.baseresponse.MessageResponseStatus.STOCK_NOT_AVAILABLE;
+import static com.ssafy.omg.config.baseresponse.MessageResponseStatus.*;
 import static com.ssafy.omg.domain.game.entity.RoundStatus.STOCK_FLUCTUATION;
 import static com.ssafy.omg.domain.game.entity.RoundStatus.TUTORIAL;
 import static com.ssafy.omg.domain.player.entity.PlayerStatus.COMPLETED;
@@ -234,6 +199,24 @@ public class GameServiceImpl implements GameService {
     }
 
     /**
+     * 닉네임 순자산 mapEntry로 뽑아 순자산으로 내림차순 정렬해 닉네임(key)만 뽑은 랭킹 배열
+     *
+     * @param game 게임
+     * @return playerRanking 랭킹배열
+     * @throws BaseException
+     */
+    @Override
+    public PlayerRankingResponse getPlayerRanking(Game game) throws BaseException {
+        String[] playerRanking = game.getPlayers().stream()
+                .map(player -> new AbstractMap.SimpleEntry<>(player.getNickname(), calculateNetWorth(game, player)))
+                .sorted(Map.Entry.<String, Integer>comparingByValue().reversed())
+                .map(Map.Entry::getKey)
+                .toArray(String[]::new);
+
+        return new PlayerRankingResponse(playerRanking);
+    }
+
+    /**
      * 게임 결과 정보 생성
      *
      * @param game
@@ -243,25 +226,61 @@ public class GameServiceImpl implements GameService {
     @Override
     public GameResultResponse gameResult(Game game) throws BaseException {
 
+        System.out.println("==== Starting Game Result Calculation ====");
+        int finalGoldPrice = game.getGoldPrice();
+        System.out.println("Final Gold Price: " + finalGoldPrice);
+
+        int[] finalStockPrices = new int[6];
+        StockInfo[] marketStocks = game.getMarketStocks();
+        for (int i = 1; i < 6; i++) {
+            int[] state = marketStocks[i].getState();
+            finalStockPrices[i] = stockState.getStockStandard()[state[0]][state[1]].getPrice();
+            System.out.println("Final Stock Price for stock " + (i) + ": " + finalStockPrices[i]);
+        }
+
         List<Player> players = game.getPlayers();
         List<PlayerResult> playerResults = new ArrayList<>();
+        System.out.println("\n==== Calculating Player Results ====");
 
         for (Player player : players) {
+            System.out.println("\nCalculating for player: " + player.getNickname());
             int finalNetWorth = calculateNetWorth(game, player);
             PlayerResult individualResult = PlayerResult.builder()
                     .nickname(player.getNickname())
+                    .finalCash(player.getCash())
                     .finalGoldCnt(player.getGoldOwned())
                     .finalStockCnt(player.getStock())
                     .finalNetWorth(finalNetWorth)
                     .finalDebt(player.getTotalDebt())
                     .build();
             playerResults.add(individualResult);
+
+            System.out.println("Player: " + player.getNickname());
+            System.out.println("  Final Gold Count: " + player.getGoldOwned());
+            System.out.println("  Final Stock Count: " + Arrays.toString(player.getStock()));
+            System.out.println("  Final Net Worth: " + finalNetWorth);
+            System.out.println("  Final Debt: " + player.getTotalDebt());
+            System.out.println("  Cash: " + player.getCash());
+        }
+
+        System.out.println("\n==== Player Results Before Sorting ====");
+        for (PlayerResult result : playerResults) {
+            System.out.println(result.getNickname() + ": Net worth = " + result.getFinalNetWorth() + ", Cash = " + result.getFinalCash());
         }
 
         // 순위 정렬
         playerResults.sort((o1, o2) -> Integer.compare(o2.getFinalNetWorth(), o1.getFinalNetWorth()));
 
+        System.out.println("\n==== Final Player Rankings ====");
+        for (int i = 0; i < playerResults.size(); i++) {
+            PlayerResult result = playerResults.get(i);
+            System.out.println((i + 1) + ". " + result.getNickname() + ": Net worth = " + result.getFinalNetWorth() + ", Cash = " + result.getFinalCash());
+        }
+        System.out.println("\n==== Game Result Calculation Completed ====");
+
         return GameResultResponse.builder()
+                .finalGoldPrice(finalGoldPrice)
+                .finalStockPrice(finalStockPrices)
                 .playerResults(playerResults)
                 .build();
     }
@@ -272,9 +291,22 @@ public class GameServiceImpl implements GameService {
         int goldPrice = game.getGoldPrice();
         StockInfo[] marketStocks = game.getMarketStocks();
 
-        netWorth += player.getGoldOwned() * goldPrice;
-        netWorth += getStockValue(player.getStock(), marketStocks);
-        netWorth -= player.getTotalDebt();
+        System.out.println("  Calculating net worth:");
+        System.out.println("    Cash: " + netWorth);
+
+        int goldValue = player.getGoldOwned() * goldPrice;
+        netWorth += goldValue;
+        System.out.println("    Gold value: " + goldValue + " (Gold owned: " + player.getGoldOwned() + ", Gold price: " + goldPrice + ")");
+
+        int stockValue = getStockValue(player.getStock(), marketStocks);
+        netWorth += stockValue;
+        System.out.println("    Stock value: " + stockValue);
+
+        int debt = player.getTotalDebt();
+        netWorth -= debt;
+        System.out.println("    Total debt: " + debt);
+
+        System.out.println("    Final net worth: " + netWorth);
 
         return netWorth;
     }
@@ -1267,6 +1299,10 @@ public class GameServiceImpl implements GameService {
             Player player = findPlayer(arena, playerNickname);
             Game game = arena.getGame();
 
+            if (player.getState() == COMPLETED) {
+                throw new BaseException(PLAYER_STATE_ERROR);
+            }
+
             int stockPriceLevel = game.getCurrentStockPriceLevel();
             StockInfo[] marketStocks = game.getMarketStocks();
             int[] stockBuyTrack = game.getStockBuyTrack();
@@ -1280,6 +1316,7 @@ public class GameServiceImpl implements GameService {
                 throw new MessageException(roomId, playerNickname, INSUFFICIENT_CASH);
             }
             player.setCash(player.getCash() - totalCost);
+            player.setState(PlayerStatus.COMPLETED);
 
             updatePlayerStocks(stocksToBuy, player);
             updateStockMarket(stocksToBuy, marketStocks);

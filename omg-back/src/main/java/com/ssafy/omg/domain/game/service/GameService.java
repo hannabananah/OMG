@@ -3,13 +3,7 @@ package com.ssafy.omg.domain.game.service;
 import com.ssafy.omg.config.baseresponse.BaseException;
 import com.ssafy.omg.config.baseresponse.MessageException;
 import com.ssafy.omg.domain.arena.entity.Arena;
-import com.ssafy.omg.domain.game.dto.GameResultResponse;
-import com.ssafy.omg.domain.game.dto.GoldMarketInfoResponse;
-import com.ssafy.omg.domain.game.dto.IndividualMessageDto;
-import com.ssafy.omg.domain.game.dto.MainMessageDto;
-import com.ssafy.omg.domain.game.dto.PlayerMoveRequest;
-import com.ssafy.omg.domain.game.dto.StockMarketResponse;
-import com.ssafy.omg.domain.game.dto.StockRequest;
+import com.ssafy.omg.domain.game.dto.*;
 import com.ssafy.omg.domain.game.entity.Game;
 import com.ssafy.omg.domain.game.entity.GameEvent;
 import com.ssafy.omg.domain.socket.dto.StompPayload;
@@ -75,6 +69,9 @@ public interface GameService {
 
     // 금괴 매입소 정보 생성
     GoldMarketInfoResponse createGoldMarketInfo(Game game) throws BaseException;
+
+    // 게임 중 순자산으로 플레이어별 랭킹 계산 후 응답 생성
+    PlayerRankingResponse getPlayerRanking(Game game) throws BaseException;
 
     // 게임 종료시 결과 정보 생성
     GameResultResponse gameResult(Game game) throws BaseException;

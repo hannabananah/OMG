@@ -1,6 +1,12 @@
 import { useEffect, useState } from 'react';
 
-export default function Timer({ time }: { time: number }) {
+import { RoundProps } from '@/components/common/Round';
+import { formatTime } from '@/utils/formatTime';
+
+export default function Timer({
+  time,
+  presentRound,
+}: { time: number } & RoundProps) {
   const [remainingTime, setRemainingTime] = useState(time);
 
   useEffect(() => {
@@ -8,15 +14,11 @@ export default function Timer({ time }: { time: number }) {
     setRemainingTime(time);
   }, [time]);
 
-  const formatTime = (timeInSeconds: number) => {
-    const minutes = Math.floor(timeInSeconds / 60);
-    const seconds = timeInSeconds % 60;
-    return `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
-  };
+  const isOddRound = presentRound % 2 !== 0;
 
   return (
     <p
-      className={`text-omg-40b ${remainingTime <= 5 ? 'text-red animate-shake' : 'text-white'}`}
+      className={`text-omg-40b drop-shadow-xl ${remainingTime <= 5 ? 'text-red animate-shake' : isOddRound ? 'text-black' : 'text-white'}`}
     >
       {formatTime(remainingTime)}
     </p>

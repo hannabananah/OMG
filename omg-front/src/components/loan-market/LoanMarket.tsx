@@ -1,49 +1,60 @@
 import { useContext, useEffect, useState } from 'react';
+import { BiSpreadsheet } from 'react-icons/bi';
+import { FaRegQuestionCircle } from 'react-icons/fa';
+import { GiCardPick } from 'react-icons/gi';
 
-import LoanMain from '@/components/loan-market/LoanMain';
+import { useLoanStore } from '@/stores/useLoanStore';
 import useModalStore from '@/stores/useModalStore';
+import useUser from '@/stores/useUser';
 import { LoanMarketView } from '@/types';
 import { SocketContext } from '@/utils/SocketContext';
 
 import BackButton from '../common/BackButton';
-import LoanRepay from './LoanRepay';
-import LoanTake from './LoanTake';
+import LoanActionButton from './LoanActionButton';
+import LoanInfo from './LoanInfo';
+import LoanLogicModal from './LoanLogicModal';
+import LoanReport from './LoanReport';
+import LoanSheet from './LoanSheet';
 
 export default function LoanMarket() {
-  const { enterLoan } = useContext(SocketContext);
-
+  const { enterLoan, takeLoan, repayLoan } = useContext(SocketContext);
+  const { totalDebt } = useLoanStore();
   const { modals, closeModal } = useModalStore();
+  const { nickname } = useUser();
+
   const [currentView, setCurrentView] = useState<LoanMarketView>('main');
+  const [isReportVisible, setIsReportVisible] = useState(true);
+  const [isTooltipVisible, setIsTooltipVisible] = useState(false);
 
   useEffect(() => {
     enterLoan();
   }, []);
 
-  const renderComponent = () => {
-    switch (currentView) {
-      case 'take':
-        return <LoanTake />;
-      case 'repay':
-        return <LoanRepay />;
-      default:
-        return <LoanMain setCurrentView={setCurrentView} />;
-    }
-  };
-
   const handleCloseLoanMarket = (e: React.MouseEvent<HTMLDivElement>) => {
-    if (e.target === e.currentTarget && modals.loanMarket) {
-      closeModal('loanMarket');
+    if (e.target === e.currentTarget && modals[nickname]?.loanMarket) {
+      closeModal('loanMarket', nickname);
     }
   };
 
   const handleBackButton = () => {
     if (currentView === 'main') {
-      if (modals.loanMarket) {
-        closeModal('loanMarket');
+      if (modals[nickname]?.loanMarket) {
+        closeModal('loanMarket', nickname);
       }
     } else {
       setCurrentView('main');
     }
+  };
+
+  const toggleView = () => {
+    setIsReportVisible(prev => !prev);
+  };
+
+  const showTooltip = () => {
+    setIsTooltipVisible(true);
+    setTimeout(() => {
+      setIsTooltipVisible(false);
+    }, 5000);
   };
 
   return (
@@ -52,18 +63,63 @@ export default function LoanMarket() {
       onClick={handleCloseLoanMarket}
     >
       <div className='modal-container'>
-        {/* 시장 수준 */}
-        <section className='relative flex items-center justify-center w-full h-[14%] px-10 py-10 text-black text-omg-40b'>
+        <section className='relative flex items-center justify-center h-[14%] px-10 py-10 text-black text-omg-40b w-full'>
           <div
             className='absolute flex items-center left-10'
             onClick={handleBackButton}
           >
             <BackButton onClick={handleBackButton} />
           </div>
+          <button
+            type='button'
+            className='absolute w-10 h-10 m-4 text-center right-10 -p-4'
+            onMouseEnter={showTooltip}
+          >
+            <FaRegQuestionCircle size={20} />
+          </button>
+
+          <LoanLogicModal isTooltipVisible={isTooltipVisible} />
         </section>
 
-        {/* 이 아래는 동적으로 변동: 신청/ 상환 */}
-        <section className='flex w-full h-[86%]'>{renderComponent()}</section>
+        <section className='flex w-full h-full'>
+          <div className='relative w-3/5'>
+            <h2 className='text-center text-omg-28b'>보유 대출 리스트</h2>
+            <div className='absolute right-28 top-10'>
+              <button
+                onClick={toggleView}
+                className='transition-transform duration-300 hover:scale-110'
+              >
+                {isReportVisible ? (
+                  <BiSpreadsheet size={28} />
+                ) : (
+                  <GiCardPick size={28} />
+                )}
+              </button>
+            </div>
+            {isReportVisible ? <LoanReport /> : <LoanSheet />}
+          </div>
+          <div className='flex flex-col items-center justify-center w-2/5 h-full gap-20'>
+            <LoanInfo />
+            <div className='flex gap-4'>
+              <LoanActionButton
+                actionType='take'
+                buttonText='대출하기'
+                onAction={takeLoan}
+              />
+              <LoanActionButton
+                actionType='repay'
+                buttonText='상환하기'
+                onAction={repayLoan}
+                disabled={totalDebt === 0}
+              />
+            </div>
+            <div>
+              <p className='underline text-omg-14'>
+                *해당 대출은 금리가 높은 상품부터 우선적으로 상환됩니다.
+              </p>
+            </div>
+          </div>
+        </section>
       </div>
     </div>
   );

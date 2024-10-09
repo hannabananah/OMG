@@ -16,8 +16,8 @@ svg .clickable {
 }
 
 html {
-  @apply h-screen w-full text-gray-800 break-words m-auto select-none;
-  font-size: 14px; /* 1rem을 14px로 설정 */
+  @apply h-screen w-full text-slate-950 break-words m-auto select-none;
+  font-size: 14px;
 }
 
 input {
@@ -32,6 +32,15 @@ button:disabled {
   overflow: hidden;
 }
 
+.scrollbar-hidden::-webkit-scrollbar {
+  display: none;
+}
+
+.scrollbar-hidden {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
 @font-face {
   font-family: 'OKDDUNG';
   src: url('https://fastly.jsdelivr.net/gh/projectnoonnu/noonfonts_2206-02@1.0/OKDDUNG.woff2')
@@ -44,6 +53,30 @@ button:disabled {
   font-family: 'Katuri';
   src: url('https://gcore.jsdelivr.net/gh/projectnoonnu/noonfonts_13@1.0/Katuri.woff')
     format('woff');
+  font-weight: normal;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: 'SUITE';
+  src: url('https://fastly.jsdelivr.net/gh/projectnoonnu/noonfonts_2304-2@1.0/SUITE-Regular.woff2')
+    format('woff2');
+  font-weight: normal;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: 'Laundry';
+  src: url('https://fastly.jsdelivr.net/gh/projectnoonnu/2403-2@1.0/TTLaundryGothicB.woff2')
+    format('woff2');
+  font-weight: 400;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: 'Partial';
+  src: url('https://fastly.jsdelivr.net/gh/projectnoonnu/noonfonts_2307-1@1.1/PartialSansKR-Regular.woff2')
+    format('woff2');
   font-weight: normal;
   font-style: normal;
 }
@@ -92,4 +125,173 @@ button:disabled {
   .modal-container {
     @apply flex flex-col w-[80%] h-[80%] bg-white bg-opacity-80 rounded-[30px];
   }
+}
+
+@layer utilities {
+  @keyframes gradient {
+    0% {
+      background-position: 0% 50%;
+    }
+    50% {
+      background-position: 100% 50%;
+    }
+    100% {
+      background-position: 0% 50%;
+    }
+  }
+
+  .bg-gradient-animation {
+    background: linear-gradient(
+      270deg,
+      #ff0000 0%,
+      #00ff00 33%,
+      #ffffff 67%,
+      #ff0000 100%
+    );
+    background-size: 100% 100%;
+    animation: gradient 4s ease infinite;
+    -webkit-background-clip: text; /* Safari 지원 */
+    background-clip: text;
+    color: transparent;
+  }
+}
+
+@keyframes blink {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0;
+  }
+}
+
+.blink-animation {
+  animation: blink 0.2s ease-in-out infinite;
+}
+
+@keyframes rocket-exit {
+  0% {
+    transform: translateY(0);
+  }
+  100% {
+    transform: translateY(-100vh);
+  }
+}
+
+@keyframes shake-exit {
+  0% {
+    transform: translateX(0);
+    transform: translateY(0);
+  }
+  10% {
+    transform: translateX(-5px);
+  }
+  20% {
+    transform: translateX(5px);
+  }
+  30% {
+    transform: translateX(-5px);
+  }
+  40% {
+    transform: translateX(5px);
+  }
+  50% {
+    transform: translateX(-5px);
+  }
+  60% {
+    transform: translateX(5px);
+  }
+  70% {
+    transform: translateX(-5px);
+  }
+  80% {
+    transform: translateX(5px);
+  }
+  90% {
+    transform: translateX(0);
+  }
+  100% {
+    transform: translateY(100vh);
+  }
+}
+
+.rocket-exit {
+  animation: rocket-exit 0.8s ease forwards;
+}
+
+.shake-exit {
+  animation: shake-exit 0.8s ease forwards;
+}
+
+@keyframes bounce {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(5px);
+  }
+}
+
+.bounce-animation {
+  animation: bounce 1s ease-in-out infinite;
+}
+
+@keyframes subtle-pulse {
+  0% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.03);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+.animate-subtle-pulse {
+  animation: subtle-pulse 1s ease-in-out infinite;
+}
+
+@keyframes anime_textup {
+  0% {
+    top: 0;
+  }
+  20% {
+    top: -0.3rem;
+  }
+  40% {
+    top: 0;
+  }
+  60% {
+    top: 0;
+  }
+  80% {
+    top: 0;
+  }
+  100% {
+    top: 0;
+  }
+}
+
+.test_obj span {
+  position: relative;
+  animation: anime_textup 1.5s infinite;
+}
+
+.test_obj span:nth-of-type(1) {
+  animation-delay: 0.1s;
+}
+.test_obj span:nth-of-type(2) {
+  animation-delay: 0.2s;
+}
+.test_obj span:nth-of-type(3) {
+  animation-delay: 0.3s;
+}
+.test_obj span:nth-of-type(4) {
+  animation-delay: 0.4s;
+}
+.test_obj span:nth-of-type(5) {
+  animation-delay: 0.5s;
 }

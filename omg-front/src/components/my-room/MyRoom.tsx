@@ -12,21 +12,28 @@ import Timer from '@/components/common/Timer';
 import Item from '@/components/stock-market/Item';
 import { treeItemNameInKorean } from '@/hooks/useStock';
 import { useGameStore } from '@/stores/useGameStore';
+import { useMainBoardStore } from '@/stores/useMainBoardStore';
 import useModalStore from '@/stores/useModalStore';
+import { usePersonalBoardStore } from '@/stores/usePersonalBoardStore';
+import useUser from '@/stores/useUser';
 import { SocketContext } from '@/utils/SocketContext';
 import { Html, OrbitControls } from '@react-three/drei';
 import { Canvas } from '@react-three/fiber';
 
 export default function MyRoom() {
   const { modals, closeModal } = useModalStore();
-  const { roundTimer, presentRound } = useContext(SocketContext);
-  const { gameData } = useGameStore();
+  const { nickname } = useUser();
 
-  const { tradableStockCnt } = gameData || {};
+  const { roundTimer, presentRound } = useContext(SocketContext);
+
+  const { setCarryingCount } = useGameStore();
+
+  const { stockPrices, tradableStockCnt } = useMainBoardStore();
+  const { stock } = usePersonalBoardStore();
 
   const MAX_TRADE_COUNT = tradableStockCnt; // 최대 거래 가능 수량
-  const STOCK_MARKET_PRICE = [0, 4, 6, 8, 10, 12]; // 현재 주가
-  const MY_STOCK = [0, 0, 1, 0, 2, 3]; // 보유 주식 개수
+  const STOCK_MARKET_PRICE = stockPrices; // 현재 주가
+  const MY_STOCK = stock; // 보유 주식 개수
 
   // 선택된 아이템 개수 저장하는 배열 (6 크기, 0번 인덱스는 사용 안 함)
   const [selectedCounts, setSelectedCounts] = useState(Array(6).fill(0));
@@ -35,7 +42,7 @@ export default function MyRoom() {
     useState<string>('판매 할 아이템을 선택해주세요!');
 
   // 보유한 아이템들만 필터링
-  const ownedStockItems = MY_STOCK.slice(1)
+  const ownedStockItems = (MY_STOCK ? MY_STOCK.slice(1) : [])
     .map((count, index) => {
       if (count > 0) {
         return {
@@ -96,18 +103,20 @@ export default function MyRoom() {
 
   const goToSellStockItem = () => {
     console.log('판매 할 수량: ', selectedCounts);
+    alert(`판매 할 수량: ${selectedCounts}`);
+    setCarryingCount(selectedCounts);
   };
 
   const handleCloseMyRoom = (e: React.MouseEvent<HTMLDivElement>) => {
-    if (e.target === e.currentTarget && modals.myRoom) {
-      closeModal('myRoom');
+    if (e.target === e.currentTarget && modals[nickname]?.myRoom) {
+      closeModal('myRoom', nickname);
     }
   };
 
   // 뒤로 가기 버튼
   const handleBackButton = () => {
-    if (modals.myRoom) {
-      closeModal('myRoom');
+    if (modals[nickname]?.myRoom) {
+      closeModal('myRoom', nickname);
     }
   };
 
@@ -122,7 +131,7 @@ export default function MyRoom() {
           <BackButton onClick={handleBackButton} />
           <div className='flex flex-col items-end gap-4'>
             <Round presentRound={presentRound} />
-            <Timer time={roundTimer} />
+            <Timer presentRound={presentRound} time={roundTimer} />
           </div>
         </section>
 

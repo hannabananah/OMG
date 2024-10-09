@@ -9,6 +9,7 @@ import com.ssafy.omg.domain.game.entity.Game;
 import com.ssafy.omg.domain.game.entity.GameStatus;
 import com.ssafy.omg.domain.game.entity.RoundStatus;
 import com.ssafy.omg.domain.game.service.GameBroadcastService;
+import com.ssafy.omg.domain.game.service.GameScheduler;
 import com.ssafy.omg.domain.game.service.GameService;
 import com.ssafy.omg.domain.socket.dto.StompPayload;
 import lombok.RequiredArgsConstructor;
@@ -31,6 +32,7 @@ public class CommonMessageController {
     private final GameService gameService;
     private final GameBroadcastService gameBroadcastService;
     private final GameRepository gameRepository;
+    private final GameScheduler gameScheduler;
 
     /**
      * 게임 초기화 후 모든 유저에게 Arena 브로드캐스트
@@ -44,6 +46,8 @@ public class CommonMessageController {
         List<String> players = gameRepository.findinRoomPlayerList(roomId);
         Arena arena = gameService.initializeGame(roomId, players);
         gameBroadcastService.startBroadcast(roomId);
+        gameScheduler.notifyMainMessage(roomId, "GAME_MANAGER");
+        gameScheduler.notifyPlayersIndividualMessage(roomId);
 
         StompPayload<Arena> response = new StompPayload<>("GAME_INITIALIZED", roomId, "GAME_MANAGER", arena);
         messagingTemplate.convertAndSend("/sub/" + roomId + "/game", response);

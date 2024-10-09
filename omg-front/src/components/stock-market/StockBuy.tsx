@@ -3,6 +3,8 @@ import { useContext, useEffect } from 'react';
 import { itemNameList } from '@/assets/data/stockMarketData';
 import { getTreeItemImagePath } from '@/hooks/useStock';
 import { useGameStore } from '@/stores/useGameStore';
+import { useMainBoardStore } from '@/stores/useMainBoardStore';
+import { usePersonalBoardStore } from '@/stores/usePersonalBoardStore';
 import { useSocketMessage } from '@/stores/useSocketMessage';
 import { useStockStore } from '@/stores/useStockStore';
 import { SocketContext } from '@/utils/SocketContext';
@@ -14,14 +16,15 @@ export default function StockBuy() {
   const { buyStock } = useContext(SocketContext);
   const { stockPrices, leftStocks } = useStockStore();
 
-  const { gameData, selectedCount, setSelectedCount } = useGameStore();
+  const { selectedCount, setSelectedCount } = useGameStore();
+
+  const { tradableStockCnt } = useMainBoardStore();
+  const { cash } = usePersonalBoardStore();
+
   const { buyStockMessage, setBuyMessage } = useSocketMessage();
 
-  const { tradableStockCnt } = gameData || {};
-
-  const MAX_TRADE_COUNT = tradableStockCnt || 1;
-  // TODO: 돈 정보 받아와야 함
-  const MY_MONEY = 50;
+  const MAX_TRADE_COUNT = tradableStockCnt;
+  const MY_MONEY = cash;
 
   useEffect(() => {
     if (buyStockMessage.message) {

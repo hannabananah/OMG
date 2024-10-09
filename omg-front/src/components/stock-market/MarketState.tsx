@@ -1,18 +1,22 @@
 import Gauge from '@/components/common/Gauge';
+import { useMainBoardStore } from '@/stores/useMainBoardStore';
 
 export default function MarketState() {
+  const { currentInterestRate, currentStockPriceLevel, tradableStockCnt } =
+    useMainBoardStore();
+
   const items = [
     {
       title: '금리',
-      content: '5%',
+      content: `${currentInterestRate}%`,
     },
     {
       title: '물가 수준',
-      content: '0/9',
+      content: `${currentStockPriceLevel}/9`,
     },
     {
       title: '거래 가능 수량',
-      content: '1개',
+      content: `${tradableStockCnt}개`,
     },
   ];
 

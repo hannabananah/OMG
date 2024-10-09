@@ -11,6 +11,7 @@ interface ItemProps {
   position: { x: number; y: number; z: number };
   onClick?: (event: ThreeEvent<PointerEvent>) => void;
   disabled: boolean;
+  scale?: number[];
 }
 
 export default function Item({
@@ -18,6 +19,7 @@ export default function Item({
   position,
   onClick,
   disabled,
+  scale = [0.5, 0.5, 0.5],
 }: ItemProps) {
   const { scene } = useGLTF(`/models/${itemName}/${itemName}.gltf`);
   const ref = useFloatingObject(position.y);
@@ -29,7 +31,7 @@ export default function Item({
         ref={ref}
         object={scene}
         position={[position.x, position.y, position.z]}
-        scale={[0.5, 0.5, 0.5]}
+        scale={scale}
         rotation={[0, 0, 0]}
         onClick={onClick}
         onPointerOver={() => setHovered(true)}
