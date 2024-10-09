@@ -114,19 +114,19 @@ export default function MainMap() {
     return () => clearTimeout(timer);
   }, [eventEffectMessage]);
 
-  useEffect(() => {
-    if (gameRoundMessage.message === '1' || gameRoundMessage.message === '10') {
-      const timer = setTimeout(() => {
-        setIsTimerVisible(true);
-      }, 5000);
-      return () => clearTimeout(timer);
-    } else {
-      const timer = setTimeout(() => {
-        setIsTimerVisible(true);
-      }, 10000);
-      return () => clearTimeout(timer);
-    }
-  }, [gameRoundMessage]);
+  // useEffect(() => {
+  //   if (gameRoundMessage.message === '1' || gameRoundMessage.message === '10') {
+  //     const timer = setTimeout(() => {
+  //       setIsTimerVisible(true);
+  //     }, 5000);
+  //     return () => clearTimeout(timer);
+  //   } else {
+  //     const timer = setTimeout(() => {
+  //       setIsTimerVisible(true);
+  //     }, 10000);
+  //     return () => clearTimeout(timer);
+  //   }
+  // }, [gameRoundMessage]);
 
   // TODO: 삭제해야됨, 라운드 알림 모달
   useEffect(() => {
@@ -140,10 +140,12 @@ export default function MainMap() {
         break;
       case 'ROUND_START':
         setIsRoundVisible(true);
+        setIsTimerVisible(true);
         setIsBoardVisible(true);
         break;
       case 'GAME_FINISHED':
         setIsRoundVisible(false);
+        setIsTimerVisible(false);
         break;
       default:
         break;
