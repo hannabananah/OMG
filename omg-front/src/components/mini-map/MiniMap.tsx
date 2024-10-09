@@ -9,7 +9,7 @@ import { useOtherUserStore } from '@/stores/useOtherUserState';
 import useUser from '@/stores/useUser';
 
 const renderMiniCharacterImage = (characterType: number) => {
-  const imageClasses = 'w-8 h-8 drop-shadow-extra-heavy';
+  const imageClasses = 'w-8 h-8 drop-shadow-md';
 
   switch (characterType) {
     case 0:
