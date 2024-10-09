@@ -370,6 +370,7 @@ export default function Character({
           characterDirection={characterDirection}
           characterRotation={characterRotation}
           scale={characterScale}
+          isInLoanMarketZone={isInLoanMarketZone}
         />
       )}
 

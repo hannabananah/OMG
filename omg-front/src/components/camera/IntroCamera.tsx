@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 
+import useModalStore from '@/stores/useModalStore';
 import { PerspectiveCamera } from '@react-three/drei';
 import { useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
@@ -11,6 +12,7 @@ interface IntroCameraProps {
   characterDirection: THREE.Vector3;
   characterRotation: THREE.Euler;
   scale: number[];
+  isInLoanMarketZone: boolean;
 }
 
 export default function IntroCamera({
@@ -18,6 +20,7 @@ export default function IntroCamera({
   characterDirection,
   characterRotation,
   scale,
+  isInLoanMarketZone,
 }: IntroCameraProps) {
   const cameraRef = useRef<THREE.PerspectiveCamera>(null);
   const { showIntro, setShowIntro } = useIntroStore();
@@ -29,6 +32,18 @@ export default function IntroCamera({
   const radius = 100;
   const speed = 0.85;
   const transitionDuration = 4; // 전환 애니메이션 지속 시간
+
+  const { modals, openModal, closeModal } = useModalStore();
+
+  const [isCircling, setIsCircling] = useState(false);
+  const loanRoomTarget = new THREE.Vector3(
+    50.934777281838066,
+    0,
+    77.69974776769165,
+  );
+  const circleRadius = 10;
+  const circleSpeed = 0.02;
+  const [circleProgress, setCircleProgress] = useState(0);
 
   // 초기 카메라 설정을 위한 useEffect
   useEffect(() => {
@@ -48,6 +63,12 @@ export default function IntroCamera({
     // 카메라 회전 설정
     camera.rotation.set(0, Math.PI, 0);
   }, [characterPosition, showIntro]);
+
+  useEffect(() => {
+    if (isInLoanMarketZone && !isCircling) {
+      setIsCircling(true); // 대출방에 진입하면 카메라 원 이동 시작
+    }
+  }, [isInLoanMarketZone]);
 
   useFrame((state, delta) => {
     if (!cameraRef.current) return;
@@ -113,34 +134,53 @@ export default function IntroCamera({
         setIsTransitioning(false);
       }
     } else {
-      const cameraDistance = 15; // 카메라와 캐릭터 사이의 거리
+      if (isCircling) {
+        const angle = circleProgress * Math.PI * 2;
+        camera.position.set(
+          loanRoomTarget.x + Math.cos(angle) * circleRadius,
+          loanRoomTarget.y + 5,
+          loanRoomTarget.z + Math.sin(angle) * circleRadius,
+        );
+        camera.lookAt(loanRoomTarget);
 
-      // 캐릭터의 방향 벡터에서 카메라가 뒤에 위치하도록 설정
-      const directionNormalized = characterDirection.clone().normalize();
+        setCircleProgress(prev => prev + circleSpeed * delta);
 
-      // 카메라의 새로운 위치는 캐릭터의 위치에서 'direction'의 반대 방향으로 cameraDistance만큼 떨어진 위치
-      const cameraOffset = directionNormalized.multiplyScalar(-cameraDistance);
+        if (circleProgress >= 1) {
+          setIsCircling(false);
+          setCircleProgress(0);
+          openModal('loanMarket', 'nickname');
+        }
+      } else {
+        const cameraDistance = 15; // 카메라와 캐릭터 사이의 거리
 
-      // 캐릭터의 위치에서 카메라를 배치할 위치 계산
-      const newCameraPosition = new THREE.Vector3(
-        characterPosition.x + cameraOffset.x,
-        characterPosition.y - 1, // 카메라가 캐릭터 위에 위치하게 설정
-        characterPosition.z + cameraOffset.z,
-      );
+        // 캐릭터의 방향 벡터에서 카메라가 뒤에 위치하도록 설정
+        const directionNormalized = characterDirection.clone().normalize();
 
-      // 카메라의 새로운 위치 설정
-      camera.position.copy(newCameraPosition);
+        // 카메라의 새로운 위치는 캐릭터의 위치에서 'direction'의 반대 방향으로 cameraDistance만큼 떨어진 위치
+        const cameraOffset =
+          directionNormalized.multiplyScalar(-cameraDistance);
 
-      const targetDirection = characterDirection.clone().normalize();
+        // 캐릭터의 위치에서 카메라를 배치할 위치 계산
+        const newCameraPosition = new THREE.Vector3(
+          characterPosition.x + cameraOffset.x,
+          characterPosition.y - 1, // 카메라가 캐릭터 위에 위치하게 설정
+          characterPosition.z + cameraOffset.z,
+        );
 
-      const currentDirection = new THREE.Vector3().lerpVectors(
-        startDirection.current,
-        targetDirection,
-        0.5,
-      );
+        // 카메라의 새로운 위치 설정
+        camera.position.copy(newCameraPosition);
 
-      const lookAtPosition = camera.position.clone().add(currentDirection);
-      camera.lookAt(lookAtPosition);
+        const targetDirection = characterDirection.clone().normalize();
+
+        const currentDirection = new THREE.Vector3().lerpVectors(
+          startDirection.current,
+          targetDirection,
+          0.5,
+        );
+
+        const lookAtPosition = camera.position.clone().add(currentDirection);
+        camera.lookAt(lookAtPosition);
+      }
     }
   });
 
