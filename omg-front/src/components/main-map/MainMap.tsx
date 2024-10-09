@@ -21,8 +21,7 @@ import EventCard from '@/components/game/EventCard';
 import EventEffect from '@/components/game/EventEffect';
 import GameResult from '@/components/game/GameResult';
 import Map from '@/components/main-map/Map';
-import StockMarket from '@/components/stock-market/StockMarket';
-import useModalStore from '@/stores/useModalStore';
+import MiniMap from '@/components/mini-map/MiniMap';
 import { useOtherUserStore } from '@/stores/useOtherUserState';
 import { useSocketMessage } from '@/stores/useSocketMessage';
 import useUser from '@/stores/useUser';
@@ -32,9 +31,6 @@ import { Canvas } from '@react-three/fiber';
 import { Physics } from '@react-three/rapier';
 
 import ChatButton from '../common/ChatButton';
-import GoldMarket from '../gold-market/GoldMarket';
-import LoanMarket from '../loan-market/LoanMarket';
-import MyRoom from '../my-room/MyRoom';
 import PersonalBoard from '../personal-board/PersonalBoard';
 import MarketStatusBoard from './MarketStatusBoard';
 
@@ -60,7 +56,6 @@ export default function MainMap() {
 
   const { otherUsers } = useOtherUserStore();
 
-  const { modals, openModal } = useModalStore();
   const { eventCardMessage, eventEffectMessage, gameRoundMessage } =
     useSocketMessage();
   const [isChatOpen, setIsChatOpen] = useState(false);
@@ -214,16 +209,6 @@ export default function MainMap() {
     };
   });
 
-  const openPersonalMissionModal = () => {
-    alert('게임 미션 모달 띄워주기');
-  };
-
-  const openMyRoomModal = () => {
-    if (!modals.myRoom) {
-      openModal('myRoom');
-    }
-  };
-
   const openChattingModal = () => {
     setIsChatOpen(true);
   };
@@ -234,18 +219,6 @@ export default function MainMap() {
 
   return (
     <main className='relative w-full h-screen overflow-hidden'>
-      {/* 내 방 Modal */}
-      {modals.myRoom && <MyRoom />}
-
-      {/* 주식 시장 Modal */}
-      {modals.stockMarket && <StockMarket />}
-
-      {/* 금 시장 모달 */}
-      {modals.goldMarket && <GoldMarket />}
-
-      {/* 대출 시장 모달 */}
-      {modals.loanMarket && <LoanMarket />}
-
       {/* 게임 결과 모달 */}
       {isGameResultVisible && <GameResult />}
 
@@ -272,19 +245,10 @@ export default function MainMap() {
           <EventEffect />
         </div>
       )}
-      {/* 모달 모음 */}
-      <section className='absolute z-10 flex flex-col items-start gap-4 left-10 top-20'>
-        <Button
-          text='게임 미션'
-          type='mainmap'
-          onClick={openPersonalMissionModal}
-        />
-        {/* TODO: 삭제해야됨, 임시 내 방 버튼 */}
-        <Button
-          text='임시 내 방 버튼'
-          type='mainmap'
-          onClick={openMyRoomModal}
-        />
+
+      <section className='absolute z-10 left-4 top-20 drop-shadow-2xl'>
+        {/* 미니맵 */}
+        <MiniMap />
       </section>
 
       {/* TODO: 삭제해야됨 */}
@@ -298,6 +262,7 @@ export default function MainMap() {
       <section className='absolute bottom-0 left-0 z-10 flex items-end justify-between w-full p-6 text-white text-omg-40b'>
         <ChatButton isWhite={true} onClick={openChattingModal} />
         {isChatOpen && <Chatting closeChattingModal={closeChattingModal} />}
+
         {/* 개인판 영역 */}
         <PersonalBoard />
         <div className='flex flex-col'>
