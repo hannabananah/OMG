@@ -84,6 +84,9 @@ export default function Character({
   };
 
   useEffect(() => {
+    // 자신의 캐릭터가 아닌 경우 모달 제어 로직을 실행하지 않음
+    if (!isOwnCharacter) return;
+
     const prevPosition = prevPositionRef.current;
     if (
       characterPosition.x !== prevPosition.x ||
@@ -195,7 +198,7 @@ export default function Character({
       scene.rotation.y = rotation;
       if (isOwnCharacter) {
         // 이동 속도 설정
-        const moveDistance = 0.1;
+        const moveDistance = 0.2;
         // 현재 캐릭터 위치 복사
         const newPosition = characterPosition.clone();
         // 키 입력에 따른 위치 변경
@@ -226,7 +229,7 @@ export default function Character({
           movementStateRef.current === 'walking' ||
           movementStateRef.current === 'running'
         ) {
-          const moveSpeed = movementStateRef.current === 'walking' ? 0.1 : 0.15;
+          const moveSpeed = movementStateRef.current === 'walking' ? 0.2 : 0.4;
           const forwardDirection = new THREE.Vector3(
             Math.sin(rotation),
             0,
