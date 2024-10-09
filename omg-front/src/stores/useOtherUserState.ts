@@ -26,8 +26,11 @@ interface OtherUserState {
     actionToggle: boolean,
   ) => void;
 
-  transactionMessage: string | null;
-  setTransactionMessage: (message: string) => void;
+  transactionMessage: {
+    userNickname: string;
+    message: string;
+  } | null;
+  setTransactionMessage: (userNickname: string, message: string) => void;
 }
 
 export const useOtherUserStore = create<OtherUserState>(set => ({
@@ -41,5 +44,11 @@ export const useOtherUserStore = create<OtherUserState>(set => ({
     })),
 
   transactionMessage: null,
-  setTransactionMessage: message => set({ transactionMessage: message }),
+  setTransactionMessage: (userNickname, message) =>
+    set({
+      transactionMessage: {
+        userNickname,
+        message,
+      },
+    }),
 }));

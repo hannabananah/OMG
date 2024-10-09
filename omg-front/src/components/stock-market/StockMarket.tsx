@@ -3,6 +3,7 @@ import { useState } from 'react';
 import MarketState from '@/components/stock-market/MarketState';
 import StockMain from '@/components/stock-market/StockMain';
 import useModalStore from '@/stores/useModalStore';
+import useUser from '@/stores/useUser';
 import { StockMarketView } from '@/types';
 
 import BackButton from '../common/BackButton';
@@ -11,6 +12,8 @@ import StockSell from './StockSell';
 
 export default function StockMarket() {
   const { modals, closeModal } = useModalStore();
+  const { nickname } = useUser();
+
   const [currentView, setCurrentView] = useState<StockMarketView>('main');
 
   const renderComponent = () => {
@@ -25,15 +28,15 @@ export default function StockMarket() {
   };
 
   const handleCloseStockMarket = (e: React.MouseEvent<HTMLDivElement>) => {
-    if (e.target === e.currentTarget && modals.stockMarket) {
-      closeModal('stockMarket');
+    if (e.target === e.currentTarget && modals[nickname]?.stockMarket) {
+      closeModal('stockMarket', nickname);
     }
   };
 
   const handleBackButton = () => {
     if (currentView === 'main') {
-      if (modals.stockMarket) {
-        closeModal('stockMarket');
+      if (modals[nickname]?.stockMarket) {
+        closeModal('stockMarket', nickname);
       }
     } else {
       setCurrentView('main');

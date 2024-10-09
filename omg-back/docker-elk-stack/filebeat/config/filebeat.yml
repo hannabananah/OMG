@@ -1,0 +1,26 @@
+filebeat.inputs:
+  - type: log
+    paths:
+      - /logs/*.log
+    close_inactive: 5s
+    scan_frequency: 1s
+
+output.kafka:
+  hosts: [ "kafka:9092" ]
+  topic: "OMG"
+  partition.round_robin:
+    reachable_only: false
+  required_acks: 1
+  compression: gzip
+  max_message_bytes: 1000000
+  codec.json:
+    pretty: false
+
+processors:
+  - add_host_metadata: ~
+  - add_cloud_metadata: ~
+
+queue.mem:
+  events: 1024
+  flush.min_events: 10
+  flush.timeout: "100ms"
