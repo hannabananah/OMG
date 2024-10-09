@@ -209,11 +209,7 @@ export default function MyRoom() {
 
         <div className='absolute flex flex-col items-center gap-4 -translate-x-1/2 text-omg-18 bottom-56 left-1/2'>
           <p>예상 판매 수익: ${calculateTotalRevenue()}</p>
-          <Button
-            text='주식 시장에 팔러 가기'
-            type='trade'
-            onClick={goToSellStockItem}
-          />
+          <Button text='팔러가기' type='trade' onClick={goToSellStockItem} />
         </div>
       </main>
     </div>
