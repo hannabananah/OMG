@@ -131,7 +131,7 @@ export default function MyRoom() {
           <BackButton onClick={handleBackButton} />
           <div className='flex flex-col items-end gap-4'>
             <Round presentRound={presentRound} />
-            <Timer time={roundTimer} />
+            <Timer presentRound={presentRound} time={roundTimer} />
           </div>
         </section>
 

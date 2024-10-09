@@ -253,3 +253,45 @@ button:disabled {
 .animate-subtle-pulse {
   animation: subtle-pulse 1s ease-in-out infinite;
 }
+
+@keyframes anime_textup {
+  0% {
+    top: 0;
+  }
+  20% {
+    top: -0.3rem;
+  }
+  40% {
+    top: 0;
+  }
+  60% {
+    top: 0;
+  }
+  80% {
+    top: 0;
+  }
+  100% {
+    top: 0;
+  }
+}
+
+.test_obj span {
+  position: relative;
+  animation: anime_textup 1.5s infinite;
+}
+
+.test_obj span:nth-of-type(1) {
+  animation-delay: 0.1s;
+}
+.test_obj span:nth-of-type(2) {
+  animation-delay: 0.2s;
+}
+.test_obj span:nth-of-type(3) {
+  animation-delay: 0.3s;
+}
+.test_obj span:nth-of-type(4) {
+  animation-delay: 0.4s;
+}
+.test_obj span:nth-of-type(5) {
+  animation-delay: 0.5s;
+}
