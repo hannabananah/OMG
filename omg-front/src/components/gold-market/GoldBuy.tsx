@@ -5,6 +5,7 @@ import { useMainBoardStore } from '@/stores/useMainBoardStore';
 import { usePersonalBoardStore } from '@/stores/usePersonalBoardStore';
 import { useSocketMessage } from '@/stores/useSocketMessage';
 import { SocketContext } from '@/utils/SocketContext';
+import formatNumberWithCommas from '@/utils/formatNumberWithCommas';
 
 import Button from '../common/Button';
 import LineChart from './LineChart';
@@ -45,7 +46,9 @@ export default function GoldBuy() {
 
     // 보유 현금 초과하면 alert
     if (GOLD_PRICE * newGoldCount > MY_MONEY) {
-      alert(`보유한 현금 $${MY_MONEY}을 초과할 수 없습니다.`);
+      alert(
+        `보유한 현금 $${formatNumberWithCommas(MY_MONEY)}을 초과할 수 없습니다.`,
+      );
       return;
     }
 
@@ -95,12 +98,14 @@ export default function GoldBuy() {
             <Button text='+' type='count' onClick={() => handleGoldCount(1)} />
           </div>
 
-          <p className='text-omg-18'>현재 금 시세: ${GOLD_PRICE}</p>
+          <p className='text-omg-18'>
+            현재 금 시세: ${formatNumberWithCommas(GOLD_PRICE)}
+          </p>
 
           {/* 총 가격 표시 */}
           <div className='flex justify-between w-full px-20 text-omg-18'>
             <p>총 가격:</p>
-            <p>${GOLD_PRICE * goldCount}</p>
+            <p>${formatNumberWithCommas(GOLD_PRICE * goldCount)}</p>
           </div>
 
           {/* 매입 버튼 */}
