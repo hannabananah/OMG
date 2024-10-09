@@ -68,7 +68,7 @@ export default function Notification({ onNewNotification }: NotificationProps) {
   }, [transactionMessage]);
 
   const renderMiniCharacterImage = (characterType: number | undefined) => {
-    const imageClasses = 'w-8 h-8 drop-shadow-extra-heavy';
+    const imageClasses = 'w-12 h-12 drop-shadow-md bounce-animation';
 
     switch (characterType) {
       case 0:
@@ -85,17 +85,28 @@ export default function Notification({ onNewNotification }: NotificationProps) {
   };
 
   return (
-    <div className='fixed z-50 space-y-2 top-48 right-5'>
+    <div className='fixed z-50 space-y-2 top-60 right-3'>
       {transitions((style, item) => (
         <animated.div
           key={item.key}
           ref={ref => refMap.set(item, ref)}
           style={style}
-          className='flex items-center px-4 py-6 drop-shadow-lg rounded-10 text-gray bg-white1'
+          className='flex items-center gap-2 px-4 py-8 shadow-inner rounded-10 font-omg-event-content text-omg-24 drop-shadow-lg bg-white1'
         >
-          {renderMiniCharacterImage(item.characterType)}
-          <span>{item.userNickname}</span>
-          {item.msg}
+          <span className='mb-2'>
+            {renderMiniCharacterImage(item.characterType)}
+          </span>
+          <div className='test_obj'>
+            {item.msg.split('').map((char, index) => (
+              <span
+                key={index}
+                className='relative animate-textup'
+                style={{ animationDelay: `${index * 0.1}s` }}
+              >
+                {char}
+              </span>
+            ))}
+          </div>
         </animated.div>
       ))}
     </div>
