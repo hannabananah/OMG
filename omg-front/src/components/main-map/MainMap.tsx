@@ -68,6 +68,8 @@ export default function MainMap() {
   const [isAlertVisible, setIsAlertVisible] = useState(false);
   const [isTimerVisible, setIsTimerVisible] = useState(false);
   const [isRoundVisible, setIsRoundVisible] = useState(false);
+  const [isBoardVisible, setIsBoardVisible] = useState(false);
+
   const [bgm, setBgm] = useState(null);
   const [isMuted, setIsMuted] = useState(false);
 
@@ -124,6 +126,7 @@ export default function MainMap() {
         break;
       case 'ROUND_START':
         setIsRoundVisible(true);
+        setIsBoardVisible(true);
         break;
       case 'GAME_FINISHED':
         setIsRoundVisible(false);
@@ -219,6 +222,21 @@ export default function MainMap() {
 
   return (
     <main className='relative w-full h-screen overflow-hidden'>
+      {/* 배경 이미지 */}
+      <div
+        className='absolute inset-0 z-0 bg-center bg-cover'
+        style={{
+          backgroundImage: `url(${
+            typeof presentRound === 'number'
+              ? presentRound % 2 === 0
+                ? '/assets/night-sky.jpg'
+                : '/assets/morning-sky.jpg'
+              : '/assets/morning-sky.jpg' // 기본 배경 이미지
+          })`,
+          opacity: 0.9,
+        }}
+      ></div>
+
       {/* 내 방 Modal */}
       {modals[nickname]?.myRoom && <MyRoom />}
 
@@ -235,11 +253,13 @@ export default function MainMap() {
       {isGameResultVisible && <GameResult />}
 
       {/* 마퀴 애니메이션 */}
-      <section className='absolute top-0 left-0 z-20 w-full'>
-        <MarketStatusBoard />
-      </section>
+      {isBoardVisible && (
+        <section className='absolute top-0 left-0 z-20 w-full'>
+          <MarketStatusBoard />
+        </section>
+      )}
 
-      {/* Round & Timer & Chat 고정 위치 렌더링 */}
+      {/* Round & Timer 고정 위치 렌더링 */}
       <section className='absolute z-10 flex flex-col items-end gap-4 top-20 right-10'>
         {isRoundVisible && <Round presentRound={presentRound} />}
         {isTimerVisible && <Timer time={roundTimer} />}
@@ -349,7 +369,7 @@ export default function MainMap() {
       </KeyboardControls>
 
       {/* 개인판 영역 */}
-      <PersonalBoard />
+      {isBoardVisible && <PersonalBoard />}
     </main>
   );
 }
