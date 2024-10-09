@@ -6,6 +6,7 @@ import { useGameStore } from '@/stores/useGameStore';
 import { useGoldStore } from '@/stores/useGoldStore';
 import { useLoanStore } from '@/stores/useLoanStore';
 import { useMainBoardStore } from '@/stores/useMainBoardStore';
+import { useMiniMapStore } from '@/stores/useMiniMapStore';
 import { useOtherUserStore } from '@/stores/useOtherUserState';
 import { usePersonalBoardStore } from '@/stores/usePersonalBoardStore';
 import { useSocketMessage } from '@/stores/useSocketMessage';
@@ -113,6 +114,7 @@ export default function SocketProvider({ children }: SocketProviderProps) {
   const { setGameResultData } = useGameResultStore();
   const { setOtherUsers, transactionMessage, setTransactionMessage } =
     useOtherUserStore();
+  const { setPlayerMinimap } = useMiniMapStore();
   const [socket, setSocket] = useState<Client | null>(null);
   const [online, setOnline] = useState(false);
   const [player, setPlayer] = useState<string[]>([]);
@@ -299,6 +301,10 @@ export default function SocketProvider({ children }: SocketProviderProps) {
               );
               useOtherUserStore.getState().setOtherUsers(updatedOtherUsers);
             }
+            break;
+
+          case 'PLAYER_MINIMAP':
+            setPlayerMinimap(parsedMessage.data);
             break;
 
           case 'SUCCESS_PURCHASE_GOLD':
