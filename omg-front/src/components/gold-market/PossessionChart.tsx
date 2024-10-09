@@ -1,11 +1,59 @@
 // import { goldPossessionInfo, players } from '@/assets/data/goldMarketData';
 import { useGoldPossessionData } from '@/hooks/useGold';
+import { getCharacterImageByNickname } from '@/hooks/useStock';
+import { useGameStore } from '@/stores/useGameStore';
 import { useGoldStore } from '@/stores/useGoldStore';
 import { ResponsiveBar } from '@nivo/bar';
+
+// 커스텀 레이블 추가: 주식별 퍼센트 옆에 캐릭터 이미지 추가
+const CustomLabels = ({ bars, players }: any) => {
+  return (
+    <g>
+      {bars.map((bar: any) => {
+        const playerName = bar.data.id;
+        const possessionRate = Math.round(bar.data.data[playerName]);
+
+        // 지분 없으면 이미지 렌더링하지 않음
+        if (!possessionRate) {
+          return null;
+        }
+
+        const imageSrc = getCharacterImageByNickname(
+          String(playerName),
+          players,
+        );
+
+        return (
+          <g
+            key={bar.key}
+            transform={`translate(${bar.x + bar.width / 2 - 20},${bar.y + 6})`}
+          >
+            <image href={imageSrc} width='30' height='30' />
+            <text
+              x={18}
+              y={44}
+              textAnchor='middle'
+              style={{
+                fill: '#000',
+                fontWeight: 'bold',
+                fontSize: 12,
+              }}
+            >
+              {possessionRate}%
+            </text>
+          </g>
+        );
+      })}
+    </g>
+  );
+};
 
 export default function PossessionChart() {
   // 서버에서 플레이어 닉네임, 보유 금 수량 받아오기
   const { playerGoldCounts, playerNicknames } = useGoldStore();
+
+  const { gameData } = useGameStore();
+  const players = gameData?.players || [];
 
   // 차트 데이터 생성
   const chartData = useGoldPossessionData(playerGoldCounts, playerNicknames);
@@ -19,7 +67,7 @@ export default function PossessionChart() {
       padding={0.3}
       layout='horizontal' // 수평형 바 차트
       valueScale={{ type: 'linear' }}
-      colors={{ scheme: 'nivo' }} // 색상 스키마
+      colors={['#FE3439', '#22D007', '#FBCE04', '#547EFF', '#23A50F']} // 플레이어 별로 각기 다른 색상 지정
       axisBottom={{
         tickSize: 5,
         tickPadding: 5,
@@ -28,31 +76,14 @@ export default function PossessionChart() {
         legendPosition: 'middle',
         legendOffset: 48,
       }}
-      label={d => `${Math.round(d.value)}%`} // 소수점 없이 지분 퍼센트 표시
-      labelTextColor={{ from: 'color', modifiers: [['darker', 1.6]] }}
-      legends={[
-        {
-          dataFrom: 'keys',
-          anchor: 'bottom',
-          direction: 'row',
-          justify: false,
-          translateX: 0,
-          translateY: 100,
-          itemWidth: 110,
-          itemHeight: 20,
-          itemDirection: 'left-to-right',
-          itemOpacity: 0.85,
-          symbolSize: 16,
-          symbolShape: 'circle',
-          effects: [
-            {
-              on: 'hover',
-              style: {
-                itemOpacity: 1,
-              },
-            },
-          ],
-        },
+      label={() => ''} // 기존 텍스트 라벨 숨기기
+      layers={[
+        'grid',
+        'axes',
+        'bars',
+        'markers',
+        'legends',
+        props => <CustomLabels {...props} players={players} />, // 커스텀 레이블 추가
       ]}
       theme={{
         grid: {
@@ -72,12 +103,6 @@ export default function PossessionChart() {
               fontFamily: 'Katuri',
               fontSize: 14,
             },
-          },
-        },
-        legends: {
-          text: {
-            fontFamily: 'Katuri',
-            fontSize: 12,
           },
         },
       }}
