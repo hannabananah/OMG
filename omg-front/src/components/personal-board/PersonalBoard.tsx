@@ -1,4 +1,4 @@
-import { useContext, useEffect, useState } from 'react';
+import { useContext, useEffect, useRef, useState } from 'react';
 
 import { CharacterInfo } from '@/assets/data/characterInfo';
 import { itemNameList } from '@/assets/data/stockMarketData';
@@ -7,6 +7,7 @@ import PersonalBG2 from '@/assets/img/bg-personal2.svg?react';
 import Rank1 from '@/assets/img/rank1.svg?react';
 import Rank2 from '@/assets/img/rank2.svg?react';
 import Rank3 from '@/assets/img/rank3.svg?react';
+import useCountUp from '@/hooks/useCountUp';
 import { treeItemNameInKorean } from '@/hooks/useStock';
 import { useGameStore } from '@/stores/useGameStore';
 import { usePersonalBoardStore } from '@/stores/usePersonalBoardStore';
@@ -71,6 +72,11 @@ export default function PersonalBoard() {
 
   const characterImageUrl = `/assets/${Object.keys(CharacterInfo)[characterType]}.png`;
 
+  const cashRef = useRef<HTMLSpanElement>(null);
+  const debtRef = useRef<HTMLSpanElement>(null);
+  const animatedCash = useCountUp(cashRef, cash);
+  const animatedDebt = useCountUp(debtRef, totalDebt);
+
   return (
     <section className='flex justify-center flex-1 h-[104px] -mb-6 text-black'>
       <div className='w-[470px] relative flex h-full py-2 bg-white1 bg-opacity-85 border-t-4 border-x-4 border-white rounded-t-10 overflow-hidden items-center shadow-inner'>
@@ -125,11 +131,11 @@ export default function PersonalBoard() {
           <div className='flex flex-col px-6 text-omg-11 font-omg-body'>
             <div className='flex justify-between w-full'>
               <span>보유 현금</span>
-              <span>${formatNumberWithCommas(cash)}</span>
+              <span ref={cashRef}>${formatNumberWithCommas(animatedCash)}</span>
             </div>
             <div className='flex justify-between w-full'>
               <span>대출액</span>
-              <span>${formatNumberWithCommas(totalDebt)}</span>
+              <span ref={debtRef}>${formatNumberWithCommas(animatedDebt)}</span>
             </div>
           </div>
         </div>
