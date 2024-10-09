@@ -1,4 +1,4 @@
-interface RoundProps {
+export interface RoundProps {
   presentRound: number;
 }
 
