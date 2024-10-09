@@ -112,6 +112,35 @@ export default function IntroCamera({
       if (progress === 1) {
         setIsTransitioning(false);
       }
+    } else {
+      const cameraDistance = 15; // 카메라와 캐릭터 사이의 거리
+
+      // 캐릭터의 방향 벡터에서 카메라가 뒤에 위치하도록 설정
+      const directionNormalized = characterDirection.clone().normalize();
+
+      // 카메라의 새로운 위치는 캐릭터의 위치에서 'direction'의 반대 방향으로 cameraDistance만큼 떨어진 위치
+      const cameraOffset = directionNormalized.multiplyScalar(-cameraDistance);
+
+      // 캐릭터의 위치에서 카메라를 배치할 위치 계산
+      const newCameraPosition = new THREE.Vector3(
+        characterPosition.x + cameraOffset.x,
+        characterPosition.y - 1, // 카메라가 캐릭터 위에 위치하게 설정
+        characterPosition.z + cameraOffset.z,
+      );
+
+      // 카메라의 새로운 위치 설정
+      camera.position.copy(newCameraPosition);
+
+      const targetDirection = characterDirection.clone().normalize();
+
+      const currentDirection = new THREE.Vector3().lerpVectors(
+        startDirection.current,
+        targetDirection,
+        0.5,
+      );
+
+      const lookAtPosition = camera.position.clone().add(currentDirection);
+      camera.lookAt(lookAtPosition);
     }
   });
 

@@ -83,17 +83,14 @@ export const useCharacter = ({
     direction: 'ArrowUp' | 'ArrowDown' | 'ArrowLeft' | 'ArrowRight',
   ) => {
     let newRotation = rotation;
-    if (direction === 'ArrowUp') newRotation = 0;
-    if (direction === 'ArrowDown') newRotation = Math.PI;
-    if (direction === 'ArrowLeft') newRotation = Math.PI / 2;
-    if (direction === 'ArrowRight') newRotation = -Math.PI / 2;
 
+    // 만약 회전이 필요하다면 회전 적용
     if (newRotation !== rotation) {
       rotateCharacterSmoothly(newRotation);
     } else {
       setAnimationState('walking');
     }
-
+    // 일정 시간 후 달리기 애니메이션으로 전환
     runTimeoutRef.current = setTimeout(() => {
       if (isMoving) {
         setAnimationState('running');
