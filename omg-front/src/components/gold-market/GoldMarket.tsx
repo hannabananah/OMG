@@ -1,22 +1,24 @@
 import MarketState from '@/components/stock-market/MarketState';
 import useModalStore from '@/stores/useModalStore';
+import useUser from '@/stores/useUser';
 
 import BackButton from '../common/BackButton';
 import GoldBuy from './GoldBuy';
 
 export default function GoldMarket() {
   const { modals, closeModal } = useModalStore();
+  const { nickname } = useUser();
 
   const handleCloseGoldMarket = (e: React.MouseEvent<HTMLDivElement>) => {
-    if (e.target === e.currentTarget && modals.goldMarket) {
-      closeModal('goldMarket');
+    if (e.target === e.currentTarget && modals[nickname]?.goldMarket) {
+      closeModal('goldMarket', nickname);
     }
   };
 
   // 뒤로 가기 버튼
   const handleBackButton = () => {
-    if (modals.goldMarket) {
-      closeModal('goldMarket');
+    if (modals[nickname]?.goldMarket) {
+      closeModal('goldMarket', nickname);
     }
   };
 

@@ -61,14 +61,19 @@ export default function MainMap() {
   const { otherUsers } = useOtherUserStore();
 
   const { modals, openModal } = useModalStore();
+  const { nickname } = useUser();
+
   const { eventCardMessage, eventEffectMessage, gameRoundMessage } =
     useSocketMessage();
+
   const [isChatOpen, setIsChatOpen] = useState(false);
   const [isEventCardVisible, setIsEventCardVisible] = useState(false);
   const [isEventEffectVisible, setIsEventEffectVisible] = useState(false);
   const [isAlertVisible, setIsAlertVisible] = useState(false);
   const [isTimerVisible, setIsTimerVisible] = useState(false);
   const [isRoundVisible, setIsRoundVisible] = useState(false);
+  const [isBoardVisible, setIsBoardVisible] = useState(false);
+
   const [bgm, setBgm] = useState(null);
   const [isMuted, setIsMuted] = useState(false);
 
@@ -135,6 +140,7 @@ export default function MainMap() {
         break;
       case 'ROUND_START':
         setIsRoundVisible(true);
+        setIsBoardVisible(true);
         break;
       case 'GAME_FINISHED':
         setIsRoundVisible(false);
@@ -214,13 +220,9 @@ export default function MainMap() {
     };
   });
 
-  const openPersonalMissionModal = () => {
-    alert('게임 미션 모달 띄워주기');
-  };
-
   const openMyRoomModal = () => {
-    if (!modals.myRoom) {
-      openModal('myRoom');
+    if (!modals[nickname]?.myRoom) {
+      openModal('myRoom', nickname);
     }
   };
 
@@ -234,27 +236,44 @@ export default function MainMap() {
 
   return (
     <main className='relative w-full h-screen overflow-hidden'>
+      {/* 배경 이미지 */}
+      <div
+        className='absolute inset-0 z-0 bg-center bg-cover'
+        style={{
+          backgroundImage: `url(${
+            typeof presentRound === 'number'
+              ? presentRound % 2 === 0
+                ? '/assets/night-sky.jpg'
+                : '/assets/morning-sky.jpg'
+              : '/assets/morning-sky.jpg' // 기본 배경 이미지
+          })`,
+          opacity: 0.9,
+        }}
+      ></div>
+
       {/* 내 방 Modal */}
-      {modals.myRoom && <MyRoom />}
+      {modals[nickname]?.myRoom && <MyRoom />}
 
       {/* 주식 시장 Modal */}
-      {modals.stockMarket && <StockMarket />}
+      {modals[nickname]?.stockMarket && <StockMarket />}
 
       {/* 금 시장 모달 */}
-      {modals.goldMarket && <GoldMarket />}
+      {modals[nickname]?.goldMarket && <GoldMarket />}
 
       {/* 대출 시장 모달 */}
-      {modals.loanMarket && <LoanMarket />}
+      {modals[nickname]?.loanMarket && <LoanMarket />}
 
       {/* 게임 결과 모달 */}
       {isGameResultVisible && <GameResult />}
 
       {/* 마퀴 애니메이션 */}
-      <section className='absolute top-0 left-0 z-20 w-full'>
-        <MarketStatusBoard />
-      </section>
+      {isBoardVisible && (
+        <section className='absolute top-0 left-0 z-20 w-full'>
+          <MarketStatusBoard />
+        </section>
+      )}
 
-      {/* Round & Timer & Chat 고정 위치 렌더링 */}
+      {/* Round & Timer 고정 위치 렌더링 */}
       <section className='absolute z-10 flex flex-col items-end gap-4 top-20 right-10'>
         {isRoundVisible && <Round presentRound={presentRound} />}
         {isTimerVisible && <Timer time={roundTimer} />}
@@ -274,11 +293,6 @@ export default function MainMap() {
       )}
       {/* 모달 모음 */}
       <section className='absolute z-10 flex flex-col items-start gap-4 left-10 top-20'>
-        <Button
-          text='게임 미션'
-          type='mainmap'
-          onClick={openPersonalMissionModal}
-        />
         {/* TODO: 삭제해야됨, 임시 내 방 버튼 */}
         <Button
           text='임시 내 방 버튼'
@@ -299,7 +313,7 @@ export default function MainMap() {
         <ChatButton isWhite={true} onClick={openChattingModal} />
         {isChatOpen && <Chatting closeChattingModal={closeChattingModal} />}
         {/* 개인판 영역 */}
-        <PersonalBoard />
+        {isBoardVisible && <PersonalBoard />}
         <div className='flex flex-col'>
           <button
             className='mb-4 text-omg-50b'

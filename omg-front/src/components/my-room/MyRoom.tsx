@@ -15,12 +15,15 @@ import { useGameStore } from '@/stores/useGameStore';
 import { useMainBoardStore } from '@/stores/useMainBoardStore';
 import useModalStore from '@/stores/useModalStore';
 import { usePersonalBoardStore } from '@/stores/usePersonalBoardStore';
+import useUser from '@/stores/useUser';
 import { SocketContext } from '@/utils/SocketContext';
 import { Html, OrbitControls } from '@react-three/drei';
 import { Canvas } from '@react-three/fiber';
 
 export default function MyRoom() {
   const { modals, closeModal } = useModalStore();
+  const { nickname } = useUser();
+
   const { roundTimer, presentRound } = useContext(SocketContext);
 
   const { setCarryingCount } = useGameStore();
@@ -105,15 +108,15 @@ export default function MyRoom() {
   };
 
   const handleCloseMyRoom = (e: React.MouseEvent<HTMLDivElement>) => {
-    if (e.target === e.currentTarget && modals.myRoom) {
-      closeModal('myRoom');
+    if (e.target === e.currentTarget && modals[nickname]?.myRoom) {
+      closeModal('myRoom', nickname);
     }
   };
 
   // 뒤로 가기 버튼
   const handleBackButton = () => {
-    if (modals.myRoom) {
-      closeModal('myRoom');
+    if (modals[nickname]?.myRoom) {
+      closeModal('myRoom', nickname);
     }
   };
 
