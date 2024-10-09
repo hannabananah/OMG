@@ -1,8 +1,10 @@
-import { useGameResultStore } from "@/stores/useGameResultStore";
+import { useGameResultStore } from '@/stores/useGameResultStore';
 import useUser from '@/stores/useUser';
+import formatNumberWithCommas from '@/utils/formatNumberWithCommas';
 
 export default function GameTotalResult() {
-  const { playerResults, finalGoldPrice, finalStockPrice } = useGameResultStore();
+  const { playerResults, finalGoldPrice, finalStockPrice } =
+    useGameResultStore();
   const { nickname } = useUser();
 
   return (
@@ -27,30 +29,37 @@ export default function GameTotalResult() {
           const rank = index + 1;
           const isCurrentUser = player.nickname === nickname;
 
-          const finalCash = player.finalCash
-          const totalStockValue = player.finalStockCnt.reduce((acc, stockCount, idx) => {
-            const price = finalStockPrice[idx] || 0;
-            const count = stockCount || 0;
-            return acc + count * price;
-          }, 0);
+          const finalCash = player.finalCash;
+          const totalStockValue = player.finalStockCnt.reduce(
+            (acc, stockCount, idx) => {
+              const price = finalStockPrice[idx] || 0;
+              const count = stockCount || 0;
+              return acc + count * price;
+            },
+            0,
+          );
 
-          const totalGoldValue = (player.finalGoldCnt || 0) * (finalGoldPrice || 0);
+          const totalGoldValue =
+            (player.finalGoldCnt || 0) * (finalGoldPrice || 0);
 
           const totalNetWorth = player.finalNetWorth;
 
           return (
-            <tr key={player.nickname} className={` text-omg-14 ${isCurrentUser ? 'font-bold text-green' : ''}`}>
+            <tr
+              key={player.nickname}
+              className={` text-omg-14 ${isCurrentUser ? 'font-bold text-green' : ''}`}
+            >
               <td>{rank}</td>
               <td>{player.nickname}</td>
-              <td>${finalCash.toLocaleString()}</td>
+              <td>${formatNumberWithCommas(finalCash)}</td>
               <td>+</td>
-              <td>${totalStockValue.toLocaleString()}</td>
+              <td>${formatNumberWithCommas(totalStockValue)}</td>
               <td>+</td>
-              <td>${totalGoldValue.toLocaleString()}</td>
+              <td>${formatNumberWithCommas(totalGoldValue)}</td>
               <td>-</td>
-              <td>{(player.finalDebt || 0).toLocaleString()}</td>
+              <td>${formatNumberWithCommas(player.finalDebt || 0)}</td>
               <td>=</td>
-              <td>${totalNetWorth.toLocaleString()}</td>
+              <td>${formatNumberWithCommas(totalNetWorth)}</td>
             </tr>
           );
         })}

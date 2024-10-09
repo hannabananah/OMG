@@ -5,6 +5,7 @@ import { itemNameList } from '@/assets/data/stockMarketData';
 import { chartData, getStockPriceData } from '@/hooks/useStock';
 import { useStockStore } from '@/stores/useStockStore';
 import { StockMarketView } from '@/types';
+import formatNumberWithCommas from '@/utils/formatNumberWithCommas';
 
 import Button from '../common/Button';
 import LineChart from './LineChart';
@@ -57,7 +58,7 @@ export default function StockMain({ setCurrentView }: StockMainProps) {
 
                   {/* 주가 */}
                   <p className='flex items-center w-24 h-full text-omg-28'>
-                    ${item.price}
+                    ${formatNumberWithCommas(item.price)}
                   </p>
 
                   {/* 등락 */}

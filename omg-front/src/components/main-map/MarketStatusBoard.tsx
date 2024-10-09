@@ -3,6 +3,7 @@ import Marquee from 'react-fast-marquee';
 
 import { useMainBoardStore } from '@/stores/useMainBoardStore';
 import { SocketContext } from '@/utils/SocketContext';
+import formatNumberWithCommas from '@/utils/formatNumberWithCommas';
 
 import Gauge from '../common/Gauge';
 
@@ -68,7 +69,7 @@ export default function MarketStatusBoard() {
             {stockItems.map((item, idx) => (
               <div key={idx} className='flex items-center gap-2'>
                 <img src={item.src} alt={item.name} width={item.width} />
-                <p>${item.price}</p>
+                <p>${formatNumberWithCommas(item.price)}</p>
               </div>
             ))}
           </div>
@@ -81,13 +82,13 @@ export default function MarketStatusBoard() {
               ? presentRound % 2 === 0
                 ? 'text-white'
                 : 'text-black'
-              : 'text-black' // 기본 텍스트 색상
+              : 'text-black'
           }`}
         >
           <h4 className='text-omg-18'>[실시간 금 시세]</h4>
           <div className='flex items-center gap-2'>
             <img src='/assets/gold.png' alt='gold' width={24} />
-            <p>${goldPrice}</p>
+            <p>${formatNumberWithCommas(goldPrice)}</p>
           </div>
         </section>
 
@@ -120,7 +121,7 @@ export default function MarketStatusBoard() {
                 ? presentRound % 2 === 0
                   ? 'text-white'
                   : 'text-black'
-                : 'text-black' // 기본 텍스트 색상
+                : 'text-black'
             } text-omg-18`}
           >
             [가격 변동까지 남은 게이지]

@@ -17,6 +17,7 @@ import useModalStore from '@/stores/useModalStore';
 import { usePersonalBoardStore } from '@/stores/usePersonalBoardStore';
 import useUser from '@/stores/useUser';
 import { SocketContext } from '@/utils/SocketContext';
+import formatNumberWithCommas from '@/utils/formatNumberWithCommas';
 import { Html, OrbitControls } from '@react-three/drei';
 import { Canvas } from '@react-three/fiber';
 
@@ -198,7 +199,10 @@ export default function MyRoom() {
 
                     {/* 현재 판매가 */}
                     <div className='text-omg-14'>
-                      현재 판매가: ${STOCK_MARKET_PRICE[stockIndex + 1]}
+                      현재 판매가: $
+                      {formatNumberWithCommas(
+                        STOCK_MARKET_PRICE[stockIndex + 1],
+                      )}
                     </div>
                   </div>
                 </Html>
@@ -208,7 +212,9 @@ export default function MyRoom() {
         </Canvas>
 
         <div className='absolute flex flex-col items-center gap-4 -translate-x-1/2 text-omg-18 bottom-56 left-1/2'>
-          <p>예상 판매 수익: ${calculateTotalRevenue()}</p>
+          <p>
+            예상 판매 수익: ${formatNumberWithCommas(calculateTotalRevenue())}
+          </p>
           <Button
             text='주식 시장에 팔러 가기'
             type='trade'
