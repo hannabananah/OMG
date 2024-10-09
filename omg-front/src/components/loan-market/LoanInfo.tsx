@@ -1,5 +1,6 @@
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 
+import useCountUp from '@/hooks/useCountUp';
 import { useLoanStore } from '@/stores/useLoanStore';
 import { useSocketMessage } from '@/stores/useSocketMessage';
 import formatNumberWithCommas from '@/utils/formatNumberWithCommas';
@@ -48,26 +49,33 @@ export default function LoanInfo() {
     setRepayLoanMessage({ message: '', isCompleted: false });
   }, [setLoanData, repayLoanMessage]);
 
+  const cashRef = useRef<HTMLSpanElement>(null);
+  const loanLimitRef = useRef<HTMLSpanElement>(null);
+  const debtRef = useRef<HTMLSpanElement>(null);
+  const animatedCash = useCountUp(cashRef, cash);
+  const animatedLoanLimit = useCountUp(loanLimitRef, loanLimit);
+  const animatedDebt = useCountUp(debtRef, totalDebt);
+
   return (
     <div className='flex flex-col items-center w-full gap-4'>
       <p className='text-omg-18'>
-        나의 자산은
-        <span className='text-omg-20 font-omg-title'>
-          ${formatNumberWithCommas(cash)}
+        나의 자산은&nbsp;
+        <span ref={cashRef} className='text-omg-20 font-omg-title'>
+          ${formatNumberWithCommas(animatedCash)}
         </span>
         이고,
       </p>
       <p className='text-omg-18'>
-        현재 대출 한도는
-        <span className='text-omg-20 font-omg-title'>
-          ${formatNumberWithCommas(loanLimit)}
+        현재 대출 한도는&nbsp;
+        <span ref={loanLimitRef} className='text-omg-20 font-omg-title'>
+          ${formatNumberWithCommas(animatedLoanLimit)}
         </span>
         입니다.
       </p>
       <p className='text-omg-18'>
-        현재 갚아야 할 돈은
-        <span className='text-omg-20 font-omg-title'>
-          ${formatNumberWithCommas(totalDebt)}
+        현재 갚아야 할 돈은&nbsp;
+        <span ref={debtRef} className='text-omg-20 font-omg-title'>
+          ${formatNumberWithCommas(animatedDebt)}
         </span>
         입니다.
       </p>
