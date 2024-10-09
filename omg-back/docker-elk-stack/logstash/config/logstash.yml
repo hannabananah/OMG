@@ -1,0 +1,17 @@
+## Default Logstash configuration from Logstash base image.
+## https://github.com/elastic/logstash/blob/master/docker/data/logstash/config/logstash-full.yml
+#
+http.host: "0.0.0.0"
+xpack.monitoring.elasticsearch.hosts: [ "elasticsearch:9200" ]
+xpack.monitoring.enabled: true
+xpack.monitoring.elasticsearch.username: "elastic"
+xpack.monitoring.elasticsearch.password: ${ELASTIC_PASSWORD}
+xpack.monitoring.collection.pipeline.details.enabled: true
+#xpack.monitoring.elasticsearch.api_key: null
+#xpack.monitoring.elasticsearch.data_stream: true
+pipeline.ordered: false
+pipeline.workers: 2
+pipeline.batch.size: 125
+pipeline.batch.delay: 50
+
+log.level: debug

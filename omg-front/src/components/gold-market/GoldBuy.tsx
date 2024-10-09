@@ -5,6 +5,7 @@ import { useMainBoardStore } from '@/stores/useMainBoardStore';
 import { usePersonalBoardStore } from '@/stores/usePersonalBoardStore';
 import { useSocketMessage } from '@/stores/useSocketMessage';
 import { SocketContext } from '@/utils/SocketContext';
+import formatNumberWithCommas from '@/utils/formatNumberWithCommas';
 import { OrbitControls } from '@react-three/drei';
 import { Canvas } from '@react-three/fiber';
 
@@ -48,7 +49,9 @@ export default function GoldBuy() {
 
     // 보유 현금 초과하면 alert
     if (GOLD_PRICE * newGoldCount > MY_MONEY) {
-      alert(`보유한 현금 $${MY_MONEY}을 초과할 수 없습니다.`);
+      alert(
+        `보유한 현금 $${formatNumberWithCommas(MY_MONEY)}을 초과할 수 없습니다.`,
+      );
       return;
     }
 
@@ -106,7 +109,9 @@ export default function GoldBuy() {
 
           {/* 총 가격 & 매입 버튼 */}
           <div className='flex items-center justify-center gap-10'>
-            <p className='text-omg-24'>총 ${GOLD_PRICE * goldCount}</p>
+            <p className='text-omg-24'>
+              총 ${formatNumberWithCommas(GOLD_PRICE * goldCount)}
+            </p>
             <Button text='매입하기' type='trade' onClick={handleBuying} />
           </div>
         </div>

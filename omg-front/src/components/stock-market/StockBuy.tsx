@@ -8,6 +8,7 @@ import { usePersonalBoardStore } from '@/stores/usePersonalBoardStore';
 import { useSocketMessage } from '@/stores/useSocketMessage';
 import { useStockStore } from '@/stores/useStockStore';
 import { SocketContext } from '@/utils/SocketContext';
+import formatNumberWithCommas from '@/utils/formatNumberWithCommas';
 
 import Button from '../common/Button';
 import PossessionChart from './PossessionChart';
@@ -56,7 +57,9 @@ export default function StockBuy() {
     // 보유 현금 초과하면 alert
     const newTotalPrice = totalPrice + value * stockPrices[idx + 1];
     if (newTotalPrice > MY_MONEY) {
-      alert(`보유한 현금 $${MY_MONEY}을 초과할 수 없습니다.`);
+      alert(
+        `보유한 현금 $${formatNumberWithCommas(MY_MONEY)}을 초과할 수 없습니다.`,
+      );
       return;
     }
 
@@ -104,7 +107,9 @@ export default function StockBuy() {
                 </div>
 
                 {/* 주가 */}
-                <p className='text-omg-24'>${stockPrices[idx + 1]}</p>
+                <p className='text-omg-24'>
+                  ${formatNumberWithCommas(stockPrices[idx + 1])}
+                </p>
 
                 {/* 수량 선택 */}
                 <div className='flex items-center'>
@@ -127,7 +132,9 @@ export default function StockBuy() {
 
           {/* 총 가격 & 매수 버튼 */}
           <div className='flex items-center justify-center gap-10'>
-            <p className='text-omg-24'>총 ${totalPrice}</p>
+            <p className='text-omg-24'>
+              총 ${formatNumberWithCommas(totalPrice)}
+            </p>
             <Button text='매수하기' type='trade' onClick={handleBuying} />
           </div>
         </div>
