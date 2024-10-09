@@ -9,4 +9,7 @@ network.host: 0.0.0.0
 #
 xpack.license.self_generated.type: trial
 xpack.security.enabled: true
+xpack.security.authc.token.enabled: true
 xpack.monitoring.collection.enabled: true
+discovery.type: single-node
+index.refresh_interval: "1s"
