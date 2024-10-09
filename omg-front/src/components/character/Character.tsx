@@ -12,6 +12,7 @@ import { CuboidCollider, RigidBody } from '@react-three/rapier';
 import * as THREE from 'three';
 
 import { isInZone, zones } from '../../assets/data/locationInfo';
+import { useIntroStore } from '../../stores/useIntroStore';
 import IntroCamera from '../camera/IntroCamera';
 import Item from './Item';
 
@@ -46,6 +47,8 @@ export default function Character({
   const [rotation, setRotation] = useState(0);
   const movementStateRef = useRef<'idle' | 'walking' | 'running'>('idle');
   const prevPositionRef = useRef(new THREE.Vector3()); // 캐릭터 이전 위치
+  const collisionRef = useRef(false);
+  const { showIntro } = useIntroStore();
 
   const leftPressed = useKeyboardControls(state => state[Controls.left]);
   const rightPressed = useKeyboardControls(state => state[Controls.right]);
@@ -69,6 +72,14 @@ export default function Character({
     onActionToggleChange: setLocalActionToggle,
     isOwnCharacter,
   });
+
+  // 캐릭터 방향과 회전 설정
+  const characterDirection = new THREE.Vector3(
+    Math.sin(rotation),
+    0,
+    Math.cos(rotation),
+  );
+  const characterRotation = new THREE.Euler(0, rotation, 0);
 
   // 특정 거래소 좌표에 입장/퇴장한 유저에게만 해당 거래소 모달 열고 닫기
   const openModalForPlayer = (modalId: string, playerNickname: string) => {
@@ -192,28 +203,82 @@ export default function Character({
     }
   }, [actionToggle, isOwnCharacter]);
 
+  // 물리 충돌 이벤트 핸들러
+  const handleCollisionEnter = () => {
+    if (!showIntro) {
+      console.log('충돌 발생!');
+      collisionRef.current = true;
+    }
+  };
+
+  const handleCollisionExit = () => {
+    if (!showIntro) {
+      console.log('충돌 해제!');
+      collisionRef.current = false;
+    }
+  };
+
   useFrame((_, delta) => {
     mixer.current?.update(delta);
     if (scene) {
       scene.rotation.y = rotation;
+
+      // 회전 처리: 키가 눌린 순간에만 회전
+      if (rightPressed) {
+        setRotation(rotation - Math.PI / 60); // 오른쪽 90도 회
+      }
+      if (leftPressed) {
+        setRotation(rotation + Math.PI / 60); // 왼쪽 90도 회전
+      }
+
       if (isOwnCharacter) {
         // 이동 속도 설정
         const moveDistance = 0.2;
         // 현재 캐릭터 위치 복사
         const newPosition = characterPosition.clone();
-        // 키 입력에 따른 위치 변경
-        if (leftPressed) {
-          newPosition.x += moveDistance;
-        }
-        if (rightPressed) {
-          newPosition.x -= moveDistance;
-        }
+
+        // 키 입력에 따른 위치 변경 (rotation 값에 맞춰 전진/후진 처리)
         if (backPressed) {
-          newPosition.z -= moveDistance;
+          if (collisionRef.current) {
+            if (leftPressed || rightPressed || forwardPressed) {
+              collisionRef.current = false;
+              scene.position.copy(prevPositionRef.current);
+              characterPosition.copy(prevPositionRef.current);
+              newPosition.copy(prevPositionRef.current);
+            } else {
+              scene.position.copy(prevPositionRef.current);
+              characterPosition.copy(prevPositionRef.current);
+              newPosition.copy(prevPositionRef.current);
+              return;
+            }
+          }
+
+          if (!collisionRef.current) {
+            newPosition.x -= Math.sin(rotation) * moveDistance;
+            newPosition.z -= Math.cos(rotation) * moveDistance;
+          }
         }
         if (forwardPressed) {
-          newPosition.z += moveDistance;
+          if (collisionRef.current) {
+            if (leftPressed || rightPressed || backPressed) {
+              collisionRef.current = false;
+              scene.position.copy(prevPositionRef.current);
+              characterPosition.copy(prevPositionRef.current);
+              newPosition.copy(prevPositionRef.current);
+            } else {
+              scene.position.copy(prevPositionRef.current);
+              characterPosition.copy(prevPositionRef.current);
+              newPosition.copy(prevPositionRef.current);
+              return;
+            }
+          }
+
+          if (!collisionRef.current) {
+            newPosition.x += Math.sin(rotation) * moveDistance;
+            newPosition.z += Math.cos(rotation) * moveDistance;
+          }
         }
+
         // 캐릭터 위치가 변했을 때만 서버로 전송
         if (!newPosition.equals(prevPositionRef.current)) {
           const positionArray = newPosition.toArray();
@@ -224,6 +289,7 @@ export default function Character({
         // 캐릭터 위치 업데이트
         setCharacterPosition(newPosition);
         scene.position.copy(newPosition);
+
         // 걷기 및 달리기 상태
         if (
           movementStateRef.current === 'walking' ||
@@ -235,11 +301,22 @@ export default function Character({
             0,
             Math.cos(rotation),
           );
-          const newForwardPosition = characterPosition
-            .clone()
-            .add(forwardDirection.multiplyScalar(moveSpeed));
-          setCharacterPosition(newForwardPosition);
-          scene.position.copy(newForwardPosition);
+
+          // 키 입력에 따른 방향 설정 (전진/후진)
+          if (forwardPressed) {
+            const newForwardPosition = characterPosition
+              .clone()
+              .add(forwardDirection.multiplyScalar(moveSpeed)); // 전진
+            setCharacterPosition(newForwardPosition);
+            scene.position.copy(newForwardPosition);
+          }
+          if (backPressed) {
+            const newBackwardPosition = characterPosition
+              .clone()
+              .add(forwardDirection.multiplyScalar(-moveSpeed)); // 후진
+            setCharacterPosition(newBackwardPosition);
+            scene.position.copy(newBackwardPosition);
+          }
         }
       } else if (position && Array.isArray(position) && position.length === 3) {
         setCharacterPosition(new THREE.Vector3(...position));
@@ -290,15 +367,22 @@ export default function Character({
       {isOwnCharacter && (
         <IntroCamera
           characterPosition={characterPosition}
-          characterDirection={
-            new THREE.Vector3(Math.sin(rotation), 0, Math.cos(rotation))
-          }
-          characterRotation={new THREE.Euler(0, rotation, 0)}
+          characterDirection={characterDirection}
+          characterRotation={characterRotation}
           scale={characterScale}
+          isInLoanMarketZone={isInLoanMarketZone}
         />
       )}
 
-      <RigidBody type='dynamic' colliders={false} lockRotations={true}>
+      <RigidBody
+        type='dynamic'
+        colliders={false}
+        lockRotations={true}
+        onCollisionEnter={handleCollisionEnter}
+        onCollisionExit={handleCollisionExit}
+        restitution={0} // 반발 계수 없애기
+        friction={1} // 마찰력
+      >
         <primitive
           object={scene}
           scale={characterScale}
