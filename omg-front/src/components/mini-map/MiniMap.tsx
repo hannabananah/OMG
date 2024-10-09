@@ -25,17 +25,6 @@ const renderMiniCharacterImage = (characterType: number) => {
   }
 };
 
-const renderPin = (left: number, top: number, label: string) => (
-  <div
-    className={`absolute flex justify-center group left-[${left}px] top-[${top}px]`}
-  >
-    <IoMdPin className='relative bounce-animation' color='red' size={24} />
-    <span className='absolute bottom-0 p-1 text-center text-black transition-all scale-0 font-omg-event-content text-omg-14 break-keep left-7 rounded-5 bg-white2 group-hover:scale-100'>
-      {label}
-    </span>
-  </div>
-);
-
 export default function MiniMap() {
   const { playerMinimap } = useMiniMapStore();
   const { otherUsers } = useOtherUserStore();
@@ -56,9 +45,28 @@ export default function MiniMap() {
         alt='Mini-map'
         className='w-[380px] h-[380px]'
       />
-      {renderPin(154, 136, '주식 거래소')}
-      {renderPin(130, 54, '대출')}
-      {renderPin(270, 188, '금 거래소')}
+      {/* 주식 거래소 */}
+      <div className='absolute flex justify-center group left-[154px] top-[136px]'>
+        <IoMdPin className='relative bounce-animation ' color='red' size={24} />
+        <span className='absolute bottom-0 p-1 text-center text-black transition-all scale-0 font-omg-event-content text-omg-14 break-keep left-7 rounded-5 bg-white2 group-hover:scale-100'>
+          주식 거래소
+        </span>
+      </div>
+
+      {/* 대출 */}
+      <div className='absolute flex justify-center group left-[130px] top-[54px]'>
+        <IoMdPin className='relative bounce-animation' color='red' size={24} />
+        <span className='absolute bottom-0 p-1 text-center text-black transition-all scale-0 font-omg-event-content text-omg-14 break-keep left-7 rounded-5 bg-white2 group-hover:scale-100'>
+          대출
+        </span>
+      </div>
+      {/* 금 거래소 */}
+      <div className='absolute flex justify-center group left-[270px] top-[188px]'>
+        <IoMdPin className='relative bounce-animation' color='red' size={24} />
+        <span className='absolute bottom-0 p-1 text-center text-black transition-all scale-0 font-omg-event-content text-omg-14 break-keep left-7 rounded-5 bg-white2 group-hover:scale-100'>
+          금 거래소
+        </span>
+      </div>
 
       {playerMinimap.map((player, index) => {
         const playerCharacterType =
