@@ -1,12 +1,13 @@
-import { useContext, useEffect, useMemo, useRef, useState } from 'react';
+import { useContext, useEffect, useRef, useState } from 'react';
 
 import { Controls } from '@/components/main-map/MainMap';
 import { useCharacter } from '@/stores/useCharacter';
+import { useGameStore } from '@/stores/useGameStore';
 import { useModalStore } from '@/stores/useModalStore';
 import { useMyRoomStore } from '@/stores/useMyRoomStore';
 import useUser from '@/stores/useUser';
-import { StockItem } from '@/types';
 import { SocketContext } from '@/utils/SocketContext';
+import { Html } from '@react-three/drei';
 import { useKeyboardControls } from '@react-three/drei';
 import { useFrame } from '@react-three/fiber';
 import { CuboidCollider, RigidBody } from '@react-three/rapier';
@@ -36,8 +37,7 @@ export default function Character({
   isOwnCharacter = false,
   startPosition,
 }: Props) {
-  const { movePlayer, allRendered } = useContext(SocketContext);
-
+  const { movePlayer } = useContext(SocketContext);
   const { modals, openModal, closeModal } = useModalStore();
   const { setIsEnteringRoom, setIsExitingRoom, setIsFadingOut } =
     useMyRoomStore();
@@ -48,7 +48,7 @@ export default function Character({
   const [characterPosition, setCharacterPosition] = useState(
     new THREE.Vector3(...startPosition),
   );
-
+  const { carryingCount } = useGameStore();
   const [rotation, setRotation] = useState(0);
   const movementStateRef = useRef<'idle' | 'walking' | 'running'>('idle');
   const prevPositionRef = useRef(new THREE.Vector3()); // 캐릭터 이전 위치
@@ -68,8 +68,9 @@ export default function Character({
   const [isInElfHouseZone, setIsInElfHouseZone] = useState(false);
   const [isInGingerbreadHouseZone, setIsInGingerbreadHouseZone] =
     useState(false);
-
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isTrading, setIsTrading] = useState(false);
+  const [isCarrying, setIsCarrying] = useState(false);
   const [isCircling, setIsCircling] = useState(false);
   const [marketType, setMarketType] = useState<
     null | 'loanMarket' | 'stockMarket' | 'goldMarket'
@@ -200,6 +201,22 @@ export default function Character({
       console.log('금 거래소 벗어남');
     }
 
+    // 시장 영역 상태 업데이트
+    setIsTrading(insideStockMarket || insideLoanMarket || insideGoldMarket);
+
+    // 자기 집
+    const insideHouse =
+      (characterType === 0 && isInZone(characterPosition, zones.santaHouse)) ||
+      (characterType === 1 && isInZone(characterPosition, zones.elfHouse)) ||
+      (characterType === 2 &&
+        isInZone(characterPosition, zones.snowmanHouse)) ||
+      (characterType === 3 &&
+        isInZone(characterPosition, zones.gingerbreadHouse));
+
+    if (insideHouse) {
+      setIsTrading(true); // 집에 들어갔을 때 시장 영역 상태 업데이트
+    }
+
     // 자기 집
     // 0: 산타 캐릭터일 때 산타 MyRoom 모달 열기
     if (characterType === 0) {
@@ -281,18 +298,26 @@ export default function Character({
 
   // 물리 충돌 이벤트 핸들러
   const handleCollisionEnter = () => {
-    if (!showIntro) {
+    if (!showIntro && isOwnCharacter) {
       console.log('충돌 발생!');
       collisionRef.current = true;
     }
   };
 
   const handleCollisionExit = () => {
-    if (!showIntro) {
+    if (!showIntro && isOwnCharacter) {
       console.log('충돌 해제!');
       collisionRef.current = false;
     }
   };
+
+  useEffect(() => {
+    if (carryingCount.some(count => count > 0)) {
+      setIsCarrying(true);
+    } else {
+      setIsCarrying(false);
+    }
+  }, [carryingCount]);
 
   useFrame((_, delta) => {
     mixer.current?.update(delta);
@@ -301,7 +326,7 @@ export default function Character({
 
       // 회전 처리: 키가 눌린 순간에만 회전
       if (rightPressed) {
-        setRotation(rotation - Math.PI / 100); // 오른쪽 90도 회
+        setRotation(rotation - Math.PI / 100); // 오른쪽 90도 회전
       }
       if (leftPressed) {
         setRotation(rotation + Math.PI / 100); // 왼쪽 90도 회전
@@ -340,7 +365,14 @@ export default function Character({
         if (!newPosition.equals(prevPositionRef.current)) {
           const positionArray = newPosition.toArray();
           const directionArray = [Math.sin(rotation), 0, Math.cos(rotation)];
-          movePlayer(positionArray, directionArray, localActionToggle);
+          movePlayer(
+            positionArray,
+            directionArray,
+            localActionToggle,
+            isTrading,
+            isCarrying,
+            movementStateRef.current,
+          );
           prevPositionRef.current.copy(newPosition);
         }
         // 캐릭터 위치 업데이트
@@ -388,29 +420,6 @@ export default function Character({
   });
 
   useEffect(() => {
-    if (scene && allRendered) {
-      const positionArray = scene.position.toArray();
-      const directionArray = [Math.sin(rotation), 0, Math.cos(rotation)];
-
-      if (isOwnCharacter) {
-        movePlayer(positionArray, directionArray, localActionToggle);
-      }
-    }
-  }, [scene, rotation, allRendered, isOwnCharacter, localActionToggle]);
-
-  // 트리 장식 배열 데이터 (예시)
-  const items: { itemName: StockItem; count: number }[] = useMemo(
-    () => [
-      { itemName: 'candy', count: 1 },
-      { itemName: 'cupcake', count: 1 },
-      { itemName: 'gift', count: 1 },
-      { itemName: 'hat', count: 1 },
-      { itemName: 'socks', count: 1 },
-    ],
-    [],
-  );
-
-  useEffect(() => {
     if (localActionToggle) {
       pickUpAnimation();
       setTimeout(() => {
@@ -432,6 +441,7 @@ export default function Character({
       )}
 
       <RigidBody
+        key={`body-${characterType}`}
         type='dynamic'
         colliders={false}
         lockRotations={true}
@@ -446,7 +456,6 @@ export default function Character({
           position={characterPosition}
           startPosition={startPosition}
         />
-
         <CuboidCollider
           position={
             new THREE.Vector3(
@@ -462,17 +471,41 @@ export default function Character({
           ]}
         />
 
-        {items.map((item, itemIndex) =>
-          [...Array(item.count)].map((_, index) => (
-            <Item
-              key={`${item.itemName}-${itemIndex}-${index}`}
-              disabled={true}
-              position={characterPosition}
-              index={index + itemIndex * 2}
-              itemName={item.itemName}
-            />
-          )),
-        )}
+        {(() => {
+          const flattenedItems: JSX.Element[] = [];
+
+          // 거래 중일 때 거래 상태를 표시
+          if (isTrading && isOwnCharacter) {
+            flattenedItems.push(
+              <Html
+                key={`trading-${characterType}`}
+                position={[
+                  characterPosition.x,
+                  characterPosition.y + characterScale[1] * 6,
+                  characterPosition.z,
+                ]}
+                center
+              >
+                <div className='w-20 h-20 bg-blue'>거래 중...</div>
+              </Html>,
+            );
+          }
+
+          // 물건을 들고 있을 때 Item 컴포넌트를 표시
+          if (isCarrying && isOwnCharacter) {
+            flattenedItems.push(
+              <Item
+                key={`carrying-${characterType}`}
+                disabled={true}
+                position={characterPosition}
+                index={flattenedItems.length * 1.8}
+                itemName={'candy'}
+              />,
+            );
+          }
+
+          return flattenedItems;
+        })()}
       </RigidBody>
     </>
   );

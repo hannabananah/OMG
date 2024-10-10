@@ -35,6 +35,9 @@ interface SocketContextType {
     position: number[],
     direction: number[],
     actionToggle: boolean,
+    isTrading: boolean,
+    isCarrying: boolean,
+    animation: string,
   ) => void;
   initGameSetting: () => void;
   allRendered: boolean;
