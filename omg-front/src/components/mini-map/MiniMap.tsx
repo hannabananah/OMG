@@ -109,7 +109,7 @@ export default function MiniMap() {
             <div className='relative drop-shadow-lg animate-subtle-pulse'>
               {renderMiniCharacterImage(playerCharacterType)}
             </div>
-            <span className='absolute bottom-0 z-20 p-1 text-center text-black transition-all scale-0 font-omg-event-content text-omg-14 break-keep left-8 rounded-5 bg-white2 group-hover:scale-100'>
+            <span className='absolute bottom-0 z-20 p-1 text-center text-black transition-all scale-0 font-omg-event-content text-omg-14 break-keep left-11 rounded-5 bg-white2 group-hover:scale-100'>
               {player.nickname}
             </span>
           </div>

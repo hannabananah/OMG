@@ -76,18 +76,18 @@ button:disabled {
 }
 
 @font-face {
-  font-family: 'Laundry';
-  src: url('https://fastly.jsdelivr.net/gh/projectnoonnu/2403-2@1.0/TTLaundryGothicB.woff2')
-    format('woff2');
-  font-weight: 400;
-  font-style: normal;
-}
-
-@font-face {
   font-family: 'Partial';
   src: url('https://fastly.jsdelivr.net/gh/projectnoonnu/noonfonts_2307-1@1.1/PartialSansKR-Regular.woff2')
     format('woff2');
   font-weight: normal;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: 'Laundry';
+  src: url('https://fastly.jsdelivr.net/gh/projectnoonnu/2403-2@1.0/TTLaundryGothicB.woff2')
+    format('woff2');
+  font-weight: 400;
   font-style: normal;
 }
 

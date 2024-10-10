@@ -16,6 +16,7 @@ import MainAlert from '@/components/common/MainAlert';
 import Notification from '@/components/common/Notification';
 import Round from '@/components/common/Round';
 import Timer from '@/components/common/Timer';
+import CanvasLoader from '@/components/game/CanvasLoader';
 import EventCard from '@/components/game/EventCard';
 import EventEffect from '@/components/game/EventEffect';
 import GameResult from '@/components/game/GameResult';
@@ -93,6 +94,7 @@ export default function MainMap() {
 
   useEffect(() => {
     if (socket && online && allRendered) {
+      console.log('된겨?');
       initGameSetting();
     }
   }, [allRendered]);
@@ -348,7 +350,7 @@ export default function MainMap() {
 
       <KeyboardControls map={keyboardMap}>
         <Canvas>
-          <Suspense>
+          <Suspense fallback={<CanvasLoader />}>
             {/* <OrbitControls /> */}
 
             <Physics timeStep='vary' colliders={false}>
