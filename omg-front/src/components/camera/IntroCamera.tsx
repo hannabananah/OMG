@@ -33,9 +33,9 @@ export default function IntroCamera({
   const transitionDuration = 4; // 전환 애니메이션 지속 시간
 
   const loanMarketTarget = new THREE.Vector3(
-    44.80202477299613,
+    47.54649835206037,
     0,
-    72.08060339923867,
+    98.5218742720992,
   );
   const stockMarketTarget = new THREE.Vector3(
     45.1858401585588,
@@ -94,8 +94,11 @@ export default function IntroCamera({
         startRotation.current.copy(camera.rotation);
         setShowIntro();
       }
-    } // 전체 맵 다 돌고 캐릭터 줌인하면서 카메라 전환 중
-    else if (isTransitioning) {
+      return;
+    }
+
+    // 전체 맵 다 돌고 캐릭터 줌인하면서 카메라 전환 중
+    if (isTransitioning) {
       const transitionTime = elapsedTime - transitionStartTime.current;
       const progress = Math.min(transitionTime / transitionDuration, 1);
       const easeProgress = easeInOutCubic(progress); //전환 진행될수록 0에서 1로 증가
@@ -134,72 +137,79 @@ export default function IntroCamera({
       if (progress === 1) {
         setIsTransitioning(false);
       }
+      return;
     }
-    // showintro, 캐릭터 줌인 끝나고 캐릭터 따라다니는 카메라 상태
-    else {
-      // 1. 거래소 제외한 일반 캐릭터 카메라 - 기본(코드 수정하면 안됨)
-      if (!isModalOpen) {
-        const cameraDistance = 15; // 카메라와 캐릭터 사이의 거리
 
-        // 캐릭터의 방향 벡터에서 카메라가 뒤에 위치하도록 설정
-        const directionNormalized = characterDirection.clone().normalize();
+    // 1. 거래소 제외한 일반 캐릭터 카메라 - 기본(코드 수정하면 안됨)
+    if (!isModalOpen) {
+      const cameraDistance = 15; // 카메라와 캐릭터 사이의 거리
 
-        // 카메라의 새로운 위치는 캐릭터의 위치에서 'direction'의 반대 방향으로 cameraDistance만큼 떨어진 위치
-        const cameraOffset =
-          directionNormalized.multiplyScalar(-cameraDistance);
+      // 캐릭터의 방향 벡터에서 카메라가 뒤에 위치하도록 설정
+      const directionNormalized = characterDirection.clone().normalize();
 
-        // 캐릭터의 위치에서 카메라를 배치할 위치 계산
-        const newCameraPosition = new THREE.Vector3(
-          characterPosition.x + cameraOffset.x,
-          characterPosition.y - 1, // 카메라가 캐릭터 위에 위치하게 설정
-          characterPosition.z + cameraOffset.z,
-        );
+      // 카메라의 새로운 위치는 캐릭터의 위치에서 'direction'의 반대 방향으로 cameraDistance만큼 떨어진 위치
+      const cameraOffset = directionNormalized.multiplyScalar(-cameraDistance);
 
-        // 카메라의 새로운 위치 설정
-        camera.position.copy(newCameraPosition);
+      // 캐릭터의 위치에서 카메라를 배치할 위치 계산
+      const newCameraPosition = new THREE.Vector3(
+        characterPosition.x + cameraOffset.x,
+        characterPosition.y - 1, // 카메라가 캐릭터 위에 위치하게 설정
+        characterPosition.z + cameraOffset.z,
+      );
 
-        const targetDirection = characterDirection.clone().normalize();
+      // 카메라의 새로운 위치 설정
+      camera.position.copy(newCameraPosition);
 
-        const lookAtPosition = camera.position.clone().add(targetDirection);
-        camera.lookAt(lookAtPosition);
+      const targetDirection = characterDirection.clone().normalize();
 
-        setCircleProgress(0);
+      const lookAtPosition = camera.position.clone().add(targetDirection);
+      camera.lookAt(lookAtPosition);
+
+      setCircleProgress(0);
+      return;
+    }
+
+    // 2. 거래소 진입해서 원 돌 때
+    if (circleProgress < 0.9) {
+      let targetPosition;
+
+      if (marketType === 'loanMarket') {
+        targetPosition = loanMarketTarget;
+      } else if (marketType === 'stockMarket') {
+        targetPosition = stockMarketTarget;
+      } else if (marketType === 'goldMarket') {
+        targetPosition = goldMarketTarget;
       }
-      // 2. 거래소 진입해서 원 돌 때
-      else if (circleProgress < 1) {
-        let targetPosition;
 
-        if (marketType === 'loanMarket') {
-          targetPosition = loanMarketTarget;
-        } else if (marketType === 'stockMarket') {
-          targetPosition = stockMarketTarget;
-        } else if (marketType === 'goldMarket') {
-          targetPosition = goldMarketTarget;
-        }
+      const angle = circleProgress * (Math.PI / 3);
+      camera.position.set(
+        targetPosition.x + Math.cos(angle) * circleRadius,
+        targetPosition.y + 1,
+        targetPosition.z + Math.sin(angle) * circleRadius,
+      );
+      camera.lookAt(targetPosition);
 
-        const angle = circleProgress * (Math.PI / 3);
-        camera.position.set(
-          targetPosition.x + Math.cos(angle) * circleRadius,
-          targetPosition.y + 1,
-          targetPosition.z + Math.sin(angle) * circleRadius,
-        );
-        camera.lookAt(targetPosition);
+      setCircleProgress(prev => prev + circleSpeed * delta);
+    }
 
-        setCircleProgress(prev => prev + circleSpeed * delta);
+    // 회전 완료
+    if (circleProgress >= 0.9) {
+      // 서클링 종료 후 카메라 위치 고정
+      let targetPosition;
 
-        // 회전 완료
-        if (circleProgress >= 0.9) {
-          // 서클링 종료 후 카메라 위치 고정
-          camera.position.set(
-            targetPosition.x,
-            targetPosition.y,
-            targetPosition.z,
-          );
-          camera.lookAt(targetPosition);
-          setCircleProgress(1);
-          setIsCircling(false);
-        }
+      if (marketType === 'loanMarket') {
+        targetPosition = loanMarketTarget;
+      } else if (marketType === 'stockMarket') {
+        targetPosition = stockMarketTarget;
+      } else if (marketType === 'goldMarket') {
+        targetPosition = goldMarketTarget;
       }
+
+      camera.position.set(targetPosition.x, targetPosition.y, targetPosition.z);
+      camera.lookAt(targetPosition);
+      setCircleProgress(1);
+      setIsCircling(false);
+      return;
     }
   });
 
