@@ -278,7 +278,7 @@ export default function MainMap() {
 
       {/* 내 방 입장 알림 메시지 */}
       {isEnteringRoom[nickname] && (
-        <div className='absolute inset-0 z-50 flex items-center justify-center bg-black bg-opacity-75'>
+        <div className='absolute inset-0 z-40 flex items-center justify-center bg-black bg-opacity-75'>
           <p className='tracking-wider text-white text-omg-50b test_obj'>
             <span>방</span>
             <span>으</span>
@@ -315,7 +315,7 @@ export default function MainMap() {
 
       {/* 마퀴 애니메이션 */}
       {isBoardVisible && (
-        <section className='absolute top-0 left-0 z-20 w-full'>
+        <section className='absolute top-0 left-0 z-10 w-full'>
           <MarketStatusBoard />
         </section>
       )}
@@ -330,7 +330,7 @@ export default function MainMap() {
       </section>
 
       {isEventCardVisible && (
-        <div className='absolute z-30 flex items-center justify-center w-full h-full'>
+        <div className='absolute z-40 flex items-center justify-center w-full h-full'>
           <EventCard />
         </div>
       )}
@@ -348,14 +348,14 @@ export default function MainMap() {
 
       {/* 모든 Round 알람 */}
       {isAlertVisible && gameRoundMessage.message && (
-        <div className='absolute z-20 w-full h-full'>
+        <div className='absolute z-50 w-full h-full'>
           {getAlertComponent(gameRoundMessage.message)}
         </div>
       )}
 
       {/* 주가 변동 알림 */}
       {isStockChangeAlertVisible && stockChangeAlertMessage && (
-        <div className='absolute z-20 w-full h-full'>
+        <div className='absolute z-50 w-full h-full'>
           <StockChangeAlert message={stockChangeAlertMessage} />
         </div>
       )}

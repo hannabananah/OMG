@@ -35,7 +35,7 @@ export default function Chatting({ closeChattingModal }: ChattingProps) {
   }, [chatMessages]);
 
   return (
-    <div className='absolute z-40 w-[300px] py-3 mb-6 bg-white bg-opacity-90 h-52 rounded-t-10 text-omg-14 font-omg-chat'>
+    <div className='absolute z-30 w-[300px] py-3 mb-6 bg-white bg-opacity-90 h-52 rounded-t-10 text-omg-14 font-omg-chat'>
       <button
         className='absolute p-2 -m-2 text-gray hover:text-black top-2 right-4'
         onClick={closeChattingModal}
