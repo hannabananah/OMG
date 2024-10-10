@@ -1,5 +1,4 @@
 import { useFloatingObject } from '@/hooks/useFloatingObject';
-import type { AboveHead, StockItem } from '@/types';
 import { useGLTF } from '@react-three/drei';
 import * as THREE from 'three';
 
@@ -7,7 +6,7 @@ interface ItemProps {
   disabled: boolean;
   position: THREE.Vector3;
   index: number;
-  itemName: StockItem | AboveHead;
+  itemName: string;
 }
 
 export default function Item({

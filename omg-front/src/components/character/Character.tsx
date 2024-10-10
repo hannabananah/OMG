@@ -7,8 +7,7 @@ import { useModalStore } from '@/stores/useModalStore';
 import { useMyRoomStore } from '@/stores/useMyRoomStore';
 import useUser from '@/stores/useUser';
 import { SocketContext } from '@/utils/SocketContext';
-import { Html } from '@react-three/drei';
-import { useKeyboardControls } from '@react-three/drei';
+import { Html, useKeyboardControls } from '@react-three/drei';
 import { useFrame } from '@react-three/fiber';
 import { CuboidCollider, RigidBody } from '@react-three/rapier';
 import * as THREE from 'three';
@@ -521,7 +520,7 @@ export default function Character({
                 disabled={true}
                 position={characterPosition}
                 index={flattenedItems.length * 1.8}
-                itemName={'candy'}
+                itemName={'pouch'}
               />,
             );
           }
