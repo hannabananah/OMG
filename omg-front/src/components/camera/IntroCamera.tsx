@@ -45,7 +45,7 @@ export default function IntroCamera({
   const goldMarketTarget = new THREE.Vector3(
     -12.130037404695917,
     0,
-    -28.586191813284028,
+    -20.586191813284028,
   );
   const circleRadius = 8;
   const circleSpeed = 0.3;
