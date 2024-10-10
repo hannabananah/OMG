@@ -70,6 +70,10 @@ export default function Character({
     useState(false);
 
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isCircling, setIsCircling] = useState(false);
+  const [marketType, setMarketType] = useState<
+    null | 'loanMarket' | 'stockMarket' | 'goldMarket'
+  >(null);
 
   const { scene, mixer, pickUpAnimation } = useCharacter({
     characterURL,
@@ -86,7 +90,6 @@ export default function Character({
     0,
     Math.cos(rotation),
   );
-  // const characterRotation = new THREE.Euler(0, rotation, 0);
 
   // 특정 거래소 좌표에 입장/퇴장한 유저에게만 해당 거래소 모달 열고 닫기
   const openMarketForPlayer = (modalId: string, playerNickname: string) => {
@@ -126,13 +129,25 @@ export default function Character({
     }
   };
 
+  // modal open close
   useEffect(() => {
-    if (modals[nickname]?.loanMarket) {
+    if (
+      modals[nickname]?.loanMarket ||
+      modals[nickname]?.stockMarket ||
+      modals[nickname]?.goldMarket
+    ) {
       setIsModalOpen(true);
     } else {
       setIsModalOpen(false);
     }
   }, [modals, nickname]);
+
+  // 거래소 진입 시 카메라 전환
+  useEffect(() => {
+    if (marketType && !isCircling) {
+      setIsCircling(true);
+    }
+  }, [marketType, isCircling]);
 
   useEffect(() => {
     // 자신의 캐릭터가 아닌 경우 모달 제어 로직을 실행하지 않음
@@ -155,21 +170,29 @@ export default function Character({
       const insideStockMarket = isInZone(characterPosition, zones.stockMarket);
       if (insideStockMarket && !isInStockMarketZone) {
         setIsInStockMarketZone(true);
+        setMarketType('stockMarket');
+        setIsModalOpen(true);
+        setIsCircling(true);
         openMarketForPlayer('stockMarket', nickname);
         console.log('주식 시장 진입');
       } else if (!insideStockMarket && isInStockMarketZone) {
         setIsInStockMarketZone(false);
+        setMarketType(null);
         closeMarketForPlayer('stockMarket', nickname);
+        setIsModalOpen(false);
         console.log('주식 시장 벗어남');
       }
       const insideLoanMarket = isInZone(characterPosition, zones.loanMarket);
       if (insideLoanMarket && !isInLoanMarketZone) {
         setIsInLoanMarketZone(true);
+        setMarketType('loanMarket');
         setIsModalOpen(true);
+        setIsCircling(true);
         openMarketForPlayer('loanMarket', nickname);
         console.log('대출 방 진입');
       } else if (!insideLoanMarket && isInLoanMarketZone) {
         setIsInLoanMarketZone(false);
+        setMarketType(null);
         closeMarketForPlayer('loanMarket', nickname);
         setIsModalOpen(false);
         console.log('대출 방 벗어남');
@@ -177,11 +200,16 @@ export default function Character({
       const insideGoldMarket = isInZone(characterPosition, zones.goldMarket);
       if (insideGoldMarket && !isInGoldMarketZone) {
         setIsInGoldMarketZone(true);
+        setMarketType('goldMarket');
+        setIsModalOpen(true);
+        setIsCircling(true);
         openMarketForPlayer('goldMarket', nickname);
         console.log('금 거래소 진입');
       } else if (!insideGoldMarket && isInGoldMarketZone) {
         setIsInGoldMarketZone(false);
+        setMarketType(null);
         closeMarketForPlayer('goldMarket', nickname);
+        setIsModalOpen(false);
         console.log('금 거래소 벗어남');
       }
 
@@ -411,10 +439,9 @@ export default function Character({
         <IntroCamera
           characterPosition={characterPosition}
           characterDirection={characterDirection}
-          isInStockMarketZone={isInStockMarketZone}
-          isInLoanMarketZone={isInLoanMarketZone}
-          isInGoldMarketZone={isInGoldMarketZone}
           isModalOpen={isModalOpen}
+          setIsCircling={setIsCircling}
+          marketType={marketType}
         />
       )}
 
