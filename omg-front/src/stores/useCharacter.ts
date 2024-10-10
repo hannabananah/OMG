@@ -110,14 +110,10 @@ export const useCharacter = ({
 
     activeKeys.current.delete(event.key);
 
-    if (activeKeys.current.size > 0) {
-      const remainingKey = [...activeKeys.current][0];
-      handleMovementStart(
-        remainingKey as 'ArrowUp' | 'ArrowDown' | 'ArrowLeft' | 'ArrowRight',
-      );
-    } else {
-      setAnimationState('idle');
-      setIsMoving(false);
+    // activeKeys가 비어 있으면 캐릭터를 idle 상태로 전환
+    if (activeKeys.current.size === 0) {
+      setAnimationState('idle'); // 캐릭터를 idle 상태로 설정
+      setIsMoving(false); // 이동 중인 상태를 false로 설정
       if (runTimeoutRef.current) {
         clearTimeout(runTimeoutRef.current);
         runTimeoutRef.current = null;

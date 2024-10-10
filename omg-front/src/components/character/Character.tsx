@@ -323,7 +323,7 @@ export default function Character({
 
       if (isOwnCharacter) {
         // 이동 속도 설정
-        const moveDistance = 0.2;
+        const moveDistance = 0.25;
         // 현재 캐릭터 위치 복사
         const newPosition = characterPosition.clone();
 
@@ -366,7 +366,7 @@ export default function Character({
           movementStateRef.current === 'walking' ||
           movementStateRef.current === 'running'
         ) {
-          const moveSpeed = movementStateRef.current === 'walking' ? 0.2 : 0.3;
+          const moveSpeed = movementStateRef.current === 'walking' ? 0.25 : 0.3;
           const forwardDirection = new THREE.Vector3(
             Math.sin(rotation),
             0,
