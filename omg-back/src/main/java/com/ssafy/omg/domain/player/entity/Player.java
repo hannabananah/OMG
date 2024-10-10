@@ -50,4 +50,8 @@ public class Player {
         }
         return false;
     }
+
+    public double distanceTo(Player other) {
+        return Math.sqrt(Math.pow(this.position[0] - other.position[0], 2) + Math.pow(this.position[2] - other.position[2], 2));
+    }
 }
