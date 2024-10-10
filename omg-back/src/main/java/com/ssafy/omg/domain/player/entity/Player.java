@@ -39,7 +39,7 @@ public class Player {
     private boolean battleState;
     private int isConnected;           // 플레이어 접속 상태 (0: 끊김, 1: 연결됨)
 
-    private int tax;          // carryingStocks나 carryingGolds가 있는 상태로 게임이 끝났을 경우 카운트
+    private int tax;          // carryingStocks나 carryingGolds가 있는 상태로 게임이 끝났을 경우 세금 부과
 
     public void addCash(int amount) {
         this.cash += amount;
