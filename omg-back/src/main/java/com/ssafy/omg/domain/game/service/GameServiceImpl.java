@@ -252,6 +252,7 @@ public class GameServiceImpl implements GameService {
                     .finalStockCnt(player.getStock())
                     .finalNetWorth(finalNetWorth)
                     .finalDebt(player.getTotalDebt())
+                    .finalTax(player.getTax())
                     .build();
             playerResults.add(individualResult);
 
@@ -261,6 +262,7 @@ public class GameServiceImpl implements GameService {
             System.out.println("  Final Net Worth: " + finalNetWorth);
             System.out.println("  Final Debt: " + player.getTotalDebt());
             System.out.println("  Cash: " + player.getCash());
+            System.out.println("  Tax: " + player.getTax());
         }
 
         System.out.println("\n==== Player Results Before Sorting ====");
@@ -305,6 +307,10 @@ public class GameServiceImpl implements GameService {
         int debt = player.getTotalDebt();
         netWorth -= debt;
         System.out.println("    Total debt: " + debt);
+
+        int tax = player.getTax();
+        netWorth -= tax;
+        System.out.println("    Total tax: " + tax);
 
         System.out.println("    Final net worth: " + netWorth);
 
@@ -379,6 +385,7 @@ public class GameServiceImpl implements GameService {
                         .action(null)                     // 플레이어 행위 (주식 매수, 주식 매도, 금괴 매입, 대출, 상환)
                         .state(NOT_STARTED)               // 플레이어 행위 상태 (시작전, 진행중, 완료)
                         .isConnected(1)                   // 플레이어 접속 상태 (0: 끊김, 1: 연결됨)
+                        .tax(0)
                         .build();
                 players.add(newPlayer);
             }
