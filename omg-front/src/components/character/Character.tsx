@@ -225,10 +225,10 @@ export default function Character({
 
       // 회전 처리: 키가 눌린 순간에만 회전
       if (rightPressed) {
-        setRotation(rotation - Math.PI / 60); // 오른쪽 90도 회
+        setRotation(rotation - Math.PI / 100); // 오른쪽 90도 회
       }
       if (leftPressed) {
-        setRotation(rotation + Math.PI / 60); // 왼쪽 90도 회전
+        setRotation(rotation + Math.PI / 100); // 왼쪽 90도 회전
       }
 
       if (isOwnCharacter) {
@@ -295,7 +295,7 @@ export default function Character({
           movementStateRef.current === 'walking' ||
           movementStateRef.current === 'running'
         ) {
-          const moveSpeed = movementStateRef.current === 'walking' ? 0.2 : 0.4;
+          const moveSpeed = movementStateRef.current === 'walking' ? 0.2 : 0.3;
           const forwardDirection = new THREE.Vector3(
             Math.sin(rotation),
             0,
