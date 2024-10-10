@@ -14,7 +14,7 @@ import { treeItemNameInKorean } from '@/hooks/useStock';
 import { useGameStore } from '@/stores/useGameStore';
 import { useMainBoardStore } from '@/stores/useMainBoardStore';
 import { useModalStore } from '@/stores/useModalStore';
-import { useMyRoomStore } from '@/stores/useMyroomStore';
+import { useMyRoomStore } from '@/stores/useMyRoomStore';
 import { usePersonalBoardStore } from '@/stores/usePersonalBoardStore';
 import useUser from '@/stores/useUser';
 import { SocketContext } from '@/utils/SocketContext';

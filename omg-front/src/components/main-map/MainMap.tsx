@@ -24,7 +24,7 @@ import Map from '@/components/main-map/Map';
 import MiniMap from '@/components/mini-map/MiniMap';
 import StockMarket from '@/components/stock-market/StockMarket';
 import { useModalStore } from '@/stores/useModalStore';
-import { useMyRoomStore } from '@/stores/useMyroomStore';
+import { useMyRoomStore } from '@/stores/useMyRoomStore';
 import { useOtherUserStore } from '@/stores/useOtherUserState';
 import { useSocketMessage } from '@/stores/useSocketMessage';
 import useUser from '@/stores/useUser';
