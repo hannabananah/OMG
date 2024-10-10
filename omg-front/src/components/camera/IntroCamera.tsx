@@ -36,7 +36,7 @@ export default function IntroCamera({
   const speed = 0.85;
   const transitionDuration = 4; // 전환 애니메이션 지속 시간
 
-  const { modals, openModal, closeModal } = useModalStore();
+  const { modals, openModal } = useModalStore();
   const { nickname } = useUser();
 
   const [isCircling, setIsCircling] = useState(false);

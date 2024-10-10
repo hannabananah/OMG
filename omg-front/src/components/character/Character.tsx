@@ -37,7 +37,7 @@ export default function Character({
 }: Props) {
   const { movePlayer, allRendered } = useContext(SocketContext);
 
-  const { modals, openModal, closeModal } = useModalStore();
+  const { modals, closeModal } = useModalStore();
   const { nickname } = useUser();
 
   const [localActionToggle, setLocalActionToggle] = useState(false);
