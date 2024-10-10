@@ -1338,28 +1338,31 @@ public class GameServiceImpl implements GameService {
             player.setDirection(playerMoveRequest.direction());
             player.setPosition(playerMoveRequest.position());
             player.setActionToggle(playerMoveRequest.actionToggle());
+            player.setTrading(playerMoveRequest.isTrading());
+            player.setCarrying(playerMoveRequest.isCarrying());
+            player.setAnimation(player.getAnimation());
 
-            for (Player otherPlayer : arena.getGame().getPlayers()) {
-                if (!otherPlayer.getNickname().equals(player.getNickname())) {
-                    double distance = player.distanceTo(otherPlayer);
-                    boolean isClose = distance <= 5;
-                    notifyPlayerDistance(roomId, player, otherPlayer, isClose);
-                }
-            }
+//            for (Player otherPlayer : arena.getGame().getPlayers()) {
+//                if (!otherPlayer.getNickname().equals(player.getNickname())) {
+//                    double distance = player.distanceTo(otherPlayer);
+//                    boolean isClose = distance <= 5;
+//                    notifyPlayerDistance(roomId, player, otherPlayer, isClose);
+//                }
+//            }
             gameRepository.saveArena(roomId, arena);
         }
     }
 
-    private void notifyPlayerDistance(String roomId, Player p1, Player p2, boolean isClose) {
-        String message = p1.getNickname() + ":" + p2.getNickname();
-        StompPayload<PlayerDistanceDto> payload = new StompPayload<>(
-                isClose ? "BATTLE_AVAILABLE" : "BATTLE_UNAVAILABLE",
-                roomId,
-                null,
-                new PlayerDistanceDto(message, isClose)
-        );
-        messagingTemplate.convertAndSend("/sub/" + roomId + "/game", payload);
-    }
+//    private void notifyPlayerDistance(String roomId, Player p1, Player p2, boolean isClose) {
+//        String message = p1.getNickname() + ":" + p2.getNickname();
+//        StompPayload<PlayerDistanceDto> payload = new StompPayload<>(
+//                isClose ? "BATTLE_AVAILABLE" : "BATTLE_UNAVAILABLE",
+//                roomId,
+//                null,
+//                new PlayerDistanceDto(message, isClose)
+//        );
+//        messagingTemplate.convertAndSend("/sub/" + roomId + "/game", payload);
+//    }
 
 
     @Override
