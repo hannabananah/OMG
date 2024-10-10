@@ -19,6 +19,7 @@ import com.ssafy.omg.domain.game.entity.LoanProduct;
 import com.ssafy.omg.domain.game.entity.StockInfo;
 import com.ssafy.omg.domain.game.entity.StockState;
 import com.ssafy.omg.domain.game.repository.GameEventRepository;
+import com.ssafy.omg.domain.player.dto.PlayerAnimation;
 import com.ssafy.omg.domain.player.dto.PlayerResult;
 import com.ssafy.omg.domain.player.entity.Player;
 import com.ssafy.omg.domain.player.entity.PlayerStatus;
@@ -431,6 +432,7 @@ public class GameServiceImpl implements GameService {
                         .action(null)                     // 플레이어 행위 (주식 매수, 주식 매도, 금괴 매입, 대출, 상환)
                         .state(NOT_STARTED)               // 플레이어 행위 상태 (시작전, 진행중, 완료)
                         .isConnected(1)                   // 플레이어 접속 상태 (0: 끊김, 1: 연결됨)
+                        .animation(PlayerAnimation.IDLE)  // 기본상태
                         .tax(0)
                         .build();
                 players.add(newPlayer);
@@ -1340,7 +1342,7 @@ public class GameServiceImpl implements GameService {
             player.setActionToggle(playerMoveRequest.actionToggle());
             player.setTrading(playerMoveRequest.isTrading());
             player.setCarrying(playerMoveRequest.isCarrying());
-            player.setAnimation(player.getAnimation());
+            player.setAnimation(playerMoveRequest.animation());
 
 //            for (Player otherPlayer : arena.getGame().getPlayers()) {
 //                if (!otherPlayer.getNickname().equals(player.getNickname())) {

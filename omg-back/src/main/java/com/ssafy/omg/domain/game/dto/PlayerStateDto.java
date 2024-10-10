@@ -1,6 +1,6 @@
 package com.ssafy.omg.domain.game.dto;
 
-import com.ssafy.omg.domain.game.entity.Game;
+import com.ssafy.omg.domain.player.dto.PlayerAnimation;
 
 public record PlayerStateDto(
         String nickname,
@@ -9,6 +9,6 @@ public record PlayerStateDto(
         boolean actionToggle,
         boolean isTrading,
         boolean isCarrying,
-        String animation
+        PlayerAnimation animation
 ) {
 }
