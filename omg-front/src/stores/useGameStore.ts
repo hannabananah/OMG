@@ -30,10 +30,14 @@ interface GameData {
 
 interface GameStore {
   gameData: GameData | null;
-  carryingCount: number[];
+  carryingToMarketCount: number[];
+  carryingToHomeCount: number[];
   selectedCount: number[];
   setGameData: (data: Partial<GameData>) => void; // Partial 타입 사용하여 일부 필드만 업데이트 가능하도록 설정
-  setCarryingCount: (
+  setCarryingToMarketCount: (
+    data: number[] | ((prevData: number[]) => number[]),
+  ) => void;
+  setCarryingToHomeCount: (
     data: number[] | ((prevData: number[]) => number[]),
   ) => void;
   setSelectedCount: (
@@ -43,7 +47,8 @@ interface GameStore {
 
 export const useGameStore = create<GameStore>(set => ({
   gameData: null,
-  carryingCount: [0, 0, 0, 0, 0, 0],
+  carryingToMarketCount: [0, 0, 0, 0, 0, 0],
+  carryingToHomeCount: [0, 0, 0, 0, 0, 0],
   selectedCount: [0, 0, 0, 0, 0, 0],
   // 일부 데이터만 업데이트
   setGameData: (data: Partial<GameData>) => {
@@ -55,11 +60,26 @@ export const useGameStore = create<GameStore>(set => ({
     }));
   },
 
-  setCarryingCount: (data: number[] | ((prevData: number[]) => number[])) => {
+  setCarryingToMarketCount: (
+    data: number[] | ((prevData: number[]) => number[]),
+  ) => {
     if (typeof data === 'function') {
-      set(prev => ({ carryingCount: data(prev.carryingCount) }));
+      set(prev => ({
+        carryingToMarketCount: data(prev.carryingToMarketCount),
+      }));
     } else {
-      set({ carryingCount: data });
+      set({ carryingToMarketCount: data });
+    }
+  },
+  setCarryingToHomeCount: (
+    data: number[] | ((prevData: number[]) => number[]),
+  ) => {
+    if (typeof data === 'function') {
+      set(prev => ({
+        carryingToHomeCount: data(prev.carryingToHomeCount),
+      }));
+    } else {
+      set({ carryingToHomeCount: data });
     }
   },
   setSelectedCount: (data: number[] | ((prevData: number[]) => number[])) => {

@@ -16,11 +16,7 @@ export default function StockSell() {
   const { sellStock } = useContext(SocketContext);
   const { sellStockMessage, setSellMessage } = useSocketMessage();
 
-  const { carryingCount, setCarryingCount } = useGameStore();
-
-  useEffect(() => {
-    console.log('팔려고 가져온 애들: ', carryingCount);
-  }, [carryingCount]);
+  const { carryingToMarketCount, setCarryingToMarketCount } = useGameStore();
 
   useEffect(() => {
     if (sellStockMessage.message) {
@@ -29,20 +25,21 @@ export default function StockSell() {
     }
   }, [sellStockMessage]);
 
-  const noSellingItem = carryingCount.every(count => count === 0);
+  const noSellingItem = carryingToMarketCount.every(count => count === 0);
 
   const handleSelling = () => {
     if (noSellingItem) {
       ToastAlert('매도할 주식이 없습니다.');
       return;
     }
-    console.log('carryingCount', carryingCount);
-    sellStock(carryingCount);
-    setCarryingCount([0, 0, 0, 0, 0, 0]);
+    sellStock(carryingToMarketCount);
+    setCarryingToMarketCount([0, 0, 0, 0, 0, 0]);
   };
 
   // 판매할 주식들 필터링 (0이 아닌 주식만 가져오기)
-  const stockItemsForSelling = (carryingCount ? carryingCount.slice(1) : [])
+  const stockItemsForSelling = (
+    carryingToMarketCount ? carryingToMarketCount.slice(1) : []
+  )
     .map((count, index) => {
       if (count > 0) {
         return {

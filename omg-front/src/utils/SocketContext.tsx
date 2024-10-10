@@ -302,10 +302,13 @@ export default function SocketProvider({ children }: SocketProviderProps) {
                     position: player.position,
                     direction: player.direction,
                     actionToggle: player.actionToggle,
+                    isTrading: player.isTrading,
+                    isCarrying: player.isCarrying,
+                    animation: player.animation,
                   };
                 },
               );
-              useOtherUserStore.getState().setOtherUsers(updatedOtherUsers);
+              setOtherUsers(updatedOtherUsers);
             }
             break;
 
@@ -681,6 +684,9 @@ export default function SocketProvider({ children }: SocketProviderProps) {
     position: number[],
     direction: number[],
     actionToggle: boolean,
+    isTrading: boolean,
+    isCarrying: boolean,
+    animation: string,
   ) => {
     if (!isSocketConnected()) return;
     const messagePayload = {
@@ -691,6 +697,9 @@ export default function SocketProvider({ children }: SocketProviderProps) {
         position,
         direction,
         actionToggle,
+        isTrading,
+        isCarrying,
+        animation,
       },
     };
     socket.publish({
