@@ -4,9 +4,11 @@ import { itemNameList } from '@/assets/data/stockMarketData';
 import { getTreeItemImagePath } from '@/hooks/useStock';
 import { useGameStore } from '@/stores/useGameStore';
 import { useMainBoardStore } from '@/stores/useMainBoardStore';
+import { useModalStore } from '@/stores/useModalStore';
 import { usePersonalBoardStore } from '@/stores/usePersonalBoardStore';
 import { useSocketMessage } from '@/stores/useSocketMessage';
 import { useStockStore } from '@/stores/useStockStore';
+import useUser from '@/stores/useUser';
 import { SocketContext } from '@/utils/SocketContext';
 import { ToastAlert } from '@/utils/ToastAlert';
 import formatNumberWithCommas from '@/utils/formatNumberWithCommas';
@@ -16,10 +18,12 @@ import PossessionChart from './PossessionChart';
 
 export default function StockBuy() {
   const { buyStock } = useContext(SocketContext);
+
+  const { modals, closeModal } = useModalStore();
+  const { nickname } = useUser();
+
   const { stockPrices, leftStocks } = useStockStore();
-
   const { selectedCount, setSelectedCount } = useGameStore();
-
   const { tradableStockCnt } = useMainBoardStore();
   const { cash } = usePersonalBoardStore();
 
@@ -77,6 +81,12 @@ export default function StockBuy() {
   const handleBuying = () => {
     buyStock(selectedCount);
     setSelectedCount([0, 0, 0, 0, 0, 0]);
+
+    setTimeout(() => {
+      if (modals[nickname]?.stockMarket) {
+        closeModal('stockMarket', nickname);
+      }
+    }, 3000);
   };
 
   return (

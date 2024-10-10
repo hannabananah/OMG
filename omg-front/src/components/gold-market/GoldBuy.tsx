@@ -2,8 +2,10 @@ import { useContext, useEffect, useState } from 'react';
 
 import { useGoldStore } from '@/stores/useGoldStore';
 import { useMainBoardStore } from '@/stores/useMainBoardStore';
+import { useModalStore } from '@/stores/useModalStore';
 import { usePersonalBoardStore } from '@/stores/usePersonalBoardStore';
 import { useSocketMessage } from '@/stores/useSocketMessage';
+import useUser from '@/stores/useUser';
 import { SocketContext } from '@/utils/SocketContext';
 import { ToastAlert } from '@/utils/ToastAlert';
 import formatNumberWithCommas from '@/utils/formatNumberWithCommas';
@@ -18,6 +20,9 @@ import PossessionChart from './PossessionChart';
 export default function GoldBuy() {
   const { purchaseGold } = useContext(SocketContext);
   const { goldPurchaseMessage, setGoldPurchaseMessage } = useSocketMessage();
+
+  const { modals, closeModal } = useModalStore();
+  const { nickname } = useUser();
 
   const { tradableStockCnt } = useMainBoardStore();
   const { cash } = usePersonalBoardStore();
@@ -67,6 +72,12 @@ export default function GoldBuy() {
     }
 
     purchaseGold(goldCount);
+
+    setTimeout(() => {
+      if (modals[nickname]?.goldMarket) {
+        closeModal('goldMarket', nickname);
+      }
+    }, 3000);
   };
 
   return (

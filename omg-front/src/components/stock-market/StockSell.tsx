@@ -2,7 +2,9 @@ import { useContext, useEffect } from 'react';
 
 import { itemNameList } from '@/assets/data/stockMarketData';
 import { useGameStore } from '@/stores/useGameStore';
+import { useModalStore } from '@/stores/useModalStore';
 import { useSocketMessage } from '@/stores/useSocketMessage';
+import useUser from '@/stores/useUser';
 import { SocketContext } from '@/utils/SocketContext';
 import { ToastAlert } from '@/utils/ToastAlert';
 import { Html, OrbitControls } from '@react-three/drei';
@@ -14,8 +16,12 @@ import PossessionChart from './PossessionChart';
 
 export default function StockSell() {
   const { sellStock } = useContext(SocketContext);
-  const { carryingCount, setCarryingCount } = useGameStore();
   const { sellStockMessage, setSellMessage } = useSocketMessage();
+
+  const { modals, closeModal } = useModalStore();
+  const { nickname } = useUser();
+
+  const { carryingCount, setCarryingCount } = useGameStore();
 
   useEffect(() => {
     console.log('팔려고 가져온 애들: ', carryingCount);
@@ -38,6 +44,12 @@ export default function StockSell() {
     console.log('carryingCount', carryingCount);
     sellStock(carryingCount);
     setCarryingCount([0, 0, 0, 0, 0, 0]);
+
+    setTimeout(() => {
+      if (modals[nickname]?.stockMarket) {
+        closeModal('stockMarket', nickname);
+      }
+    }, 3000);
   };
 
   // 판매할 주식들 필터링 (0이 아닌 주식만 가져오기)
