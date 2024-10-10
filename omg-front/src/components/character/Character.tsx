@@ -353,7 +353,7 @@ export default function Character({
 
       if (isOwnCharacter) {
         // 이동 속도 설정
-        const moveDistance = 0.25;
+        const moveDistance = 0.3;
         // 현재 캐릭터 위치 복사
         const newPosition = characterPosition.clone();
 
@@ -403,7 +403,7 @@ export default function Character({
           movementStateRef.current === 'walking' ||
           movementStateRef.current === 'running'
         ) {
-          const moveSpeed = movementStateRef.current === 'walking' ? 0.25 : 0.3;
+          const moveSpeed = movementStateRef.current === 'walking' ? 0.3 : 0.35;
           const forwardDirection = new THREE.Vector3(
             Math.sin(rotation),
             0,
@@ -458,7 +458,34 @@ export default function Character({
           marketType={marketType}
         />
       )}
-
+      <pointLight
+        position={[
+          characterPosition.x - 5,
+          characterPosition.y + 5,
+          characterPosition.z,
+        ]}
+        intensity={2}
+      />
+      <directionalLight
+        intensity={1.6}
+        position={[
+          characterPosition.x,
+          characterPosition.y + 10,
+          characterPosition.z + 5,
+        ]}
+        castShadow
+      />
+      <spotLight
+        position={[
+          characterPosition.x,
+          characterPosition.y + 8,
+          characterPosition.z + 2,
+        ]}
+        angle={1.2} // 각도를 더 넓게 설정
+        intensity={10} // 빛의 강도를 높이기
+        penumbra={0.4} // 빛의 경계가 부드러워지도록 설정
+        castShadow
+      />
       <RigidBody
         key={`body-${characterType}`}
         type='dynamic'
