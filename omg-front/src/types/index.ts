@@ -42,6 +42,9 @@ export type StockMarketView = 'main' | 'buy' | 'sell';
 export type StockItem = 'candy' | 'cupcake' | 'gift' | 'hat' | 'socks';
 export type StockItemInKorean = '사탕' | '컵케이크' | '선물' | '모자' | '양말';
 
+// export type AboveHead = 'trading' | 'market' | 'battle';
+export type AboveHead = 'candy' | 'cupcake' | 'gift';
+
 export const stockItems: {
   itemName: StockItem;
   position: { x: number; y: number; z: number };

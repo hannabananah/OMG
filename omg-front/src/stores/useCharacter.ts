@@ -103,6 +103,7 @@ export const useCharacter = ({
   };
 
   const handleKeyUp = (event: KeyboardEvent) => {
+    if (!isOwnCharacter) return;
     if (
       !['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(event.key)
     )
