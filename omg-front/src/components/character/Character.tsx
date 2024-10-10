@@ -92,6 +92,7 @@ export default function Character({
 
   const closeModalForPlayer = (modalId: string, playerNickname: string) => {
     if (modals[playerNickname]?.[modalId]) {
+      console.log('바깥 부분 클릭 됨! 대출방');
       closeModal(modalId, playerNickname);
     }
   };
@@ -134,11 +135,13 @@ export default function Character({
       const insideLoanMarket = isInZone(characterPosition, zones.loanMarket);
       if (insideLoanMarket && !isInLoanMarketZone) {
         setIsInLoanMarketZone(true);
+        setIsModalOpen(true);
         // openModalForPlayer('loanMarket', nickname);
         console.log('대출 방 진입');
       } else if (!insideLoanMarket && isInLoanMarketZone) {
         setIsInLoanMarketZone(false);
         closeModalForPlayer('loanMarket', nickname);
+        setIsModalOpen(false);
         console.log('대출 방 벗어남');
       }
       const insideGoldMarket = isInZone(characterPosition, zones.goldMarket);
