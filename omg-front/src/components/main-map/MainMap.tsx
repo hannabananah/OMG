@@ -374,13 +374,13 @@ export default function MainMap() {
             {/* <OrbitControls /> */}
 
             <Physics timeStep='vary' colliders={false}>
-              <ambientLight intensity={1.5} />
+              <ambientLight intensity={2} />
               <directionalLight
                 intensity={2.0}
                 position={[10, 15, 10]}
                 castShadow
               />
-              <pointLight intensity={2.0} position={[0, 10, 0]} />
+
               <Map />
               {/* 본인 캐릭터 */}
               <Character
