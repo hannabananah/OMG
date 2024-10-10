@@ -55,7 +55,7 @@ public class StockState {
      * 각 배열은 주가 수준의 0~9를 나타냄
      */
     private final int[][] stockLevelCards = {
-            {1, 5}, {1, 6}, {2, 6}, {2, 7}, {3, 7}, {3, 8}, {4, 9}, {4, 10}, {5, 11}, {5, 12}
+            {2, 5}, {3, 6}, {4, 6}, {5, 7}, {6, 7}, {7, 8}, {8, 9}, {9, 10}, {10, 11}, {11, 12}
     };
 
     public int getTradableCount(int currentStockPriceLevel) {
