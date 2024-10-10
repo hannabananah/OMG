@@ -59,9 +59,9 @@ export default function PersonalBoard() {
       images.push(
         <img
           key={i}
-          src='/assets/gold.png'
+          src='/assets/goldbell.png'
           alt='금괴 이미지'
-          className='absolute w-10 drop-shadow-md'
+          className='absolute w-6 drop-shadow-md'
           style={{
             zIndex: images.length - i,
             left: `${i * 10 + 24}px`,
