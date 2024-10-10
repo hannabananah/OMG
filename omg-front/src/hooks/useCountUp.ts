@@ -7,7 +7,7 @@ const easeOutExpo = (t: number) => {
 export default function useCountUp(
   ref: React.RefObject<HTMLElement>,
   end: number,
-  duration = 2000,
+  duration = 500,
 ) {
   const [count, setCount] = useState(0);
   const isCounting = useRef(false);

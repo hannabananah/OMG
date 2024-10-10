@@ -14,8 +14,9 @@ import PossessionChart from './PossessionChart';
 
 export default function StockSell() {
   const { sellStock } = useContext(SocketContext);
-  const { carryingCount, setCarryingCount } = useGameStore();
   const { sellStockMessage, setSellMessage } = useSocketMessage();
+
+  const { carryingCount, setCarryingCount } = useGameStore();
 
   useEffect(() => {
     console.log('팔려고 가져온 애들: ', carryingCount);

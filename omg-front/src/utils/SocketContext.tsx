@@ -475,15 +475,15 @@ export default function SocketProvider({ children }: SocketProviderProps) {
             }
             break;
 
-          case 'STOCK_ALREADY_PURCHASED':
-            if (currentUser === nickname) {
-              setBuyMessage({
-                message:
-                  '이미 거래(주식 매수/주식 매도/금 매입 중 1)를 수행했습니다.',
-                isCompleted: true,
-              });
-            }
-            break;
+          // case 'STOCK_ALREADY_PURCHASED':
+          //   if (currentUser === nickname) {
+          //     setBuyMessage({
+          //       message:
+          //         '이미 거래(주식 매수/주식 매도/금 매입 중 1)를 수행했습니다.',
+          //       isCompleted: true,
+          //     });
+          //   }
+          //   break;
 
           case 'SUCCESS_SELL_STOCK':
             if (currentUser === nickname) {
@@ -500,15 +500,15 @@ export default function SocketProvider({ children }: SocketProviderProps) {
             }
             break;
 
-          case 'STOCK_ALREADY_SOLD':
-            if (currentUser === nickname) {
-              setSellMessage({
-                message:
-                  '이미 거래(주식 매수/주식 매도/금 매입 중 1)를 수행했습니다.',
-                isCompleted: true,
-              });
-            }
-            break;
+          // case 'STOCK_ALREADY_SOLD':
+          //   if (currentUser === nickname) {
+          //     setSellMessage({
+          //       message:
+          //         '이미 거래(주식 매수/주식 매도/금 매입 중 1)를 수행했습니다.',
+          //       isCompleted: true,
+          //     });
+          //   }
+          //   break;
 
           case 'STOCK_FLUCTUATION':
             setMainBoardData(parsedMessage.data);

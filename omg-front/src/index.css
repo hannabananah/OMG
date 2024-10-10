@@ -305,7 +305,6 @@ button:disabled {
 .test_obj span:nth-of-type(5) {
   animation-delay: 0.5s;
 }
-
 .fade-in {
   animation: fade-in 0.5s ease-in-out forwards;
 }
@@ -318,5 +317,23 @@ button:disabled {
   100% {
     opacity: 1;
     transform: translateY(0);
+  }
+}
+
+/* 대출 이자 추가 */
+.money-pattern {
+  background-image: url('/assets/money.png');
+  background-repeat: repeat;
+  background-size: 140px 140px;
+  animation: move-up 2.5s linear infinite;
+  opacity: 0.3;
+}
+
+@keyframes move-up {
+  0% {
+    background-position-y: 0;
+  }
+  100% {
+    background-position-y: -100%;
   }
 }

@@ -139,13 +139,16 @@ export default function LoanMarket() {
 
             {/* 금액 입력 및 대출/상환 버튼 */}
             <div className='flex flex-col gap-6'>
-              <input
-                type='text'
-                className='w-full px-8 py-3 mx-2 rounded-20 text-omg-14'
-                placeholder='대출 또는 상환할 금액을 입력하세요.'
-                value={moneyAmount}
-                onChange={handleMoneyAmountChange}
-              />
+              <div className='flex items-center justify-center'>
+                <span className='text-omg-24'>$</span>
+                <input
+                  type='text'
+                  className='w-[80%] px-8 py-3 mx-2 text-center rounded-30 text-omg-18'
+                  placeholder='대출 또는 상환할 금액을 입력하세요.'
+                  value={moneyAmount}
+                  onChange={handleMoneyAmountChange}
+                />
+              </div>
               <div className='flex gap-4'>
                 <Button text='대출하기' type='trade' onClick={handleTakeLoan} />
                 <Button

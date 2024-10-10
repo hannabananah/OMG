@@ -60,3 +60,12 @@ export const treeItemPrice = [0, 10, 20, 30, 40, 50];
 
 // 각 트리 장식 별 남은 수량
 export const remainTreeItemCount = [0, 10, 20, 30, 400, 50];
+
+// 트리 장식 이미지 경로
+export const treeItemImagePaths = [
+  '/assets/candy.png',
+  '/assets/cupcake.png',
+  '/assets/gift.png',
+  '/assets/hat.png',
+  '/assets/socks.png',
+];

@@ -12,7 +12,6 @@ import { CharacterInfo } from '@/assets/data/characterInfo';
 import Character from '@/components/character/Character';
 import Chatting from '@/components/chat/Chatting';
 import ExitButton from '@/components/common/ExitButton';
-import MainAlert from '@/components/common/MainAlert';
 import Notification from '@/components/common/Notification';
 import Round from '@/components/common/Round';
 import Timer from '@/components/common/Timer';
@@ -37,6 +36,7 @@ import ChatButton from '../common/ChatButton';
 import GoldMarket from '../gold-market/GoldMarket';
 import LoanMarket from '../loan-market/LoanMarket';
 import MyRoom from '../my-room/MyRoom';
+import { getAlertComponent } from '../notification/getAlertComponent';
 import PersonalBoard from '../personal-board/PersonalBoard';
 import MarketStatusBoard from './MarketStatusBoard';
 
@@ -135,6 +135,9 @@ export default function MainMap() {
   // TODO: 삭제해야됨, 라운드 알림 모달
   useEffect(() => {
     if (!gameRoundMessage.message) return;
+
+    console.log('제빌 gameRoundMessage 상태:', gameRoundMessage);
+    console.log('제발 isAlertVisible 상태:', isAlertVisible);
 
     let displayDuration = 2000;
 
@@ -321,12 +324,16 @@ export default function MainMap() {
         {isBoardVisible && <MiniMap />}
       </section>
 
-      {/* TODO: 삭제해야됨 */}
+      {/* 모든 Round 알람 */}
       {isAlertVisible && gameRoundMessage.message && (
-        <div className='absolute z-20 transform -translate-x-1/2 top-14 left-1/2 w-[60%]'>
-          <MainAlert text={gameRoundMessage.message} />
+        <div className='absolute z-20 w-full h-full'>
+          {getAlertComponent(gameRoundMessage.message)}
         </div>
       )}
+
+      {/* <div className='absolute z-20 w-full h-full'>
+        <StockChangeAlert message='주가 변동' />
+      </div> */}
 
       {/* 채팅 및 음소거, 종료 버튼 고정 렌더링 */}
       <section className='absolute bottom-0 left-0 z-10 flex items-end justify-between w-full p-6 text-white text-omg-40b'>

@@ -16,10 +16,9 @@ import PossessionChart from './PossessionChart';
 
 export default function StockBuy() {
   const { buyStock } = useContext(SocketContext);
+
   const { stockPrices, leftStocks } = useStockStore();
-
   const { selectedCount, setSelectedCount } = useGameStore();
-
   const { tradableStockCnt } = useMainBoardStore();
   const { cash } = usePersonalBoardStore();
 
