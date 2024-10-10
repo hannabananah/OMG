@@ -12,7 +12,7 @@ export const ToastAlert = (message: string) => {
     timerProgressBar: true,
     customClass: {
       popup:
-        'flex items-center rounded-10 text-white px-4 py-3 text-omg-20 justify-center max-w-2xl',
+        'flex items-center rounded-10 text-white px-4 py-3 text-omg-20 justify-center max-w-3xl',
       timerProgressBar: 'bg-white',
       icon: 'no-icon-style',
     },
