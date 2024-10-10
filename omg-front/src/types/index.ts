@@ -1,21 +1,24 @@
 export interface Player {
   action: string | null;
   actionToggle: boolean;
-  battleState: boolean; // 추가
-  carryingGolds: number; // 추가
-  carryingStocks: number[]; // 추가
+  battleState: boolean;
+  carryingGolds: number;
+  carryingStocks: number[];
   cash: number;
-  characterMovement: boolean; // 추가 (줍기 행동 유무)
+  characterMovement: boolean;
   characterType: number;
   direction: number[];
   goldOwned: number;
   isConnected: number;
-  loanProducts: []; // 추가, 따로 TreeSet<LoanProduct> 있음
+  loanProducts: [];
   nickname: string;
   position: number[];
   state: string;
   stock: number[];
   totalDebt: number;
+  isTrading?: boolean;
+  isCarrying?: boolean;
+  animation?: string;
 }
 
 export interface GameEvent {

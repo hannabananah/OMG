@@ -118,26 +118,8 @@ export default function MainMap() {
     return () => clearTimeout(timer);
   }, [eventEffectMessage]);
 
-  // useEffect(() => {
-  //   if (gameRoundMessage.message === '1' || gameRoundMessage.message === '10') {
-  //     const timer = setTimeout(() => {
-  //       setIsTimerVisible(true);
-  //     }, 5000);
-  //     return () => clearTimeout(timer);
-  //   } else {
-  //     const timer = setTimeout(() => {
-  //       setIsTimerVisible(true);
-  //     }, 10000);
-  //     return () => clearTimeout(timer);
-  //   }
-  // }, [gameRoundMessage]);
-
-  // TODO: 삭제해야됨, 라운드 알림 모달
   useEffect(() => {
     if (!gameRoundMessage.message) return;
-
-    console.log('제빌 gameRoundMessage 상태:', gameRoundMessage);
-    console.log('제발 isAlertVisible 상태:', isAlertVisible);
 
     let displayDuration = 2000;
 
@@ -226,6 +208,9 @@ export default function MainMap() {
       position: user.position,
       direction: user.direction,
       actionToggle: user.actionToggle,
+      isTrading: user.isTrading,
+      isCarrying: user.isCarrying,
+      animation: user.animation,
     };
   });
 
@@ -393,6 +378,9 @@ export default function MainMap() {
                     actionToggle={userCharacter.actionToggle}
                     startPosition={userCharacter.startPosition}
                     isOwnCharacter={false}
+                    isTrading={userCharacter.isTrading}
+                    isCarrying={userCharacter.isCarrying}
+                    animation={userCharacter.animation}
                   />
 
                   <spotLight
