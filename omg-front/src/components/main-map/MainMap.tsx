@@ -319,7 +319,7 @@ export default function MainMap() {
 
       <section className='absolute z-10 left-4 top-20 drop-shadow-2xl'>
         {/* 미니맵 */}
-        <MiniMap />
+        {isBoardVisible && <MiniMap />}
       </section>
 
       {/* TODO: 삭제해야됨 */}

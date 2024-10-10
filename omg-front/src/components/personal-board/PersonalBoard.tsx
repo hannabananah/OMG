@@ -78,7 +78,7 @@ export default function PersonalBoard() {
   const animatedDebt = useCountUp(debtRef, totalDebt);
 
   return (
-    <section className='flex justify-center flex-1 h-[104px] -mb-6 text-black'>
+    <section className='flex justify-center flex-1 h-[104px] -mb-6 text-black fade-in'>
       <div className='w-[470px] relative flex h-full py-2 bg-white1 bg-opacity-85 border-t-4 border-x-4 border-white rounded-t-10 overflow-hidden items-center shadow-inner'>
         <div className='absolute z-18 -top-2 -right-28'>
           <PersonalBG1 className='w-1/2 h-1/2' />
