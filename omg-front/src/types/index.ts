@@ -18,7 +18,7 @@ export interface Player {
   totalDebt: number;
   isTrading?: boolean;
   isCarrying?: boolean;
-  animation?: string;
+  animation?: 'idle' | 'walking' | 'running';
 }
 
 export interface GameEvent {
