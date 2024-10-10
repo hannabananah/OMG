@@ -94,7 +94,6 @@ export default function MainMap() {
 
   useEffect(() => {
     if (socket && online && allRendered) {
-      console.log('된겨?');
       initGameSetting();
     }
   }, [allRendered]);
