@@ -75,12 +75,6 @@ export default function LoanMarket() {
     }
     takeLoan(amount);
     setMoneyAmount('');
-
-    setTimeout(() => {
-      if (modals[nickname]?.loanMarket) {
-        closeModal('loanMarket', nickname);
-      }
-    }, 3000);
   };
 
   const handleRepayLoan = () => {
@@ -97,12 +91,6 @@ export default function LoanMarket() {
     }
     repayLoan(amount);
     setMoneyAmount('');
-
-    setTimeout(() => {
-      if (modals[nickname]?.loanMarket) {
-        closeModal('loanMarket', nickname);
-      }
-    }, 3000);
   };
 
   return (
