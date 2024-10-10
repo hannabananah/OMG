@@ -12,11 +12,13 @@ export const ToastAlert = (message: string) => {
     timerProgressBar: true,
     customClass: {
       popup:
-        'bg-blue flex items-center rounded-10 text-white px-4 py-3 text-omg-18 justify-center max-w-2xl',
+        'flex items-center rounded-10 text-white px-4 py-3 text-omg-20 justify-center max-w-2xl',
       timerProgressBar: 'bg-white',
       icon: 'no-icon-style',
     },
     width: 'auto',
+    background:
+      'linear-gradient(rgba(1, 30, 118, 0.8), rgba(1, 30, 118, 0.8)),  url("/assets/alert.jpeg") no-repeat center center',
     didOpen: toast => {
       const parentElement = toast.parentNode as HTMLElement;
       parentElement?.classList.add('pt-28');
