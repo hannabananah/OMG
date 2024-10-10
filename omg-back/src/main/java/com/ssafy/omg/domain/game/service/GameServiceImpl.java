@@ -1107,9 +1107,9 @@ public class GameServiceImpl implements GameService {
         int[] carryingStocks = player.getCarryingStocks();
         int[] ownedStocks = player.getStock();
 
-        if (player.getState() == COMPLETED) {
-            throw new BaseException(PLAYER_STATE_ERROR);
-        }
+//        if (player.getState() == COMPLETED) {
+//            throw new BaseException(PLAYER_STATE_ERROR);
+//        }
 
         // 1. stocks 유효성 검사 (각 숫자가 0 이상/합산한 개수가 0 초과 주가 수준 거래 가능 토큰 개수 이하)
         validateStocks(stocksToSell, currentStockPriceLevel);
@@ -1134,7 +1134,7 @@ public class GameServiceImpl implements GameService {
 
         // 3. 개인 현금에 매도 가격 적용하고 거래 행위 완료로 변경
         player.addCash(salePrice);
-        player.setState(PlayerStatus.COMPLETED);
+//        player.setState(PlayerStatus.COMPLETED);
 
         // 4. 매도 트랙에서 주식시장으로 토큰 옮기고 주가 하락
         moveStockFromSellTrackAndCheckDecrease(marketStocks, stockSellTrack);
@@ -1306,9 +1306,9 @@ public class GameServiceImpl implements GameService {
             Player player = findPlayer(arena, playerNickname);
             Game game = arena.getGame();
 
-            if (player.getState() == COMPLETED) {
-                throw new BaseException(PLAYER_STATE_ERROR);
-            }
+//            if (player.getState() == COMPLETED) {
+//                throw new BaseException(PLAYER_STATE_ERROR);
+//            }
 
             int stockPriceLevel = game.getCurrentStockPriceLevel();
             StockInfo[] marketStocks = game.getMarketStocks();
@@ -1323,7 +1323,7 @@ public class GameServiceImpl implements GameService {
                 throw new MessageException(roomId, playerNickname, INSUFFICIENT_CASH);
             }
             player.setCash(player.getCash() - totalCost);
-            player.setState(PlayerStatus.COMPLETED);
+//            player.setState(PlayerStatus.COMPLETED);
 
             updatePlayerStocks(stocksToBuy, player);
             updateStockMarket(stocksToBuy, marketStocks);
