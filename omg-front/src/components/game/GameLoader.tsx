@@ -3,7 +3,7 @@ import { useContext, useEffect } from 'react';
 import { SocketContext } from '@/utils/SocketContext';
 import { useProgress } from '@react-three/drei';
 
-export default function Loading(): JSX.Element | null {
+export default function GameLoader(): JSX.Element | null {
   const { rendered_complete } = useContext(SocketContext);
   const { active } = useProgress();
 
@@ -13,6 +13,5 @@ export default function Loading(): JSX.Element | null {
     }
   }, [active]);
 
-  // TODO: 프로그레스바 추가(useProgress)
   return null;
 }
