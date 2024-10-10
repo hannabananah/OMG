@@ -18,4 +18,5 @@ public class PlayerResult {
     private int[] finalStockCnt;    // 마지막 보유 주식별 개수
     private int finalNetWorth;      // 마지막 순 자산 ( 부채 및 대출금 제외 )
     private int finalDebt;          // 마지막 총 부채 ( 대출금 및 이자 )
+    private int finalTax;           // 마지막 세금
 }
