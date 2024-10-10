@@ -17,8 +17,9 @@ import useModalStore from '@/stores/useModalStore';
 import { usePersonalBoardStore } from '@/stores/usePersonalBoardStore';
 import useUser from '@/stores/useUser';
 import { SocketContext } from '@/utils/SocketContext';
+import { ToastAlert } from '@/utils/ToastAlert';
 import formatNumberWithCommas from '@/utils/formatNumberWithCommas';
-import { Html, OrbitControls } from '@react-three/drei';
+import { Html, OrbitControls, RoundedBox } from '@react-three/drei';
 import { Canvas } from '@react-three/fiber';
 
 export default function MyRoom() {
@@ -103,8 +104,25 @@ export default function MyRoom() {
   };
 
   const goToSellStockItem = () => {
-    console.log('판매 할 수량: ', selectedCounts);
-    alert(`판매 할 수량: ${selectedCounts}`);
+    // 선택된 아이템 필터링 (1번 인덱스부터 사용)
+    const selectedItems = selectedCounts
+      .slice(1)
+      .map((count, index) => {
+        if (count > 0) {
+          return `${treeItemNameInKorean(itemNameList[index])} ${count}개`;
+        }
+        return null;
+      })
+      .filter(Boolean) // null 값 제거
+      .join(', '); // 선택된 아이템을 문자열로 합침
+
+    // 뭐 선택했는 지 alert
+    if (selectedItems) {
+      ToastAlert(`${selectedItems}를 챙겼습니다.`);
+    } else {
+      ToastAlert('아이템을 선택하지 않았습니다.');
+    }
+
     setCarryingCount(selectedCounts);
   };
 
@@ -126,7 +144,10 @@ export default function MyRoom() {
       className='fixed top-0 left-0 z-50 flex items-center justify-center w-full h-full'
       onClick={handleCloseMyRoom}
     >
-      <main className='relative w-full h-screen bg-center bg-cover bg-skyblue'>
+      <main
+        className='relative z-10 w-full h-screen bg-center bg-cover'
+        style={{ backgroundImage: 'url("/assets/myroom.jpg")' }}
+      >
         {/* Header: 뒤로 가기 & Round-Timer 고정 렌더링 */}
         <section className='absolute top-0 left-0 z-10 flex items-start justify-between w-full px-10 py-10 text-black text-omg-40b'>
           <BackButton onClick={handleBackButton} />
@@ -137,7 +158,7 @@ export default function MyRoom() {
         </section>
 
         {/* 말풍선 */}
-        <section className='absolute z-10 flex -translate-x-1/2 left-1/2 top-32'>
+        <section className='absolute z-10 flex -translate-x-1/2 left-1/2 top-28'>
           <SpeechBubble text={alertText} />
         </section>
 
@@ -169,37 +190,53 @@ export default function MyRoom() {
 
             return (
               <group key={item.itemName}>
+                <mesh rotation={[2.95, 0, 0]} position={[0, -0.5, 0]}>
+                  <RoundedBox
+                    args={[8.5, 4.5, 0.5]}
+                    radius={0.3}
+                    smoothness={4}
+                  >
+                    <meshStandardMaterial
+                      color='gray'
+                      transparent
+                      opacity={0.5}
+                    />
+                  </RoundedBox>
+                </mesh>
+
                 <Item
                   itemName={item.itemName}
-                  position={{ x: positionX, y: 0.8, z: 0 }} // X축으로 위치 조정
+                  position={{ x: positionX, y: 0.6, z: 1 }}
                   onClick={() => console.log(`${item.itemName} 클릭됨`)}
                   disabled={false}
                 />
-                {/* 보유 수량 & 판매할 수량 선택 & 현재 판매가 */}
-                <Html position={[positionX, 0, 0]} center>
-                  <div className='flex flex-col items-center w-40 gap-2 text-omg-18'>
+
+                <Html position={[positionX, -0.6, 0]} center>
+                  <div className='flex flex-col items-center w-40 gap-12 text-omg-14'>
                     {/* 보유 수량 */}
-                    <div>보유 수량: {item.count}개</div>
+                    <div>{item.count}개 보유</div>
 
-                    {/* 수량 선택 */}
-                    <div className='flex items-center'>
-                      <Button
-                        text='-'
-                        type='count'
-                        onClick={() => handleCountChange(itemIndex, -1)}
-                        disabled={selectedCounts[stockIndex + 1] === 0}
-                      />
-                      <p className='mx-4'>{selectedCounts[stockIndex + 1]}개</p>
-                      <Button
-                        text='+'
-                        type='count'
-                        onClick={() => handleCountChange(itemIndex, 1)}
-                      />
-                    </div>
-
-                    {/* 현재 판매가 */}
-                    <div className='text-omg-14'>
-                      현재 판매가: $
+                    {/* 수량 선택 & 현재 주가 */}
+                    <div className='flex flex-col items-center gap-3 text-omg-18'>
+                      {/* 수량 선택 */}
+                      <div className='flex items-center'>
+                        <Button
+                          text='-'
+                          type='count'
+                          onClick={() => handleCountChange(itemIndex, -1)}
+                          disabled={selectedCounts[stockIndex + 1] === 0}
+                        />
+                        <p className='mx-4'>
+                          {selectedCounts[stockIndex + 1]}개
+                        </p>
+                        <Button
+                          text='+'
+                          type='count'
+                          onClick={() => handleCountChange(itemIndex, 1)}
+                        />
+                      </div>
+                      {/* 현재 주가 */}
+                      현재 가격 $
                       {formatNumberWithCommas(
                         STOCK_MARKET_PRICE[stockIndex + 1],
                       )}
@@ -211,11 +248,11 @@ export default function MyRoom() {
           })}
         </Canvas>
 
-        <div className='absolute flex flex-col items-center gap-4 -translate-x-1/2 text-omg-18 bottom-56 left-1/2'>
-          <p>
-            예상 판매 수익: ${formatNumberWithCommas(calculateTotalRevenue())}
+        <div className='absolute flex items-center justify-center gap-10 -translate-x-1/2 text-omg-18 bottom-44 left-1/2'>
+          <p className='text-omg-24'>
+            (예상) 판매 수익 ${formatNumberWithCommas(calculateTotalRevenue())}
           </p>
-          <Button text='팔러가기' type='trade' onClick={goToSellStockItem} />
+          <Button text='챙겨가기' type='trade' onClick={goToSellStockItem} />
         </div>
       </main>
     </div>

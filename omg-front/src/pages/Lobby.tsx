@@ -8,6 +8,7 @@ import {
   useHasWaitingRoom,
 } from '@/hooks/useWaitingRoom';
 import useUser from '@/stores/useUser';
+import { ToastAlert } from '@/utils/ToastAlert';
 
 export default function Lobby() {
   const { nickname, setNickname } = useUser();
@@ -39,7 +40,7 @@ export default function Lobby() {
     if (roomCode.length === 10) {
       navigator.clipboard
         .writeText(roomCode)
-        .then(() => alert('방 코드가 복사되었습니다!'))
+        .then(() => ToastAlert('방 코드가 복사되었습니다!'))
         .catch(err => console.error('복사에 실패했습니다.: ', err));
     }
   }, [roomCode]);
@@ -54,7 +55,7 @@ export default function Lobby() {
 
   const handleClickEnterRoom = async () => {
     if (!roomCode.trim()) {
-      alert('코드를 입력해주세요.');
+      ToastAlert('코드를 입력해주세요.');
       return;
     }
 
@@ -63,11 +64,11 @@ export default function Lobby() {
       if (res && res.result) {
         navigate(`/waiting/${roomCode}`);
       } else {
-        alert('존재하지 않는 대기방입니다.');
+        ToastAlert('존재하지 않는 대기방입니다.');
       }
     } catch (error) {
       console.error('대기방 확인 중 오류 발생:', error);
-      alert('대기방 확인 중 오류가 발생했습니다.');
+      ToastAlert('대기방 확인 중 오류가 발생했습니다.');
     }
   };
 

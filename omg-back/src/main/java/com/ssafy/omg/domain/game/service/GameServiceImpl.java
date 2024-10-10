@@ -252,6 +252,7 @@ public class GameServiceImpl implements GameService {
                     .finalStockCnt(player.getStock())
                     .finalNetWorth(finalNetWorth)
                     .finalDebt(player.getTotalDebt())
+                    .finalTax(player.getTax())
                     .build();
             playerResults.add(individualResult);
 
@@ -261,6 +262,7 @@ public class GameServiceImpl implements GameService {
             System.out.println("  Final Net Worth: " + finalNetWorth);
             System.out.println("  Final Debt: " + player.getTotalDebt());
             System.out.println("  Cash: " + player.getCash());
+            System.out.println("  Tax: " + player.getTax());
         }
 
         System.out.println("\n==== Player Results Before Sorting ====");
@@ -305,6 +307,10 @@ public class GameServiceImpl implements GameService {
         int debt = player.getTotalDebt();
         netWorth -= debt;
         System.out.println("    Total debt: " + debt);
+
+        int tax = player.getTax();
+        netWorth -= tax;
+        System.out.println("    Total tax: " + tax);
 
         System.out.println("    Final net worth: " + netWorth);
 
@@ -379,6 +385,7 @@ public class GameServiceImpl implements GameService {
                         .action(null)                     // 플레이어 행위 (주식 매수, 주식 매도, 금괴 매입, 대출, 상환)
                         .state(NOT_STARTED)               // 플레이어 행위 상태 (시작전, 진행중, 완료)
                         .isConnected(1)                   // 플레이어 접속 상태 (0: 끊김, 1: 연결됨)
+                        .tax(0)
                         .build();
                 players.add(newPlayer);
             }
@@ -907,14 +914,14 @@ public class GameServiceImpl implements GameService {
         }
 
         // 3. 대출 한도 산정
-        double marketInterestRate = game.getCurrentInterestRate() / 100.0;
+        double marketInterestRate = game.getCurrentInterestRate() / 100.0 * 4;
         int loanLimit = (int) (((game.getCurrentStockPriceLevel() + 1) * availableRepaymentCapacity / 10.0 * 7) / marketInterestRate);
 
         // 4. 금괴, 주식 가치 대출 한도에 반영
         loanLimit += (int) (player.getGoldOwned() * game.getGoldPrice() * 0.7);
         loanLimit += (int) (getStockValue(player.getStock(), game.getMarketStocks()) * 0.4);
 
-        return loanLimit;
+        return Math.min(loanLimit, 1000);
     }
 
     private boolean isRichestPlayer(Game game, Player player) {
@@ -1100,9 +1107,9 @@ public class GameServiceImpl implements GameService {
         int[] carryingStocks = player.getCarryingStocks();
         int[] ownedStocks = player.getStock();
 
-        if (player.getState() == COMPLETED) {
-            throw new BaseException(PLAYER_STATE_ERROR);
-        }
+//        if (player.getState() == COMPLETED) {
+//            throw new BaseException(PLAYER_STATE_ERROR);
+//        }
 
         // 1. stocks 유효성 검사 (각 숫자가 0 이상/합산한 개수가 0 초과 주가 수준 거래 가능 토큰 개수 이하)
         validateStocks(stocksToSell, currentStockPriceLevel);
@@ -1127,7 +1134,7 @@ public class GameServiceImpl implements GameService {
 
         // 3. 개인 현금에 매도 가격 적용하고 거래 행위 완료로 변경
         player.addCash(salePrice);
-        player.setState(PlayerStatus.COMPLETED);
+//        player.setState(PlayerStatus.COMPLETED);
 
         // 4. 매도 트랙에서 주식시장으로 토큰 옮기고 주가 하락
         moveStockFromSellTrackAndCheckDecrease(marketStocks, stockSellTrack);
@@ -1299,9 +1306,9 @@ public class GameServiceImpl implements GameService {
             Player player = findPlayer(arena, playerNickname);
             Game game = arena.getGame();
 
-            if (player.getState() == COMPLETED) {
-                throw new BaseException(PLAYER_STATE_ERROR);
-            }
+//            if (player.getState() == COMPLETED) {
+//                throw new BaseException(PLAYER_STATE_ERROR);
+//            }
 
             int stockPriceLevel = game.getCurrentStockPriceLevel();
             StockInfo[] marketStocks = game.getMarketStocks();
@@ -1316,7 +1323,7 @@ public class GameServiceImpl implements GameService {
                 throw new MessageException(roomId, playerNickname, INSUFFICIENT_CASH);
             }
             player.setCash(player.getCash() - totalCost);
-            player.setState(PlayerStatus.COMPLETED);
+//            player.setState(PlayerStatus.COMPLETED);
 
             updatePlayerStocks(stocksToBuy, player);
             updateStockMarket(stocksToBuy, marketStocks);
