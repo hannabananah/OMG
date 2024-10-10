@@ -907,14 +907,14 @@ public class GameServiceImpl implements GameService {
         }
 
         // 3. 대출 한도 산정
-        double marketInterestRate = game.getCurrentInterestRate() / 100.0;
+        double marketInterestRate = game.getCurrentInterestRate() / 100.0 * 4;
         int loanLimit = (int) (((game.getCurrentStockPriceLevel() + 1) * availableRepaymentCapacity / 10.0 * 7) / marketInterestRate);
 
         // 4. 금괴, 주식 가치 대출 한도에 반영
         loanLimit += (int) (player.getGoldOwned() * game.getGoldPrice() * 0.7);
         loanLimit += (int) (getStockValue(player.getStock(), game.getMarketStocks()) * 0.4);
 
-        return loanLimit;
+        return Math.min(loanLimit, 1000);
     }
 
     private boolean isRichestPlayer(Game game, Player player) {
