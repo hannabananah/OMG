@@ -22,6 +22,7 @@ import GameResult from '@/components/game/GameResult';
 import Map from '@/components/main-map/Map';
 import MiniMap from '@/components/mini-map/MiniMap';
 import StockMarket from '@/components/stock-market/StockMarket';
+import { useAlertStore } from '@/stores/useAlertStore';
 import { useModalStore } from '@/stores/useModalStore';
 import { useMyRoomStore } from '@/stores/useMyRoomStore';
 import { useOtherUserStore } from '@/stores/useOtherUserState';
@@ -36,6 +37,7 @@ import ChatButton from '../common/ChatButton';
 import GoldMarket from '../gold-market/GoldMarket';
 import LoanMarket from '../loan-market/LoanMarket';
 import MyRoom from '../my-room/MyRoom';
+import StockChangeAlert from '../notification/StockChangeAlert';
 import { getAlertComponent } from '../notification/getAlertComponent';
 import PersonalBoard from '../personal-board/PersonalBoard';
 import MarketStatusBoard from './MarketStatusBoard';
@@ -77,6 +79,13 @@ export default function MainMap() {
   const [isTimerVisible, setIsTimerVisible] = useState(false);
   const [isRoundVisible, setIsRoundVisible] = useState(false);
   const [isBoardVisible, setIsBoardVisible] = useState(false);
+
+  const {
+    isStockChangeAlertVisible,
+    stockChangeAlertMessage,
+    setStockChangeAlertVisible,
+    setStockChangeAlertMessage,
+  } = useAlertStore();
 
   const [bgm, setBgm] = useState(null);
   const [isMuted, setIsMuted] = useState(false);
@@ -132,12 +141,25 @@ export default function MainMap() {
   //   }
   // }, [gameRoundMessage]);
 
-  // TODO: 삭제해야됨, 라운드 알림 모달
+  // [리렌더링 문제로 인해] 주가 변동 메시지를 받았을 때 알림을 표시하는 로직 따로 처리
   useEffect(() => {
     if (!gameRoundMessage.message) return;
 
-    console.log('제빌 gameRoundMessage 상태:', gameRoundMessage);
-    console.log('제발 isAlertVisible 상태:', isAlertVisible);
+    if (gameRoundMessage.message.includes('주가')) {
+      setStockChangeAlertMessage(gameRoundMessage.message);
+      setStockChangeAlertVisible(true);
+
+      // 5초 후에 알림을 사라지게 설정
+      const timer = setTimeout(() => {
+        setStockChangeAlertVisible(false);
+      }, 5000);
+      return () => clearTimeout(timer);
+    }
+  }, [gameRoundMessage.message]);
+
+  // TODO: 삭제해야됨, 라운드 알림 모달
+  useEffect(() => {
+    if (!gameRoundMessage.message) return;
 
     let displayDuration = 2000;
 
@@ -256,7 +278,7 @@ export default function MainMap() {
 
       {/* 내 방 입장 알림 메시지 */}
       {isEnteringRoom[nickname] && (
-        <div className='absolute inset-0 z-50 flex items-center justify-center bg-black bg-opacity-75'>
+        <div className='absolute inset-0 z-40 flex items-center justify-center bg-black bg-opacity-75'>
           <p className='tracking-wider text-white text-omg-50b test_obj'>
             <span>방</span>
             <span>으</span>
@@ -293,7 +315,7 @@ export default function MainMap() {
 
       {/* 마퀴 애니메이션 */}
       {isBoardVisible && (
-        <section className='absolute top-0 left-0 z-20 w-full'>
+        <section className='absolute top-0 left-0 z-10 w-full'>
           <MarketStatusBoard />
         </section>
       )}
@@ -308,7 +330,7 @@ export default function MainMap() {
       </section>
 
       {isEventCardVisible && (
-        <div className='absolute z-30 flex items-center justify-center w-full h-full'>
+        <div className='absolute z-40 flex items-center justify-center w-full h-full'>
           <EventCard />
         </div>
       )}
@@ -326,14 +348,17 @@ export default function MainMap() {
 
       {/* 모든 Round 알람 */}
       {isAlertVisible && gameRoundMessage.message && (
-        <div className='absolute z-20 w-full h-full'>
+        <div className='absolute z-50 w-full h-full'>
           {getAlertComponent(gameRoundMessage.message)}
         </div>
       )}
 
-      {/* <div className='absolute z-20 w-full h-full'>
-        <StockChangeAlert message='주가 변동' />
-      </div> */}
+      {/* 주가 변동 알림 */}
+      {isStockChangeAlertVisible && stockChangeAlertMessage && (
+        <div className='absolute z-50 w-full h-full'>
+          <StockChangeAlert message={stockChangeAlertMessage} />
+        </div>
+      )}
 
       {/* 채팅 및 음소거, 종료 버튼 고정 렌더링 */}
       <section className='absolute bottom-0 left-0 z-10 flex items-end justify-between w-full p-6 text-white text-omg-40b'>

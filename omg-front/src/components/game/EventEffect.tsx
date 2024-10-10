@@ -26,8 +26,8 @@ export default function EventEffect() {
 
   return (
     <div className='relative flex items-center justify-center w-full h-full text-center text-omg-30b font-omg-event-title'>
-      <div className='absolute z-10 w-full h-screen bg-white bg-opacity-90'></div>
-      <div className='relative z-20'>
+      <div className='absolute z-30 w-full h-screen bg-white bg-opacity-90'></div>
+      <div className='relative z-40'>
         <p
           className={`${isExiting ? (isPositive ? 'rocket-exit' : 'shake-exit') : ''}`}
         >

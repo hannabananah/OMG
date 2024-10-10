@@ -85,7 +85,7 @@ export default function Notification({ onNewNotification }: NotificationProps) {
   };
 
   return (
-    <div className='fixed z-50 space-y-2 top-60 right-3'>
+    <div className='fixed z-30 space-y-2 top-60 right-3'>
       {transitions((style, item) => (
         <animated.div
           key={item.key}
