@@ -37,7 +37,7 @@ export default function Character({
 }: Props) {
   const { movePlayer, allRendered } = useContext(SocketContext);
 
-  const { modals, closeModal } = useModalStore();
+  const { modals, openModal, closeModal } = useModalStore();
   const { nickname } = useUser();
 
   const [localActionToggle, setLocalActionToggle] = useState(false);
@@ -65,6 +65,10 @@ export default function Character({
     useState(false);
 
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isCircling, setIsCircling] = useState(false);
+  const [marketType, setMarketType] = useState<
+    null | 'loanMarket' | 'stockMarket' | 'goldMarket'
+  >(null);
 
   const { scene, mixer, pickUpAnimation } = useCharacter({
     characterURL,
@@ -84,26 +88,37 @@ export default function Character({
   // const characterRotation = new THREE.Euler(0, rotation, 0);
 
   // 특정 거래소 좌표에 입장/퇴장한 유저에게만 해당 거래소 모달 열고 닫기
-  // const openModalForPlayer = (modalId: string, playerNickname: string) => {
-  //   if (!modals[playerNickname]?.[modalId]) {
-  //     openModal(modalId, playerNickname);
-  //   }
-  // };
+  const openModalForPlayer = (modalId: string, playerNickname: string) => {
+    if (!modals[playerNickname]?.[modalId]) {
+      openModal(modalId, playerNickname);
+    }
+  };
 
   const closeModalForPlayer = (modalId: string, playerNickname: string) => {
     if (modals[playerNickname]?.[modalId]) {
-      console.log('바깥 부분 클릭 됨! 대출방');
       closeModal(modalId, playerNickname);
     }
   };
 
+  // modal open close
   useEffect(() => {
-    if (modals[nickname]?.loanMarket) {
+    if (
+      modals[nickname]?.loanMarket ||
+      modals[nickname]?.stockMarket ||
+      modals[nickname]?.goldMarket
+    ) {
       setIsModalOpen(true);
     } else {
       setIsModalOpen(false);
     }
   }, [modals, nickname]);
+
+  // 거래소 진입 시 카메라 전환
+  useEffect(() => {
+    if (marketType && !isCircling) {
+      setIsCircling(true);
+    }
+  }, [marketType, isCircling]);
 
   useEffect(() => {
     // 자신의 캐릭터가 아닌 경우 모달 제어 로직을 실행하지 않음
@@ -125,21 +140,29 @@ export default function Character({
       const insideStockMarket = isInZone(characterPosition, zones.stockMarket);
       if (insideStockMarket && !isInStockMarketZone) {
         setIsInStockMarketZone(true);
-        // openModalForPlayer('stockMarket', nickname);
+        setMarketType('stockMarket');
+        setIsModalOpen(true);
+        setIsCircling(true);
+        openModalForPlayer('stockMarket', nickname);
         console.log('주식 시장 진입');
       } else if (!insideStockMarket && isInStockMarketZone) {
         setIsInStockMarketZone(false);
+        setMarketType(null);
         closeModalForPlayer('stockMarket', nickname);
+        setIsModalOpen(false);
         console.log('주식 시장 벗어남');
       }
       const insideLoanMarket = isInZone(characterPosition, zones.loanMarket);
       if (insideLoanMarket && !isInLoanMarketZone) {
         setIsInLoanMarketZone(true);
+        setMarketType('loanMarket');
         setIsModalOpen(true);
-        // openModalForPlayer('loanMarket', nickname);
+        setIsCircling(true);
+        openModalForPlayer('loanMarket', nickname);
         console.log('대출 방 진입');
       } else if (!insideLoanMarket && isInLoanMarketZone) {
         setIsInLoanMarketZone(false);
+        setMarketType(null);
         closeModalForPlayer('loanMarket', nickname);
         setIsModalOpen(false);
         console.log('대출 방 벗어남');
@@ -147,11 +170,16 @@ export default function Character({
       const insideGoldMarket = isInZone(characterPosition, zones.goldMarket);
       if (insideGoldMarket && !isInGoldMarketZone) {
         setIsInGoldMarketZone(true);
-        // openModalForPlayer('goldMarket', nickname);
+        setMarketType('goldMarket');
+        setIsModalOpen(true);
+        setIsCircling(true);
+        openModalForPlayer('goldMarket', nickname);
         console.log('금 거래소 진입');
       } else if (!insideGoldMarket && isInGoldMarketZone) {
         setIsInGoldMarketZone(false);
+        setMarketType(null);
         closeModalForPlayer('goldMarket', nickname);
+        setIsModalOpen(false);
         console.log('금 거래소 벗어남');
       }
       const insideSantaHouse = isInZone(characterPosition, zones.santaHouse);
@@ -362,10 +390,9 @@ export default function Character({
         <IntroCamera
           characterPosition={characterPosition}
           characterDirection={characterDirection}
-          isInStockMarketZone={isInStockMarketZone}
-          isInLoanMarketZone={isInLoanMarketZone}
-          isInGoldMarketZone={isInGoldMarketZone}
           isModalOpen={isModalOpen}
+          setIsCircling={setIsCircling}
+          marketType={marketType}
         />
       )}
 
