@@ -41,6 +41,16 @@ button:disabled {
   scrollbar-width: none;
 }
 
+/* ToastAlert 커스텀 아이콘 outline 기본 스타일 제거 */
+.no-icon-style {
+  background: none !important;
+  box-shadow: none !important;
+  width: auto !important;
+  height: auto !important;
+  padding: 0 !important;
+  border: none !important;
+}
+
 @font-face {
   font-family: 'OKDDUNG';
   src: url('https://fastly.jsdelivr.net/gh/projectnoonnu/noonfonts_2206-02@1.0/OKDDUNG.woff2')
@@ -66,18 +76,18 @@ button:disabled {
 }
 
 @font-face {
-  font-family: 'Laundry';
-  src: url('https://fastly.jsdelivr.net/gh/projectnoonnu/2403-2@1.0/TTLaundryGothicB.woff2')
-    format('woff2');
-  font-weight: 400;
-  font-style: normal;
-}
-
-@font-face {
   font-family: 'Partial';
   src: url('https://fastly.jsdelivr.net/gh/projectnoonnu/noonfonts_2307-1@1.1/PartialSansKR-Regular.woff2')
     format('woff2');
   font-weight: normal;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: 'Laundry';
+  src: url('https://fastly.jsdelivr.net/gh/projectnoonnu/2403-2@1.0/TTLaundryGothicB.woff2')
+    format('woff2');
+  font-weight: 400;
   font-style: normal;
 }
 
@@ -252,4 +262,61 @@ button:disabled {
 
 .animate-subtle-pulse {
   animation: subtle-pulse 1s ease-in-out infinite;
+}
+
+@keyframes anime_textup {
+  0% {
+    top: 0;
+  }
+  20% {
+    top: -0.3rem;
+  }
+  40% {
+    top: 0;
+  }
+  60% {
+    top: 0;
+  }
+  80% {
+    top: 0;
+  }
+  100% {
+    top: 0;
+  }
+}
+
+.test_obj span {
+  position: relative;
+  animation: anime_textup 1.5s infinite;
+}
+
+.test_obj span:nth-of-type(1) {
+  animation-delay: 0.1s;
+}
+.test_obj span:nth-of-type(2) {
+  animation-delay: 0.2s;
+}
+.test_obj span:nth-of-type(3) {
+  animation-delay: 0.3s;
+}
+.test_obj span:nth-of-type(4) {
+  animation-delay: 0.4s;
+}
+.test_obj span:nth-of-type(5) {
+  animation-delay: 0.5s;
+}
+
+.fade-in {
+  animation: fade-in 0.5s ease-in-out forwards;
+}
+
+@keyframes fade-in {
+  0% {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }

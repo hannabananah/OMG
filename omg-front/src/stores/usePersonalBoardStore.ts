@@ -13,7 +13,6 @@ interface PersonalBoardStore {
   stock: number[];
   totalDebt: number;
 
-  // 새로운 개인 보드 데이터 업데이트
   setPersonalBoardData: (
     data: Omit<PersonalBoardStore, 'setPersonalBoardData'>,
   ) => void;

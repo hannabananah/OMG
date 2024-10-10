@@ -47,7 +47,10 @@ interface SocketContextType {
   presentRound: number;
   enterLoan: () => void;
   isGameResultVisible: boolean;
-  transactionMessage: string;
+  transactionMessage: {
+    userNickname: string;
+    message: string;
+  } | null;
 }
 
 const defaultContextValue: SocketContextType = {
@@ -78,7 +81,7 @@ const defaultContextValue: SocketContextType = {
   roundTimer: 120,
   presentRound: 1,
   isGameResultVisible: false,
-  transactionMessage: '',
+  transactionMessage: null,
 };
 
 export const SocketContext =
@@ -316,6 +319,7 @@ export default function SocketProvider({ children }: SocketProviderProps) {
               });
             } else {
               setTransactionMessage(
+                currentUser,
                 `${currentUser}님이 금괴 ${parsedMessage.data.goldOwned}개를 구매했습니다!`,
               );
             }
@@ -331,6 +335,7 @@ export default function SocketProvider({ children }: SocketProviderProps) {
               });
             } else {
               setTransactionMessage(
+                currentUser,
                 `${currentUser}님이 $${parsedMessage.data.currentLoanPrincipal}를 대출 받았습니다!`,
               );
             }
@@ -345,7 +350,10 @@ export default function SocketProvider({ children }: SocketProviderProps) {
                 isCompleted: true,
               });
             } else {
-              setTransactionMessage(`${currentUser}님이 대출금을 갚았습니다!`);
+              setTransactionMessage(
+                currentUser,
+                `${currentUser}님이 대출금을 갚았습니다!`,
+              );
             }
             break;
 
@@ -439,7 +447,10 @@ export default function SocketProvider({ children }: SocketProviderProps) {
                 isCompleted: true,
               });
             } else {
-              setTransactionMessage(`${currentUser}님이 주식을 매수했습니다!`);
+              setTransactionMessage(
+                currentUser,
+                `${currentUser}님이 주식을 매수했습니다!`,
+              );
             }
             break;
 
@@ -479,7 +490,10 @@ export default function SocketProvider({ children }: SocketProviderProps) {
                 isCompleted: true,
               });
             } else {
-              setTransactionMessage(`${currentUser}님이 주식을 매도했습니다!`);
+              setTransactionMessage(
+                currentUser,
+                `${currentUser}님이 주식을 매도했습니다!`,
+              );
             }
             break;
 

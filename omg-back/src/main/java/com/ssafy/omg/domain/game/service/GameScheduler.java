@@ -212,7 +212,7 @@ public class GameScheduler {
                 System.out.println();
 //            notifyPlayers(game.getGameId(), APPLY_PREVIOUS_EVENT, "이전 라운드의 경제 이벤트가 적용되었습니다.");
             } catch (BaseException e) {
-                log.error("경제 이벤트 반영 중 에러 발생 : {}", e.getMessage());
+                log.warn("경제 이벤트 반영 중 에러 발생 : {}", e.getMessage());
                 game.setRoundStatus(ECONOMIC_EVENT_NEWS);
                 game.setTime(5);
             }
@@ -252,7 +252,7 @@ public class GameScheduler {
                     messagingTemplate.convertAndSend("/sub/" + game.getGameId() + "/game", payload);
                 }
             } catch (BaseException e) {
-                log.error("경제 이벤트 생성 중 에러 발생: {}", e.getStatus().getMessage());
+                log.warn("경제 이벤트 생성 중 에러 발생: {}", e.getStatus().getMessage());
                 if (game.getRound() == 10) {
                     game.setRoundStatus(ROUND_IN_PROGRESS);
                     game.setTime(120);
@@ -350,6 +350,7 @@ public class GameScheduler {
         if (game.getTime() == 2) {
             notifyPlayers(game.getGameId(), ROUND_END, game.getRound() + "라운드가 종료되었습니다! 대출상품에 대한 이자가 추가됩니다!");
             gameService.addInterestToTotalDebtAndLoanProducts(game);
+            calculateTaxPerPlayer(game);
         } else if (game.getTime() == 0) {
             game.setRoundStatus(PREPARING_NEXT_ROUND);
             game.setTime(5);
@@ -477,5 +478,33 @@ public class GameScheduler {
 
         game.finishGame();
         gameRepository.saveGameToRedis(game);
+    }
+
+    private void calculateTaxPerPlayer(Game game) {
+
+        int[] stockPrices = Arrays.stream(game.getMarketStocks())
+                .map(stockInfo -> {
+                    int[] state = stockInfo.getState();
+                    return stockState.getStockStandard()[state[0]][state[1]].getPrice();
+                })
+                .mapToInt(Integer::intValue)
+                .toArray();
+
+        game.getPlayers().forEach(player -> {
+            int tax = 0;
+            System.out.println("playerStocks : " + Arrays.toString(player.getCarryingStocks()));
+            System.out.println("playerGolds  : " + player.getCarryingGolds());
+            if (!Arrays.stream(player.getCarryingStocks()).allMatch(value -> value == 0) || player.getCarryingGolds() != 0) {
+                for (int i = 1; i < 6; i++) {
+                    tax += player.getCarryingStocks()[i] * stockPrices[i];
+                }
+                tax += player.getCarryingGolds() * game.getGoldPrice();
+                tax = (int) (tax * 0.4);
+                player.setTax(player.getTax() + tax);
+            }
+            System.out.println("player tax : " + tax + "\n");
+        });
+
+
     }
 }

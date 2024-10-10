@@ -1,5 +1,5 @@
 import MarketState from '@/components/stock-market/MarketState';
-import useModalStore from '@/stores/useModalStore';
+import { useModalStore } from '@/stores/useModalStore';
 import useUser from '@/stores/useUser';
 
 import BackButton from '../common/BackButton';
