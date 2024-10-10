@@ -4,8 +4,20 @@ import com.ssafy.omg.config.baseresponse.BaseException;
 import com.ssafy.omg.config.baseresponse.MessageException;
 import com.ssafy.omg.domain.arena.entity.Arena;
 import com.ssafy.omg.domain.game.GameRepository;
-import com.ssafy.omg.domain.game.dto.*;
-import com.ssafy.omg.domain.game.entity.*;
+import com.ssafy.omg.domain.game.dto.GameResultResponse;
+import com.ssafy.omg.domain.game.dto.GoldMarketInfoResponse;
+import com.ssafy.omg.domain.game.dto.IndividualMessageDto;
+import com.ssafy.omg.domain.game.dto.MainMessageDto;
+import com.ssafy.omg.domain.game.dto.PlayerMoveRequest;
+import com.ssafy.omg.domain.game.dto.PlayerRankingResponse;
+import com.ssafy.omg.domain.game.dto.StockMarketResponse;
+import com.ssafy.omg.domain.game.dto.StockRequest;
+import com.ssafy.omg.domain.game.entity.Game;
+import com.ssafy.omg.domain.game.entity.GameEvent;
+import com.ssafy.omg.domain.game.entity.GameStatus;
+import com.ssafy.omg.domain.game.entity.LoanProduct;
+import com.ssafy.omg.domain.game.entity.StockInfo;
+import com.ssafy.omg.domain.game.entity.StockState;
 import com.ssafy.omg.domain.game.repository.GameEventRepository;
 import com.ssafy.omg.domain.player.dto.PlayerResult;
 import com.ssafy.omg.domain.player.entity.Player;
@@ -13,16 +25,43 @@ import com.ssafy.omg.domain.player.entity.PlayerStatus;
 import com.ssafy.omg.domain.socket.dto.StompPayload;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.messaging.simp.SimpMessageSendingOperations;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.*;
+import java.util.AbstractMap;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Random;
+import java.util.Set;
+import java.util.TreeSet;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
-import static com.ssafy.omg.config.baseresponse.BaseResponseStatus.*;
+import static com.ssafy.omg.config.baseresponse.BaseResponseStatus.ARENA_NOT_FOUND;
+import static com.ssafy.omg.config.baseresponse.BaseResponseStatus.EVENT_NOT_FOUND;
+import static com.ssafy.omg.config.baseresponse.BaseResponseStatus.EXCEEDS_DIFF_RANGE;
+import static com.ssafy.omg.config.baseresponse.BaseResponseStatus.IMPOSSIBLE_STOCK_CNT;
+import static com.ssafy.omg.config.baseresponse.BaseResponseStatus.INSUFFICIENT_STOCK;
+import static com.ssafy.omg.config.baseresponse.BaseResponseStatus.INVALID_BLACK_TOKEN;
+import static com.ssafy.omg.config.baseresponse.BaseResponseStatus.INVALID_ROUND;
+import static com.ssafy.omg.config.baseresponse.BaseResponseStatus.INVALID_SELL_STOCKS;
+import static com.ssafy.omg.config.baseresponse.BaseResponseStatus.INVALID_STOCK_GROUP;
+import static com.ssafy.omg.config.baseresponse.BaseResponseStatus.PLAYER_NOT_FOUND;
+import static com.ssafy.omg.config.baseresponse.BaseResponseStatus.PLAYER_STATE_ERROR;
+import static com.ssafy.omg.config.baseresponse.BaseResponseStatus.REQUEST_ERROR;
+import static com.ssafy.omg.config.baseresponse.MessageResponseStatus.AMOUNT_EXCEED_CASH;
+import static com.ssafy.omg.config.baseresponse.MessageResponseStatus.AMOUNT_EXCEED_DEBT;
 import static com.ssafy.omg.config.baseresponse.MessageResponseStatus.AMOUNT_OUT_OF_RANGE;
-import static com.ssafy.omg.config.baseresponse.MessageResponseStatus.*;
+import static com.ssafy.omg.config.baseresponse.MessageResponseStatus.INSUFFICIENT_CASH;
+import static com.ssafy.omg.config.baseresponse.MessageResponseStatus.INVALID_STOCK_COUNT;
+import static com.ssafy.omg.config.baseresponse.MessageResponseStatus.OUT_OF_CASH;
+import static com.ssafy.omg.config.baseresponse.MessageResponseStatus.STOCK_NOT_AVAILABLE;
 import static com.ssafy.omg.domain.game.entity.RoundStatus.STOCK_FLUCTUATION;
 import static com.ssafy.omg.domain.game.entity.RoundStatus.TUTORIAL;
 import static com.ssafy.omg.domain.player.entity.PlayerStatus.COMPLETED;
@@ -41,6 +80,7 @@ public class GameServiceImpl implements GameService {
     private final GameRepository gameRepository;
     private final StockState stockState;
     private Random random = new Random();
+    private final SimpMessageSendingOperations messagingTemplate;
 
     /**
      * 진행중인 게임의 리스트를 반환 ( 모든 진행중인 게임들을 관리 )
@@ -354,7 +394,7 @@ public class GameServiceImpl implements GameService {
             putRandomStockIntoMarket(pocket, market);
 
             // 캐릭터 종류
-            characterTypes = new ArrayList<>(Arrays.asList(0, 1, 2, 3));
+            characterTypes = new ArrayList<>(Arrays.asList(0, 1, 2));
             Collections.shuffle(characterTypes);
 
             for (int i = 0; i < inRoomPlayers.size(); i++) {
@@ -367,7 +407,13 @@ public class GameServiceImpl implements GameService {
                     }
                 }
 
-                int characterType = characterTypes.remove(0);
+                int characterType;
+                if (i == 0) {
+                    characterType = 3;
+                } else {
+                    characterType = characterTypes.remove(0);
+                }
+
 
                 Player newPlayer = Player.builder()
                         .nickname(inRoomPlayers.get(i))   // 플레이어 닉네임
@@ -1288,13 +1334,36 @@ public class GameServiceImpl implements GameService {
         synchronized (arena) {
             Player player = findPlayer(arena, payload.getSender());
             PlayerMoveRequest playerMoveRequest = payload.getData();
+
             player.setDirection(playerMoveRequest.direction());
             player.setPosition(playerMoveRequest.position());
             player.setActionToggle(playerMoveRequest.actionToggle());
+            player.setTrading(playerMoveRequest.isTrading());
+            player.setCarrying(playerMoveRequest.isCarrying());
+            player.setAnimation(player.getAnimation());
 
+//            for (Player otherPlayer : arena.getGame().getPlayers()) {
+//                if (!otherPlayer.getNickname().equals(player.getNickname())) {
+//                    double distance = player.distanceTo(otherPlayer);
+//                    boolean isClose = distance <= 5;
+//                    notifyPlayerDistance(roomId, player, otherPlayer, isClose);
+//                }
+//            }
             gameRepository.saveArena(roomId, arena);
         }
     }
+
+//    private void notifyPlayerDistance(String roomId, Player p1, Player p2, boolean isClose) {
+//        String message = p1.getNickname() + ":" + p2.getNickname();
+//        StompPayload<PlayerDistanceDto> payload = new StompPayload<>(
+//                isClose ? "BATTLE_AVAILABLE" : "BATTLE_UNAVAILABLE",
+//                roomId,
+//                null,
+//                new PlayerDistanceDto(message, isClose)
+//        );
+//        messagingTemplate.convertAndSend("/sub/" + roomId + "/game", payload);
+//    }
+
 
     @Override
     public void buyStock(StompPayload<StockRequest> payload) throws BaseException, MessageException {

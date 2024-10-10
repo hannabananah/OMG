@@ -6,6 +6,9 @@ public record PlayerStateDto(
         String nickname,
         double[] position,
         double[] direction,
-        boolean actionToggle
+        boolean actionToggle,
+        boolean isTrading,
+        boolean isCarrying,
+        String animation
 ) {
 }
