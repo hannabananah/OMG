@@ -47,7 +47,7 @@ export default function MiniMap() {
   );
 
   return (
-    <div className='relative flex overflow-hidden'>
+    <div className='relative flex overflow-hidden fade-in'>
       <img
         src='/assets/mini-map.png'
         alt='Mini-map'

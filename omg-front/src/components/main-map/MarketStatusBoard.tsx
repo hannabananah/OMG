@@ -3,7 +3,6 @@ import Marquee from 'react-fast-marquee';
 import { IoMdArrowDropdown, IoMdArrowDropup } from 'react-icons/io';
 import { IoRemoveOutline } from 'react-icons/io5';
 
-import useCountUp from '@/hooks/useCountUp';
 import { generateStockItemsDataWithUpdown } from '@/hooks/useStock';
 import { useMainBoardStore } from '@/stores/useMainBoardStore';
 import { useStockStore } from '@/stores/useStockStore';
@@ -31,9 +30,6 @@ export default function MarketStatusBoard() {
     { label: '거래 가능 수량', value: `${tradableStockCnt}개` },
   ];
 
-  const goldRef = useRef<HTMLParagraphElement>(null);
-  const goldCountUp = useCountUp(goldRef, goldPrice);
-
   return (
     <Marquee
       gradient={true}
@@ -48,13 +44,10 @@ export default function MarketStatusBoard() {
           <h4 className='text-omg-18'>[실시간 주가]</h4>
           <div className='flex items-center gap-4'>
             {stockItems.map((item, idx) => {
-              const stockRef = useRef<HTMLParagraphElement>(null);
-              const animatedStock = useCountUp(stockRef, item.price);
-
               return (
                 <div key={idx} className='flex items-center gap-2'>
                   <img src={item.src} alt={item.name} width={item.width} />
-                  <p ref={stockRef}>${formatNumberWithCommas(animatedStock)}</p>
+                  <p>${formatNumberWithCommas(item.price)}</p>
                   {item.updown > 0 ? (
                     <div className='text-red'>
                       <IoMdArrowDropup />
@@ -79,7 +72,7 @@ export default function MarketStatusBoard() {
           <h4 className='text-omg-18'>[실시간 금 시세]</h4>
           <div className='flex items-center gap-2'>
             <img src='/assets/gold.png' alt='gold' width={24} />
-            <p ref={goldRef}>${formatNumberWithCommas(goldCountUp)}</p>
+            <p>${formatNumberWithCommas(goldPrice)}</p>
           </div>
         </section>
 
@@ -90,13 +83,10 @@ export default function MarketStatusBoard() {
           <h4 className='text-omg-18'>[실시간 시장 정보]</h4>
           <div className='flex items-center gap-4'>
             {infoItems.map((item, idx) => {
-              const itemRef = useRef<HTMLParagraphElement>(null);
-              const animatedItem = useCountUp(itemRef, Number(item.value));
-
               return (
                 <div key={idx} className='flex items-center gap-2'>
                   <p>{item.label}</p>
-                  <p ref={itemRef}>{animatedItem}</p>
+                  <p>{item.value}</p>
                 </div>
               );
             })}
