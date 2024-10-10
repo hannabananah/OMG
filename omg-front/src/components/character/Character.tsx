@@ -3,7 +3,7 @@ import { useContext, useEffect, useMemo, useRef, useState } from 'react';
 import { Controls } from '@/components/main-map/MainMap';
 import { useCharacter } from '@/stores/useCharacter';
 import { useModalStore } from '@/stores/useModalStore';
-import { useMyRoomStore } from '@/stores/useMyroomStore';
+import { useMyRoomStore } from '@/stores/useMyRoomStore';
 import useUser from '@/stores/useUser';
 import { StockItem } from '@/types';
 import { SocketContext } from '@/utils/SocketContext';
@@ -69,6 +69,8 @@ export default function Character({
   const [isInGingerbreadHouseZone, setIsInGingerbreadHouseZone] =
     useState(false);
 
+  const [isModalOpen, setIsModalOpen] = useState(false);
+
   const { scene, mixer, pickUpAnimation } = useCharacter({
     characterURL,
     onMovementChange: state => (movementStateRef.current = state),
@@ -84,7 +86,7 @@ export default function Character({
     0,
     Math.cos(rotation),
   );
-  const characterRotation = new THREE.Euler(0, rotation, 0);
+  // const characterRotation = new THREE.Euler(0, rotation, 0);
 
   // 특정 거래소 좌표에 입장/퇴장한 유저에게만 해당 거래소 모달 열고 닫기
   const openMarketForPlayer = (modalId: string, playerNickname: string) => {
@@ -94,6 +96,7 @@ export default function Character({
   };
   const closeMarketForPlayer = (modalId: string, playerNickname: string) => {
     if (modals[playerNickname]?.[modalId]) {
+      console.log('바깥 부분 클릭 됨! 대출방');
       closeModal(modalId, playerNickname);
     }
   };
@@ -122,6 +125,14 @@ export default function Character({
       }, 5000);
     }
   };
+
+  useEffect(() => {
+    if (modals[nickname]?.loanMarket) {
+      setIsModalOpen(true);
+    } else {
+      setIsModalOpen(false);
+    }
+  }, [modals, nickname]);
 
   useEffect(() => {
     // 자신의 캐릭터가 아닌 경우 모달 제어 로직을 실행하지 않음
@@ -154,11 +165,13 @@ export default function Character({
       const insideLoanMarket = isInZone(characterPosition, zones.loanMarket);
       if (insideLoanMarket && !isInLoanMarketZone) {
         setIsInLoanMarketZone(true);
+        setIsModalOpen(true);
         openMarketForPlayer('loanMarket', nickname);
         console.log('대출 방 진입');
       } else if (!insideLoanMarket && isInLoanMarketZone) {
         setIsInLoanMarketZone(false);
         closeMarketForPlayer('loanMarket', nickname);
+        setIsModalOpen(false);
         console.log('대출 방 벗어남');
       }
       const insideGoldMarket = isInZone(characterPosition, zones.goldMarket);
@@ -398,9 +411,10 @@ export default function Character({
         <IntroCamera
           characterPosition={characterPosition}
           characterDirection={characterDirection}
-          characterRotation={characterRotation}
-          scale={characterScale}
+          isInStockMarketZone={isInStockMarketZone}
           isInLoanMarketZone={isInLoanMarketZone}
+          isInGoldMarketZone={isInGoldMarketZone}
+          isModalOpen={isModalOpen}
         />
       )}
 
