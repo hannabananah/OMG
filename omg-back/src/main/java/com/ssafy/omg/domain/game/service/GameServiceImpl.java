@@ -921,7 +921,9 @@ public class GameServiceImpl implements GameService {
         loanLimit += (int) (player.getGoldOwned() * game.getGoldPrice() * 0.7);
         loanLimit += (int) (getStockValue(player.getStock(), game.getMarketStocks()) * 0.4);
 
-        return Math.min(loanLimit, 1000);
+        loanLimit = Math.min(loanLimit, 1000);
+
+        return loanLimit;
     }
 
     private boolean isRichestPlayer(Game game, Player player) {

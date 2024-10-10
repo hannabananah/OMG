@@ -2,7 +2,7 @@ import { useState } from 'react';
 
 import MarketState from '@/components/stock-market/MarketState';
 import StockMain from '@/components/stock-market/StockMain';
-import useModalStore from '@/stores/useModalStore';
+import { useModalStore } from '@/stores/useModalStore';
 import useUser from '@/stores/useUser';
 import { StockMarketView } from '@/types';
 
