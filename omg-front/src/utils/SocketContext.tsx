@@ -37,7 +37,7 @@ interface SocketContextType {
     actionToggle: boolean,
     isTrading: boolean,
     isCarrying: boolean,
-    animation: string,
+    animation: 'idle' | 'walking' | 'running',
   ) => void;
   initGameSetting: () => void;
   allRendered: boolean;
@@ -295,7 +295,6 @@ export default function SocketProvider({ children }: SocketProviderProps) {
                   const existingUser = useOtherUserStore
                     .getState()
                     .otherUsers.find(user => user.id === player.nickname);
-
                   return {
                     id: player.nickname,
                     characterType: existingUser?.characterType || 0,
@@ -304,7 +303,7 @@ export default function SocketProvider({ children }: SocketProviderProps) {
                     actionToggle: player.actionToggle,
                     isTrading: player.isTrading,
                     isCarrying: player.isCarrying,
-                    animation: player.animation,
+                    animation: player?.animation,
                   };
                 },
               );
@@ -686,7 +685,7 @@ export default function SocketProvider({ children }: SocketProviderProps) {
     actionToggle: boolean,
     isTrading: boolean,
     isCarrying: boolean,
-    animation: string,
+    animation: 'idle' | 'walking' | 'running',
   ) => {
     if (!isSocketConnected()) return;
     const messagePayload = {

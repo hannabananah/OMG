@@ -1,16 +1,18 @@
-import { useGoldFloating } from '@/hooks/useGoldFloating';
+import { useGoldSwing } from '@/hooks/useGoldSwing';
 import { useGLTF } from '@react-three/drei';
 
 export default function GoldModel() {
-  const floatingRef = useGoldFloating(0); // 초기 Y좌표 설정
+  const swingRef = useGoldSwing(3, 0.3); // 속도, 진폭
 
-  const { scene } = useGLTF('/models/gold/gold.gltf'); // GLTF 파일 로드
+  const { scene } = useGLTF('/models/goldbell/goldbell.gltf'); // GLTF 파일 로드
   return (
-    <primitive
-      ref={floatingRef}
-      object={scene}
-      scale={2}
-      rotation={[0, 0, 0]}
-    />
+    <group ref={swingRef} position={[0, 0, 0]}>
+      <primitive
+        object={scene}
+        scale={2.4}
+        position={[0, -2.4, 0]} // 종을 아래로 이동시켜 위쪽이 피벗이 되도록 설정
+        rotation={[-0.2, 0, 0]}
+      />
+    </group>
   );
 }

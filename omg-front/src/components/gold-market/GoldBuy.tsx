@@ -7,7 +7,6 @@ import { useSocketMessage } from '@/stores/useSocketMessage';
 import { SocketContext } from '@/utils/SocketContext';
 import { ToastAlert } from '@/utils/ToastAlert';
 import formatNumberWithCommas from '@/utils/formatNumberWithCommas';
-import { OrbitControls } from '@react-three/drei';
 import { Canvas } from '@react-three/fiber';
 
 import Button from '../common/Button';
@@ -88,18 +87,11 @@ export default function GoldBuy() {
       <section className='w-[50%] flex justify-center items-center p-10'>
         <div className='flex flex-col items-center justify-center w-full h-full gap-10'>
           {/* 금 3D 에셋  */}
-          <Canvas style={{ width: '300px', height: '250px' }}>
+          <Canvas style={{ width: '300px', height: '260px' }}>
             <ambientLight intensity={3} />
             <directionalLight position={[2, 5, 2]} intensity={2} />
             <pointLight position={[-5, 5, 5]} intensity={1} />
             <GoldModel />
-            <OrbitControls
-              enableZoom={false}
-              enablePan={false}
-              enableRotate={true} // 회전만 가능하게 설정
-              minDistance={0} // 거리를 제한하지 않도록 설정
-              maxDistance={Infinity} // 최대 거리 제한 제거
-            />
           </Canvas>
 
           {/* 수량 선택 */}

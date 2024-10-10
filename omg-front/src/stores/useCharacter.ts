@@ -12,6 +12,7 @@ interface Props {
 
   characterURL: string;
   isOwnCharacter: boolean;
+  animation?: 'idle' | 'walking' | 'running';
 }
 
 export const useCharacter = ({
@@ -20,6 +21,7 @@ export const useCharacter = ({
   characterURL,
   isOwnCharacter,
   onActionToggleChange,
+  animation,
 }: Props) => {
   const { scene, animations } = useGLTF(characterURL);
   const mixer = useRef<THREE.AnimationMixer | null>(null);
@@ -165,6 +167,12 @@ export const useCharacter = ({
       window.removeEventListener('keyup', handleKeyUp);
     };
   }, [handleKeyDown]);
+
+  useEffect(() => {
+    if (animation) {
+      setAnimationState(animation);
+    }
+  }, [animation]);
 
   return { scene, mixer, pickUpAnimation };
 };

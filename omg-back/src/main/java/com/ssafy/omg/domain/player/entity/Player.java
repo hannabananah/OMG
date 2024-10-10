@@ -1,7 +1,12 @@
 package com.ssafy.omg.domain.player.entity;
 
 import com.ssafy.omg.domain.game.entity.LoanProduct;
-import lombok.*;
+import com.ssafy.omg.domain.player.dto.PlayerAnimation;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 import java.util.TreeSet;
 
@@ -40,7 +45,7 @@ public class Player {
     private int isConnected;           // 플레이어 접속 상태 (0: 끊김, 1: 연결됨)
     private boolean isTrading;
     private boolean isCarrying;
-    private String animation;
+    private PlayerAnimation animation;
 
     private int tax;          // carryingStocks나 carryingGolds가 있는 상태로 게임이 끝났을 경우 세금 부과
 
@@ -49,7 +54,7 @@ public class Player {
     }
 
     public boolean sendActionToggle() {
-        if(this.actionToggle) {
+        if (this.actionToggle) {
             this.actionToggle = false;
             return true;
         }
