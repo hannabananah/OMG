@@ -22,7 +22,8 @@ import GameResult from '@/components/game/GameResult';
 import Map from '@/components/main-map/Map';
 import MiniMap from '@/components/mini-map/MiniMap';
 import StockMarket from '@/components/stock-market/StockMarket';
-import useModalStore from '@/stores/useModalStore';
+import { useModalStore } from '@/stores/useModalStore';
+import { useMyRoomStore } from '@/stores/useMyroomStore';
 import { useOtherUserStore } from '@/stores/useOtherUserState';
 import { useSocketMessage } from '@/stores/useSocketMessage';
 import useUser from '@/stores/useUser';
@@ -61,6 +62,8 @@ export default function MainMap() {
   const { otherUsers } = useOtherUserStore();
 
   const { modals } = useModalStore();
+  const { isEnteringRoom } = useMyRoomStore();
+
   const { nickname } = useUser();
 
   const { eventCardMessage, eventEffectMessage, gameRoundMessage } =
@@ -246,6 +249,28 @@ export default function MainMap() {
           opacity: 0.9,
         }}
       ></div>
+
+      {/* 내 방 입장 알림 메시지 */}
+      {isEnteringRoom[nickname] && (
+        <div className='absolute inset-0 z-50 flex items-center justify-center bg-black bg-opacity-75'>
+          <p className='tracking-wider text-white text-omg-50b test_obj'>
+            <span>방</span>
+            <span>으</span>
+            <span>로</span>
+            <span> </span>
+            <span>들</span>
+            <span>어</span>
+            <span>가</span>
+            <span>는</span>
+            <span> </span>
+            <span>중</span>
+            <span>입</span>
+            <span>니</span>
+            <span>다</span>
+            <span>...</span>
+          </p>
+        </div>
+      )}
 
       {/* 내 방 Modal */}
       {modals[nickname]?.myRoom && <MyRoom />}

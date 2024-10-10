@@ -1,4 +1,4 @@
-import { useContext, useState } from 'react';
+import { useContext, useEffect, useState } from 'react';
 
 import { itemNameList } from '@/assets/data/stockMarketData';
 import BackButton from '@/components/common/BackButton';
@@ -13,7 +13,8 @@ import Item from '@/components/stock-market/Item';
 import { treeItemNameInKorean } from '@/hooks/useStock';
 import { useGameStore } from '@/stores/useGameStore';
 import { useMainBoardStore } from '@/stores/useMainBoardStore';
-import useModalStore from '@/stores/useModalStore';
+import { useModalStore } from '@/stores/useModalStore';
+import { useMyRoomStore } from '@/stores/useMyroomStore';
 import { usePersonalBoardStore } from '@/stores/usePersonalBoardStore';
 import useUser from '@/stores/useUser';
 import { SocketContext } from '@/utils/SocketContext';
@@ -22,16 +23,22 @@ import formatNumberWithCommas from '@/utils/formatNumberWithCommas';
 import { Html, OrbitControls, RoundedBox } from '@react-three/drei';
 import { Canvas } from '@react-three/fiber';
 
+import Chatting from '../chat/Chatting';
+
 export default function MyRoom() {
-  const { modals, closeModal } = useModalStore();
+  const { roundTimer, presentRound } = useContext(SocketContext);
   const { nickname } = useUser();
 
-  const { roundTimer, presentRound } = useContext(SocketContext);
+  const { modals, closeModal } = useModalStore();
+  const { isExitingRoom, setIsExitingRoom, isFadingOut, setIsFadingOut } =
+    useMyRoomStore();
 
   const { setCarryingCount } = useGameStore();
-
   const { stockPrices, tradableStockCnt } = useMainBoardStore();
   const { stock } = usePersonalBoardStore();
+
+  const [isChatOpen, setIsChatOpen] = useState(false);
+  const [isFadingIn, setIsFadingIn] = useState(false);
 
   const MAX_TRADE_COUNT = tradableStockCnt; // 최대 거래 가능 수량
   const STOCK_MARKET_PRICE = stockPrices; // 현재 주가
@@ -42,6 +49,11 @@ export default function MyRoom() {
 
   const [alertText, setAlertText] =
     useState<string>('판매 할 아이템을 선택해주세요!');
+
+  // 컴포넌트가 마운트될 때 페이드 인 시작
+  useEffect(() => {
+    setIsFadingIn(true);
+  }, []);
 
   // 보유한 아이템들만 필터링
   const ownedStockItems = (MY_STOCK ? MY_STOCK.slice(1) : [])
@@ -124,33 +136,71 @@ export default function MyRoom() {
     }
 
     setCarryingCount(selectedCounts);
-  };
 
-  const handleCloseMyRoom = (e: React.MouseEvent<HTMLDivElement>) => {
-    if (e.target === e.currentTarget && modals[nickname]?.myRoom) {
-      closeModal('myRoom', nickname);
-    }
+    setTimeout(() => {
+      handleBackButton();
+    }, 1000);
   };
 
   // 뒤로 가기 버튼
   const handleBackButton = () => {
     if (modals[nickname]?.myRoom) {
-      closeModal('myRoom', nickname);
+      // 방 퇴장 메시지 표시
+      setIsExitingRoom(nickname, true);
+      setIsFadingOut(true);
+
+      setTimeout(() => {
+        setIsExitingRoom(nickname, false);
+        setIsFadingOut(false);
+        closeModal('myRoom', nickname);
+      }, 5000);
     }
+  };
+
+  const openChattingModal = () => {
+    setIsChatOpen(true);
+  };
+
+  const closeChattingModal = () => {
+    setIsChatOpen(false);
   };
 
   return (
     <div
-      className='fixed top-0 left-0 z-50 flex items-center justify-center w-full h-full'
-      onClick={handleCloseMyRoom}
+      className={`fixed top-0 left-0 z-50 flex items-center justify-center w-full h-full ${
+        isFadingIn && !isFadingOut ? 'opacity-100' : 'opacity-0'
+      } transition-opacity duration-1000`}
     >
+      {/* 내 방 퇴장 알림 메시지 */}
+      {isExitingRoom[nickname] && (
+        <div className='absolute inset-0 z-50 flex items-center justify-center bg-black bg-opacity-75'>
+          <p className='tracking-wider text-white text-omg-50b test_obj'>
+            <span>방</span>
+            <span>에</span>
+            <span>서</span>
+            <span> </span>
+            <span>니</span>
+            <span>가</span>
+            <span>는</span>
+            <span> </span>
+            <span>중</span>
+            <span>입</span>
+            <span>니</span>
+            <span>다</span>
+            <span>...</span>
+          </p>
+        </div>
+      )}
+
       <main
         className='relative z-10 w-full h-screen bg-center bg-cover'
         style={{ backgroundImage: 'url("/assets/myroom.jpg")' }}
       >
         {/* Header: 뒤로 가기 & Round-Timer 고정 렌더링 */}
         <section className='absolute top-0 left-0 z-10 flex items-start justify-between w-full px-10 py-10 text-black text-omg-40b'>
-          <BackButton onClick={handleBackButton} />
+          <div className='text-white'>
+            <BackButton onClick={handleBackButton} />
+          </div>
           <div className='flex flex-col items-end gap-4'>
             <Round presentRound={presentRound} />
             <Timer presentRound={presentRound} time={roundTimer} />
@@ -163,8 +213,10 @@ export default function MyRoom() {
         </section>
 
         {/* Footer: 채팅 & 종료 버튼 고정 렌더링 */}
-        <section className='absolute bottom-0 left-0 z-10 flex items-center justify-between w-full text-black py-14 px-14 text-omg-40b'>
-          <ChatButton />
+        <section className='absolute bottom-0 left-0 z-10 flex items-end justify-between w-full p-6 text-white text-omg-40b'>
+          <ChatButton isWhite={true} onClick={openChattingModal} />
+          {isChatOpen && <Chatting closeChattingModal={closeChattingModal} />}
+
           <ExitButton />
         </section>
 
@@ -199,7 +251,7 @@ export default function MyRoom() {
                     <meshStandardMaterial
                       color='gray'
                       transparent
-                      opacity={0.5}
+                      opacity={0.6}
                     />
                   </RoundedBox>
                 </mesh>
