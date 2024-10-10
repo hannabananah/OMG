@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 
 import useModalStore from '@/stores/useModalStore';
+import useUser from '@/stores/useUser';
 import { PerspectiveCamera } from '@react-three/drei';
 import { useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
@@ -10,17 +11,19 @@ import { useIntroStore } from '../../stores/useIntroStore';
 interface IntroCameraProps {
   characterPosition: THREE.Vector3;
   characterDirection: THREE.Vector3;
-  characterRotation: THREE.Euler;
-  scale: number[];
+  isInStockMarketZone: boolean;
   isInLoanMarketZone: boolean;
+  isInGoldMarketZone: boolean;
+  isModalOpen: boolean;
 }
 
 export default function IntroCamera({
   characterPosition,
   characterDirection,
-  characterRotation,
-  scale,
+  isInStockMarketZone,
   isInLoanMarketZone,
+  isInGoldMarketZone,
+  isModalOpen,
 }: IntroCameraProps) {
   const cameraRef = useRef<THREE.PerspectiveCamera>(null);
   const { showIntro, setShowIntro } = useIntroStore();
@@ -33,19 +36,34 @@ export default function IntroCamera({
   const speed = 0.85;
   const transitionDuration = 4; // 전환 애니메이션 지속 시간
 
-  const { openModal } = useModalStore();
+  const { modals, openModal } = useModalStore();
+  const { nickname } = useUser();
 
   const [isCircling, setIsCircling] = useState(false);
   const loanRoomTarget = new THREE.Vector3(
-    50.934777281838066,
+    53.477760993312415,
     0,
-    77.69974776769165,
+    79.89317445200676,
   );
-  const circleRadius = 10;
-  const circleSpeed = 0.02;
+  const circleRadius = 8;
+  const circleSpeed = 0.3;
   const [circleProgress, setCircleProgress] = useState(0);
 
-  // 초기 카메라 설정을 위한 useEffect
+  // 특정 거래소 좌표에 입장/퇴장한 유저에게만 해당 거래소 모달 열고 닫기
+  const openModalForPlayer = (modalId: string, playerNickname: string) => {
+    if (!modals[playerNickname]?.[modalId]) {
+      openModal(modalId, playerNickname);
+    }
+  };
+
+  // 거래소 진입 시 카메라 전환
+  useEffect(() => {
+    if (isInLoanMarketZone && !isCircling) {
+      setIsCircling(true);
+    }
+  }, [isInLoanMarketZone]);
+
+  // 초기 카메라 설정
   useEffect(() => {
     if (!cameraRef.current || showIntro) return;
 
@@ -64,44 +82,38 @@ export default function IntroCamera({
     camera.rotation.set(0, Math.PI, 0);
   }, [characterPosition, showIntro]);
 
-  useEffect(() => {
-    if (isInLoanMarketZone && !isCircling) {
-      setIsCircling(true); // 대출방에 진입하면 카메라 원 이동 시작
-    }
-  }, [isInLoanMarketZone]);
-
   useFrame((state, delta) => {
     if (!cameraRef.current) return;
 
     const camera = cameraRef.current;
     const elapsedTime = state.clock.getElapsedTime();
 
+    // 원 그리면서 전체 맵 돌기
     if (showIntro) {
       const targetZoom = 5;
       const x = Math.cos(elapsedTime * speed) * radius;
       const z = Math.sin(elapsedTime * speed) * radius;
 
-      // 줌인 애니메이션을 적용하면서 원을 돌게 만듦
       const zoomFactor = Math.max(20 - elapsedTime * 2, targetZoom);
       camera.position.set(x - 10, zoomFactor + 20, z); // 카메라 위치 수정
       camera.lookAt(-1, 0, 0);
 
       if (zoomFactor <= targetZoom) {
-        setShowIntro();
         setIsTransitioning(true);
         transitionStartTime.current = elapsedTime;
         startPosition.current.copy(camera.position);
         camera.getWorldDirection(startDirection.current);
         startRotation.current.copy(camera.rotation);
+        setShowIntro();
       }
-    } else if (isTransitioning) {
+    } // 전체 맵 다 돌고 캐릭터 줌인하면서 카메라 전환 중
+    else if (isTransitioning) {
       const transitionTime = elapsedTime - transitionStartTime.current;
       const progress = Math.min(transitionTime / transitionDuration, 1);
       const easeProgress = easeInOutCubic(progress); //전환 진행될수록 0에서 1로 증가
 
-      // 회전 움직임 유지 - 수정
-      const currentRadius = radius * (1 - easeProgress * 0.9); // 회전 반경 점진적 감소
-      const rotationSpeed = speed * (1 - easeProgress); // 전환이 진행됨에 따라 속도 감소
+      const currentRadius = radius * (1 - easeProgress * 0.9);
+      const rotationSpeed = speed * (1 - easeProgress);
       const roundX = Math.cos(elapsedTime * rotationSpeed) * currentRadius;
       const roundZ = Math.sin(elapsedTime * rotationSpeed) * currentRadius;
 
@@ -111,6 +123,7 @@ export default function IntroCamera({
         characterPosition.y - 3,
         characterPosition.z - 11.3,
       );
+      // current 붙은 거는 원 그리면서 이동할 때만 필요
       const currentPosition = new THREE.Vector3(
         roundX,
         characterPosition.y - 3,
@@ -133,25 +146,10 @@ export default function IntroCamera({
       if (progress === 1) {
         setIsTransitioning(false);
       }
-    } else {
+    } // 인트로, 캐릭터 줌인 끝나고 캐릭터 따라다니는 카메라 상태
+    else {
       // 거래소 진입
-      if (isCircling) {
-        const angle = circleProgress * Math.PI * 2;
-        camera.position.set(
-          loanRoomTarget.x + Math.cos(angle) * circleRadius,
-          loanRoomTarget.y + 5,
-          loanRoomTarget.z + Math.sin(angle) * circleRadius,
-        );
-        camera.lookAt(loanRoomTarget);
-
-        setCircleProgress(prev => prev + circleSpeed * delta);
-
-        if (circleProgress >= 1) {
-          setIsCircling(false);
-          setCircleProgress(0);
-          openModal('loanMarket', 'nickname');
-        }
-      } else {
+      if (!isModalOpen) {
         const cameraDistance = 15; // 카메라와 캐릭터 사이의 거리
 
         // 캐릭터의 방향 벡터에서 카메라가 뒤에 위치하도록 설정
@@ -175,6 +173,35 @@ export default function IntroCamera({
 
         const lookAtPosition = camera.position.clone().add(targetDirection);
         camera.lookAt(lookAtPosition);
+      } else if (isCircling) {
+        console.log('대출방 관련 되서 테스트1');
+        openModalForPlayer('loanMarket', nickname);
+        const angle = circleProgress * (Math.PI / 3);
+        camera.position.set(
+          loanRoomTarget.x + Math.cos(angle) * circleRadius,
+          loanRoomTarget.y - 2,
+          loanRoomTarget.z + Math.sin(angle) * circleRadius,
+        );
+        camera.lookAt(loanRoomTarget);
+
+        setCircleProgress(prev => prev + circleSpeed * delta);
+
+        // 회전 완료
+        if (circleProgress >= 1) {
+          // 서클링 종료 후 카메라 위치 고정
+          console.log('여기 들어옴? 대출방');
+          setCircleProgress(1);
+          setIsCircling(false);
+        }
+      } else {
+        // 모달이 열려 있는 동안 카메라가 loanRoomTarget에 고정됨
+        console.log('대출방 관련 되서 테스트2');
+        camera.position.set(
+          loanRoomTarget.x,
+          loanRoomTarget.y - 2,
+          loanRoomTarget.z,
+        );
+        camera.lookAt(loanRoomTarget);
       }
     }
   });
