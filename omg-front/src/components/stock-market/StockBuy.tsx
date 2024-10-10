@@ -18,7 +18,8 @@ export default function StockBuy() {
   const { buyStock } = useContext(SocketContext);
 
   const { stockPrices, leftStocks } = useStockStore();
-  const { selectedCount, setSelectedCount } = useGameStore();
+  const { selectedCount, setSelectedCount, setCarryingToHomeCount } =
+    useGameStore();
   const { tradableStockCnt } = useMainBoardStore();
   const { cash } = usePersonalBoardStore();
 
@@ -75,6 +76,7 @@ export default function StockBuy() {
 
   const handleBuying = () => {
     buyStock(selectedCount);
+    setCarryingToHomeCount(selectedCount);
     setSelectedCount([0, 0, 0, 0, 0, 0]);
   };
 
