@@ -139,7 +139,6 @@ export default function IntroCamera({
     else {
       // 1. 거래소 제외한 일반 캐릭터 카메라 - 기본(코드 수정하면 안됨)
       if (!isModalOpen) {
-        console.log('대출방 여기 찍히나요?');
         const cameraDistance = 15; // 카메라와 캐릭터 사이의 거리
 
         // 캐릭터의 방향 벡터에서 카메라가 뒤에 위치하도록 설정
@@ -168,7 +167,6 @@ export default function IntroCamera({
       }
       // 2. 거래소 진입해서 원 돌 때
       else if (circleProgress < 1) {
-        console.log('대출방 관련 되서 테스트1');
         let targetPosition;
 
         if (marketType === 'loanMarket') {

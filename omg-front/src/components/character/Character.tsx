@@ -153,127 +153,113 @@ export default function Character({
     // 자신의 캐릭터가 아닌 경우 모달 제어 로직을 실행하지 않음
     if (!isOwnCharacter) return;
 
-    const prevPosition = prevPositionRef.current;
-    if (
-      characterPosition.x !== prevPosition.x ||
-      characterPosition.y !== prevPosition.y ||
-      characterPosition.z !== prevPosition.z
-    ) {
-      console.log('캐릭터 현재 위치:', {
-        x: characterPosition.x,
-        y: characterPosition.y,
-        z: characterPosition.z,
-      });
-      prevPositionRef.current.copy(characterPosition); // 현재 위치를 이전 위치로 업데이트
+    // 거래소
+    const insideStockMarket = isInZone(characterPosition, zones.stockMarket);
+    if (insideStockMarket && !isInStockMarketZone) {
+      setIsInStockMarketZone(true);
+      setMarketType('stockMarket');
+      setIsModalOpen(true);
+      setIsCircling(true);
+      openMarketForPlayer('stockMarket', nickname);
+      console.log('주식 시장 진입');
+    } else if (!insideStockMarket && isInStockMarketZone) {
+      setIsInStockMarketZone(false);
+      setMarketType(null);
+      closeMarketForPlayer('stockMarket', nickname);
+      setIsModalOpen(false);
+      console.log('주식 시장 벗어남');
+    }
+    const insideLoanMarket = isInZone(characterPosition, zones.loanMarket);
+    if (insideLoanMarket && !isInLoanMarketZone) {
+      setIsInLoanMarketZone(true);
+      setMarketType('loanMarket');
+      setIsModalOpen(true);
+      setIsCircling(true);
+      openMarketForPlayer('loanMarket', nickname);
+      console.log('대출 방 진입');
+    } else if (!insideLoanMarket && isInLoanMarketZone) {
+      setIsInLoanMarketZone(false);
+      setMarketType(null);
+      closeMarketForPlayer('loanMarket', nickname);
+      setIsModalOpen(false);
+      console.log('대출 방 벗어남');
+    }
+    const insideGoldMarket = isInZone(characterPosition, zones.goldMarket);
+    if (insideGoldMarket && !isInGoldMarketZone) {
+      setIsInGoldMarketZone(true);
+      setMarketType('goldMarket');
+      setIsModalOpen(true);
+      setIsCircling(true);
+      openMarketForPlayer('goldMarket', nickname);
+      console.log('금 거래소 진입');
+    } else if (!insideGoldMarket && isInGoldMarketZone) {
+      setIsInGoldMarketZone(false);
+      setMarketType(null);
+      closeMarketForPlayer('goldMarket', nickname);
+      setIsModalOpen(false);
+      console.log('금 거래소 벗어남');
+    }
 
-      // 거래소
-      const insideStockMarket = isInZone(characterPosition, zones.stockMarket);
-      if (insideStockMarket && !isInStockMarketZone) {
-        setIsInStockMarketZone(true);
-        setMarketType('stockMarket');
-        setIsModalOpen(true);
-        setIsCircling(true);
-        openMarketForPlayer('stockMarket', nickname);
-        console.log('주식 시장 진입');
-      } else if (!insideStockMarket && isInStockMarketZone) {
-        setIsInStockMarketZone(false);
-        setMarketType(null);
-        closeMarketForPlayer('stockMarket', nickname);
-        setIsModalOpen(false);
-        console.log('주식 시장 벗어남');
+    // 자기 집
+    // 0: 산타 캐릭터일 때 산타 MyRoom 모달 열기
+    if (characterType === 0) {
+      const insideSantaHouse = isInZone(characterPosition, zones.santaHouse);
+      if (insideSantaHouse && !isInSantaHouseZone) {
+        setIsInSantaHouseZone(true);
+        openModalForPlayer('myRoom', nickname);
+        console.log('산타 집 진입');
+      } else if (!insideSantaHouse && isInSantaHouseZone) {
+        setIsInSantaHouseZone(false);
+        closeModalForPlayer('myRoom', nickname);
+        console.log('산타 집 벗어남');
       }
-      const insideLoanMarket = isInZone(characterPosition, zones.loanMarket);
-      if (insideLoanMarket && !isInLoanMarketZone) {
-        setIsInLoanMarketZone(true);
-        setMarketType('loanMarket');
-        setIsModalOpen(true);
-        setIsCircling(true);
-        openMarketForPlayer('loanMarket', nickname);
-        console.log('대출 방 진입');
-      } else if (!insideLoanMarket && isInLoanMarketZone) {
-        setIsInLoanMarketZone(false);
-        setMarketType(null);
-        closeMarketForPlayer('loanMarket', nickname);
-        setIsModalOpen(false);
-        console.log('대출 방 벗어남');
-      }
-      const insideGoldMarket = isInZone(characterPosition, zones.goldMarket);
-      if (insideGoldMarket && !isInGoldMarketZone) {
-        setIsInGoldMarketZone(true);
-        setMarketType('goldMarket');
-        setIsModalOpen(true);
-        setIsCircling(true);
-        openMarketForPlayer('goldMarket', nickname);
-        console.log('금 거래소 진입');
-      } else if (!insideGoldMarket && isInGoldMarketZone) {
-        setIsInGoldMarketZone(false);
-        setMarketType(null);
-        closeMarketForPlayer('goldMarket', nickname);
-        setIsModalOpen(false);
-        console.log('금 거래소 벗어남');
-      }
+    }
 
-      // 자기 집
-      // 0: 산타 캐릭터일 때 산타 MyRoom 모달 열기
-      if (characterType === 0) {
-        const insideSantaHouse = isInZone(characterPosition, zones.santaHouse);
-        if (insideSantaHouse && !isInSantaHouseZone) {
-          setIsInSantaHouseZone(true);
-          openModalForPlayer('myRoom', nickname);
-          console.log('산타 집 진입');
-        } else if (!insideSantaHouse && isInSantaHouseZone) {
-          setIsInSantaHouseZone(false);
-          closeModalForPlayer('myRoom', nickname);
-          console.log('산타 집 벗어남');
-        }
+    // 1 : 엘프 캐릭터일 때 엘프 MyRoom 모달 열기
+    if (characterType === 1) {
+      const insideElfHouse = isInZone(characterPosition, zones.elfHouse);
+      if (insideElfHouse && !isInElfHouseZone) {
+        setIsInElfHouseZone(true);
+        openModalForPlayer('myRoom', nickname);
+        console.log('엘프 집 진입');
+      } else if (!insideElfHouse && isInElfHouseZone) {
+        setIsInElfHouseZone(false);
+        closeModalForPlayer('myRoom', nickname);
+        console.log('엘프 집 벗어남');
       }
+    }
 
-      // 1 : 엘프 캐릭터일 때 엘프 MyRoom 모달 열기
-      if (characterType === 1) {
-        const insideElfHouse = isInZone(characterPosition, zones.elfHouse);
-        if (insideElfHouse && !isInElfHouseZone) {
-          setIsInElfHouseZone(true);
-          openModalForPlayer('myRoom', nickname);
-          console.log('엘프 집 진입');
-        } else if (!insideElfHouse && isInElfHouseZone) {
-          setIsInElfHouseZone(false);
-          closeModalForPlayer('myRoom', nickname);
-          console.log('엘프 집 벗어남');
-        }
+    // 2 : 눈사람 캐릭터일 때 눈사람 MyRoom 모달 열기
+    if (characterType === 2) {
+      const insideSnowmanHouse = isInZone(
+        characterPosition,
+        zones.snowmanHouse,
+      );
+      if (insideSnowmanHouse && !isInSnowmanHouseZone) {
+        setIsInSnowmanHouseZone(true);
+        openModalForPlayer('myRoom', nickname);
+        console.log('snowman 집 진입');
+      } else if (!insideSnowmanHouse && isInSnowmanHouseZone) {
+        setIsInSnowmanHouseZone(false);
+        closeModalForPlayer('myRoom', nickname);
+        console.log('snowman 집 벗어남');
       }
+    }
 
-      // 2 : 눈사람 캐릭터일 때 눈사람 MyRoom 모달 열기
-      if (characterType === 2) {
-        const insideSnowmanHouse = isInZone(
-          characterPosition,
-          zones.snowmanHouse,
-        );
-        if (insideSnowmanHouse && !isInSnowmanHouseZone) {
-          setIsInSnowmanHouseZone(true);
-          openModalForPlayer('myRoom', nickname);
-          console.log('snowman 집 진입');
-        } else if (!insideSnowmanHouse && isInSnowmanHouseZone) {
-          setIsInSnowmanHouseZone(false);
-          closeModalForPlayer('myRoom', nickname);
-          console.log('snowman 집 벗어남');
-        }
-      }
-
-      // 3 : 진저브레드 캐릭터일 때 진저브레드 MyRoom 모달 열기
-      if (characterType === 3) {
-        const insideGingerbreadHouse = isInZone(
-          characterPosition,
-          zones.gingerbreadHouse,
-        );
-        if (insideGingerbreadHouse && !isInGingerbreadHouseZone) {
-          setIsInGingerbreadHouseZone(true);
-          openModalForPlayer('myRoom', nickname);
-          console.log('gingerbread 집 진입');
-        } else if (!insideGingerbreadHouse && isInGingerbreadHouseZone) {
-          setIsInGingerbreadHouseZone(false);
-          closeModalForPlayer('myRoom', nickname);
-          console.log('Exited gingerbread 집 벗어남');
-        }
+    // 3 : 진저브레드 캐릭터일 때 진저브레드 MyRoom 모달 열기
+    if (characterType === 3) {
+      const insideGingerbreadHouse = isInZone(
+        characterPosition,
+        zones.gingerbreadHouse,
+      );
+      if (insideGingerbreadHouse && !isInGingerbreadHouseZone) {
+        setIsInGingerbreadHouseZone(true);
+        openModalForPlayer('myRoom', nickname);
+        console.log('gingerbread 집 진입');
+      } else if (!insideGingerbreadHouse && isInGingerbreadHouseZone) {
+        setIsInGingerbreadHouseZone(false);
+        closeModalForPlayer('myRoom', nickname);
+        console.log('Exited gingerbread 집 벗어남');
       }
     }
   }, [
