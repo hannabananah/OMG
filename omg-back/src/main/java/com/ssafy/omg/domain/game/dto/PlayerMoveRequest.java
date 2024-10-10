@@ -1,14 +1,13 @@
 package com.ssafy.omg.domain.game.dto;
 
-import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.Size;
+import com.ssafy.omg.domain.player.dto.PlayerAnimation;
 
-public record PlayerMoveRequest (
+public record PlayerMoveRequest(
         double[] position,
         double[] direction,
         boolean actionToggle,
         boolean isTrading,
         boolean isCarrying,
-        String animation
+        PlayerAnimation animation
 ) {
 }
