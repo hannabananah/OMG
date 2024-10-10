@@ -4,7 +4,7 @@ import { FaRegQuestionCircle } from 'react-icons/fa';
 import { GiCardPick } from 'react-icons/gi';
 
 import { useLoanStore } from '@/stores/useLoanStore';
-import useModalStore from '@/stores/useModalStore';
+import { useModalStore } from '@/stores/useModalStore';
 import useUser from '@/stores/useUser';
 import { LoanMarketView } from '@/types';
 import { SocketContext } from '@/utils/SocketContext';

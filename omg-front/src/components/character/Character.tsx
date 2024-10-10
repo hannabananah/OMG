@@ -2,7 +2,8 @@ import { useContext, useEffect, useMemo, useRef, useState } from 'react';
 
 import { Controls } from '@/components/main-map/MainMap';
 import { useCharacter } from '@/stores/useCharacter';
-import useModalStore from '@/stores/useModalStore';
+import { useModalStore } from '@/stores/useModalStore';
+import { useMyRoomStore } from '@/stores/useMyRoomStore';
 import useUser from '@/stores/useUser';
 import { StockItem } from '@/types';
 import { SocketContext } from '@/utils/SocketContext';
@@ -37,13 +38,17 @@ export default function Character({
 }: Props) {
   const { movePlayer, allRendered } = useContext(SocketContext);
 
-  const { modals, closeModal } = useModalStore();
-  const { nickname } = useUser();
+  const { modals, openModal, closeModal } = useModalStore();
+  const { setIsEnteringRoom, setIsExitingRoom, setIsFadingOut } =
+    useMyRoomStore();
+
+  const { nickname, characterType } = useUser();
 
   const [localActionToggle, setLocalActionToggle] = useState(false);
   const [characterPosition, setCharacterPosition] = useState(
     new THREE.Vector3(...startPosition),
   );
+
   const [rotation, setRotation] = useState(0);
   const movementStateRef = useRef<'idle' | 'walking' | 'running'>('idle');
   const prevPositionRef = useRef(new THREE.Vector3()); // 캐릭터 이전 위치
@@ -84,16 +89,40 @@ export default function Character({
   // const characterRotation = new THREE.Euler(0, rotation, 0);
 
   // 특정 거래소 좌표에 입장/퇴장한 유저에게만 해당 거래소 모달 열고 닫기
-  // const openModalForPlayer = (modalId: string, playerNickname: string) => {
-  //   if (!modals[playerNickname]?.[modalId]) {
-  //     openModal(modalId, playerNickname);
-  //   }
-  // };
-
-  const closeModalForPlayer = (modalId: string, playerNickname: string) => {
+  const openMarketForPlayer = (modalId: string, playerNickname: string) => {
+    if (!modals[playerNickname]?.[modalId]) {
+      openModal(modalId, playerNickname);
+    }
+  };
+  const closeMarketForPlayer = (modalId: string, playerNickname: string) => {
     if (modals[playerNickname]?.[modalId]) {
       console.log('바깥 부분 클릭 됨! 대출방');
       closeModal(modalId, playerNickname);
+    }
+  };
+
+  // 자기 방에 입장/퇴장한 유저에게만 자기 방 모달 열고 닫기
+  const openModalForPlayer = (modalId: string, playerNickname: string) => {
+    if (!modals[playerNickname]?.[modalId]) {
+      // 방 입장 중 메시지 표시
+      setIsEnteringRoom(playerNickname, true);
+      setTimeout(() => {
+        setIsEnteringRoom(playerNickname, false);
+        openModal(modalId, playerNickname);
+      }, 5000);
+    }
+  };
+  const closeModalForPlayer = (modalId: string, playerNickname: string) => {
+    if (modals[playerNickname]?.[modalId]) {
+      // 방 퇴장 메시지 표시
+      setIsExitingRoom(playerNickname, true);
+      setIsFadingOut(true);
+
+      setTimeout(() => {
+        setIsExitingRoom(playerNickname, false);
+        setIsFadingOut(false);
+        closeModal(modalId, playerNickname);
+      }, 5000);
     }
   };
 
@@ -122,81 +151,101 @@ export default function Character({
       });
       prevPositionRef.current.copy(characterPosition); // 현재 위치를 이전 위치로 업데이트
 
+      // 거래소
       const insideStockMarket = isInZone(characterPosition, zones.stockMarket);
       if (insideStockMarket && !isInStockMarketZone) {
         setIsInStockMarketZone(true);
-        // openModalForPlayer('stockMarket', nickname);
+        openMarketForPlayer('stockMarket', nickname);
         console.log('주식 시장 진입');
       } else if (!insideStockMarket && isInStockMarketZone) {
         setIsInStockMarketZone(false);
-        closeModalForPlayer('stockMarket', nickname);
+        closeMarketForPlayer('stockMarket', nickname);
         console.log('주식 시장 벗어남');
       }
       const insideLoanMarket = isInZone(characterPosition, zones.loanMarket);
       if (insideLoanMarket && !isInLoanMarketZone) {
         setIsInLoanMarketZone(true);
         setIsModalOpen(true);
-        // openModalForPlayer('loanMarket', nickname);
+        openMarketForPlayer('loanMarket', nickname);
         console.log('대출 방 진입');
       } else if (!insideLoanMarket && isInLoanMarketZone) {
         setIsInLoanMarketZone(false);
-        closeModalForPlayer('loanMarket', nickname);
+        closeMarketForPlayer('loanMarket', nickname);
         setIsModalOpen(false);
         console.log('대출 방 벗어남');
       }
       const insideGoldMarket = isInZone(characterPosition, zones.goldMarket);
       if (insideGoldMarket && !isInGoldMarketZone) {
         setIsInGoldMarketZone(true);
-        // openModalForPlayer('goldMarket', nickname);
+        openMarketForPlayer('goldMarket', nickname);
         console.log('금 거래소 진입');
       } else if (!insideGoldMarket && isInGoldMarketZone) {
         setIsInGoldMarketZone(false);
-        closeModalForPlayer('goldMarket', nickname);
+        closeMarketForPlayer('goldMarket', nickname);
         console.log('금 거래소 벗어남');
       }
-      const insideSantaHouse = isInZone(characterPosition, zones.santaHouse);
-      if (insideSantaHouse && !isInSantaHouseZone) {
-        setIsInSantaHouseZone(true);
-        console.log('산타 집 진입');
-      } else if (!insideSantaHouse && isInSantaHouseZone) {
-        setIsInSantaHouseZone(false);
-        console.log('산타 집 벗어남');
+
+      // 자기 집
+      // 0: 산타 캐릭터일 때 산타 MyRoom 모달 열기
+      if (characterType === 0) {
+        const insideSantaHouse = isInZone(characterPosition, zones.santaHouse);
+        if (insideSantaHouse && !isInSantaHouseZone) {
+          setIsInSantaHouseZone(true);
+          openModalForPlayer('myRoom', nickname);
+          console.log('산타 집 진입');
+        } else if (!insideSantaHouse && isInSantaHouseZone) {
+          setIsInSantaHouseZone(false);
+          closeModalForPlayer('myRoom', nickname);
+          console.log('산타 집 벗어남');
+        }
       }
-      const insideSnowmanHouse = isInZone(
-        characterPosition,
-        zones.snowmanHouse,
-      );
-      if (insideSnowmanHouse && !isInSnowmanHouseZone) {
-        // snowman 집에 진입
-        setIsInSnowmanHouseZone(true);
-        console.log('snowman 집 진입');
-      } else if (!insideSnowmanHouse && isInSnowmanHouseZone) {
-        // snowman 집에서 벗어남
-        setIsInSnowmanHouseZone(false);
-        console.log('snowman 집 벗어남');
+
+      // 1 : 엘프 캐릭터일 때 엘프 MyRoom 모달 열기
+      if (characterType === 1) {
+        const insideElfHouse = isInZone(characterPosition, zones.elfHouse);
+        if (insideElfHouse && !isInElfHouseZone) {
+          setIsInElfHouseZone(true);
+          openModalForPlayer('myRoom', nickname);
+          console.log('엘프 집 진입');
+        } else if (!insideElfHouse && isInElfHouseZone) {
+          setIsInElfHouseZone(false);
+          closeModalForPlayer('myRoom', nickname);
+          console.log('엘프 집 벗어남');
+        }
       }
-      const insideElfHouse = isInZone(characterPosition, zones.elfHouse);
-      if (insideElfHouse && !isInElfHouseZone) {
-        // elf 집에 진입
-        setIsInElfHouseZone(true);
-        console.log('elf 집 진입');
-      } else if (!insideElfHouse && isInElfHouseZone) {
-        // elf 집에서 벗어남
-        setIsInElfHouseZone(false);
-        console.log('elf 집 벗어남');
+
+      // 2 : 눈사람 캐릭터일 때 눈사람 MyRoom 모달 열기
+      if (characterType === 2) {
+        const insideSnowmanHouse = isInZone(
+          characterPosition,
+          zones.snowmanHouse,
+        );
+        if (insideSnowmanHouse && !isInSnowmanHouseZone) {
+          setIsInSnowmanHouseZone(true);
+          openModalForPlayer('myRoom', nickname);
+          console.log('snowman 집 진입');
+        } else if (!insideSnowmanHouse && isInSnowmanHouseZone) {
+          setIsInSnowmanHouseZone(false);
+          closeModalForPlayer('myRoom', nickname);
+          console.log('snowman 집 벗어남');
+        }
       }
-      const insideGingerbreadHouse = isInZone(
-        characterPosition,
-        zones.gingerbreadHouse,
-      );
-      if (insideGingerbreadHouse && !isInGingerbreadHouseZone) {
-        // gingerbread 집에 진입
-        setIsInGingerbreadHouseZone(true);
-        console.log('gingerbread 집 진입');
-      } else if (!insideGingerbreadHouse && isInGingerbreadHouseZone) {
-        // gingerbread 집에서 벗어남
-        setIsInGingerbreadHouseZone(false);
-        console.log('Exited gingerbread 집 벗어남');
+
+      // 3 : 진저브레드 캐릭터일 때 진저브레드 MyRoom 모달 열기
+      if (characterType === 3) {
+        const insideGingerbreadHouse = isInZone(
+          characterPosition,
+          zones.gingerbreadHouse,
+        );
+        if (insideGingerbreadHouse && !isInGingerbreadHouseZone) {
+          setIsInGingerbreadHouseZone(true);
+          openModalForPlayer('myRoom', nickname);
+          console.log('gingerbread 집 진입');
+        } else if (!insideGingerbreadHouse && isInGingerbreadHouseZone) {
+          setIsInGingerbreadHouseZone(false);
+          closeModalForPlayer('myRoom', nickname);
+          console.log('Exited gingerbread 집 벗어남');
+        }
       }
     }
   }, [

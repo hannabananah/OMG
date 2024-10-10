@@ -1,14 +1,13 @@
 import { create } from 'zustand';
 
-interface ModalState {
+interface ModalStore {
   modals: { [playerNickname: string]: { [modalId: string]: boolean } };
   openModal: (modalId: string, playerNickname: string) => void;
   closeModal: (modalId: string, playerNickname: string) => void;
 }
 
-const useModalStore = create<ModalState>(set => ({
+export const useModalStore = create<ModalStore>(set => ({
   modals: {},
-
   openModal: (modalId, playerNickname) =>
     set(state => ({
       modals: {
@@ -20,7 +19,6 @@ const useModalStore = create<ModalState>(set => ({
         },
       },
     })),
-
   closeModal: (modalId, playerNickname) =>
     set(state => ({
       modals: {
@@ -32,5 +30,3 @@ const useModalStore = create<ModalState>(set => ({
       },
     })),
 }));
-
-export default useModalStore;

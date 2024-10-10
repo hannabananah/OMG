@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 
-import useModalStore from '@/stores/useModalStore';
+import { useModalStore } from '@/stores/useModalStore';
 import useUser from '@/stores/useUser';
 import { PerspectiveCamera } from '@react-three/drei';
 import { useFrame } from '@react-three/fiber';
