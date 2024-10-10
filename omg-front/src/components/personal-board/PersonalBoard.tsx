@@ -61,8 +61,11 @@ export default function PersonalBoard() {
           key={i}
           src='/assets/gold.png'
           alt='금괴 이미지'
-          className={`object-contain w-10 drop-shadow-md absolute left-1/2 -translate-x-1/2`}
-          style={{ zIndex: images.length, left: `${i * 10}px` }}
+          className='absolute w-10 drop-shadow-md'
+          style={{
+            zIndex: images.length - i,
+            left: `${i * 10 + 24}px`,
+          }}
         />,
       );
     }
@@ -78,7 +81,7 @@ export default function PersonalBoard() {
   const animatedDebt = useCountUp(debtRef, totalDebt);
 
   return (
-    <section className='flex justify-center flex-1 h-[104px] -mb-6 text-black'>
+    <section className='flex justify-center flex-1 h-[104px] -mb-6 text-black fade-in'>
       <div className='w-[470px] relative flex h-full py-2 bg-white1 bg-opacity-85 border-t-4 border-x-4 border-white rounded-t-10 overflow-hidden items-center shadow-inner'>
         <div className='absolute z-18 -top-2 -right-28'>
           <PersonalBG1 className='w-1/2 h-1/2' />
@@ -139,11 +142,11 @@ export default function PersonalBoard() {
             </div>
           </div>
         </div>
-        <div className='relative flex flex-col items-center justify-center px-4 pr-12 h-4/5 text-omg-11 font-omg-body'>
+        <div className='relative flex flex-col items-center justify-center px-8 h-4/5 text-omg-11 font-omg-body'>
           <span>보유 금 개수</span>
           {goldOwned !== 0 && renderGoldImages()}
           <span
-            className={`relative h-full ${goldOwned === 0 ? 'flex items-center justify-center' : ''} font-omg-title ${goldOwned === 0 ? 'text-omg-18' : ''}`}
+            className={`relative h-full ${goldOwned === 0 ? 'flex items-center justify-center' : 'mt-10'} font-omg-title ${goldOwned === 0 ? 'text-omg-18' : ''}`}
           >
             {goldOwned}
             <span> 개</span>

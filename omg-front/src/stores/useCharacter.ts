@@ -1,5 +1,6 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useContext, useEffect, useRef, useState } from 'react';
 
+import { SocketContext } from '@/utils/SocketContext';
 import { useGLTF } from '@react-three/drei';
 import * as THREE from 'three';
 
@@ -26,6 +27,7 @@ export const useCharacter = ({
   const [_movementState, setMovementState] = useState<
     'idle' | 'walking' | 'running'
   >('idle');
+  const { allRendered } = useContext(SocketContext);
 
   const [rotation, setRotation] = useState(0);
   const [isMoving, setIsMoving] = useState(false);
@@ -34,13 +36,15 @@ export const useCharacter = ({
   const activeKeys = useRef(new Set<string>());
 
   useEffect(() => {
+    if (!allRendered) return;
+
     if (animations.length > 0 && scene) {
       mixer.current = new THREE.AnimationMixer(scene);
       const idleAction = mixer.current.clipAction(animations[0]);
       idleAction.play();
       setAction(idleAction);
     }
-  }, [animations, scene]);
+  }, [animations, scene, allRendered]);
 
   const setAnimationState = (state: 'idle' | 'walking' | 'running') => {
     if (!mixer.current) return;
@@ -99,6 +103,7 @@ export const useCharacter = ({
   };
 
   const handleKeyUp = (event: KeyboardEvent) => {
+    if (!isOwnCharacter) return;
     if (
       !['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(event.key)
     )
@@ -106,14 +111,10 @@ export const useCharacter = ({
 
     activeKeys.current.delete(event.key);
 
-    if (activeKeys.current.size > 0) {
-      const remainingKey = [...activeKeys.current][0];
-      handleMovementStart(
-        remainingKey as 'ArrowUp' | 'ArrowDown' | 'ArrowLeft' | 'ArrowRight',
-      );
-    } else {
-      setAnimationState('idle');
-      setIsMoving(false);
+    // activeKeys가 비어 있으면 캐릭터를 idle 상태로 전환
+    if (activeKeys.current.size === 0) {
+      setAnimationState('idle'); // 캐릭터를 idle 상태로 설정
+      setIsMoving(false); // 이동 중인 상태를 false로 설정
       if (runTimeoutRef.current) {
         clearTimeout(runTimeoutRef.current);
         runTimeoutRef.current = null;

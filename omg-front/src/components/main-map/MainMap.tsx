@@ -15,6 +15,7 @@ import ExitButton from '@/components/common/ExitButton';
 import Notification from '@/components/common/Notification';
 import Round from '@/components/common/Round';
 import Timer from '@/components/common/Timer';
+import CanvasLoader from '@/components/game/CanvasLoader';
 import EventCard from '@/components/game/EventCard';
 import EventEffect from '@/components/game/EventEffect';
 import GameResult from '@/components/game/GameResult';
@@ -320,7 +321,7 @@ export default function MainMap() {
 
       <section className='absolute z-10 left-4 top-20 drop-shadow-2xl'>
         {/* 미니맵 */}
-        <MiniMap />
+        {isBoardVisible && <MiniMap />}
       </section>
 
       {/* 모든 Round 알람 */}
@@ -355,7 +356,7 @@ export default function MainMap() {
 
       <KeyboardControls map={keyboardMap}>
         <Canvas>
-          <Suspense>
+          <Suspense fallback={<CanvasLoader />}>
             {/* <OrbitControls /> */}
 
             <Physics timeStep='vary' colliders={false}>

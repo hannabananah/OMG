@@ -38,6 +38,9 @@ public class Player {
     private PlayerStatus state;        // 플레이어 행위 상태 (시작전, 진행중, 완료)
     private boolean battleState;
     private int isConnected;           // 플레이어 접속 상태 (0: 끊김, 1: 연결됨)
+    private boolean isTrading;
+    private boolean isCarrying;
+    private String animation;
 
     private int tax;          // carryingStocks나 carryingGolds가 있는 상태로 게임이 끝났을 경우 세금 부과
 
@@ -51,5 +54,9 @@ public class Player {
             return true;
         }
         return false;
+    }
+
+    public double distanceTo(Player other) {
+        return Math.sqrt(Math.pow(this.position[0] - other.position[0], 2) + Math.pow(this.position[2] - other.position[2], 2));
     }
 }

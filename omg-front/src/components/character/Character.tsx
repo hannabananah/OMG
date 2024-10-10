@@ -1,12 +1,13 @@
-import { useContext, useEffect, useMemo, useRef, useState } from 'react';
+import { useContext, useEffect, useRef, useState } from 'react';
 
 import { Controls } from '@/components/main-map/MainMap';
 import { useCharacter } from '@/stores/useCharacter';
+import { useGameStore } from '@/stores/useGameStore';
 import { useModalStore } from '@/stores/useModalStore';
 import { useMyRoomStore } from '@/stores/useMyRoomStore';
 import useUser from '@/stores/useUser';
-import { StockItem } from '@/types';
 import { SocketContext } from '@/utils/SocketContext';
+import { Html } from '@react-three/drei';
 import { useKeyboardControls } from '@react-three/drei';
 import { useFrame } from '@react-three/fiber';
 import { CuboidCollider, RigidBody } from '@react-three/rapier';
@@ -36,8 +37,7 @@ export default function Character({
   isOwnCharacter = false,
   startPosition,
 }: Props) {
-  const { movePlayer, allRendered } = useContext(SocketContext);
-
+  const { movePlayer } = useContext(SocketContext);
   const { modals, openModal, closeModal } = useModalStore();
   const { setIsEnteringRoom, setIsExitingRoom, setIsFadingOut } =
     useMyRoomStore();
@@ -48,7 +48,7 @@ export default function Character({
   const [characterPosition, setCharacterPosition] = useState(
     new THREE.Vector3(...startPosition),
   );
-
+  const { carryingCount } = useGameStore();
   const [rotation, setRotation] = useState(0);
   const movementStateRef = useRef<'idle' | 'walking' | 'running'>('idle');
   const prevPositionRef = useRef(new THREE.Vector3()); // 캐릭터 이전 위치
@@ -68,8 +68,13 @@ export default function Character({
   const [isInElfHouseZone, setIsInElfHouseZone] = useState(false);
   const [isInGingerbreadHouseZone, setIsInGingerbreadHouseZone] =
     useState(false);
-
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isTrading, setIsTrading] = useState(false);
+  const [isCarrying, setIsCarrying] = useState(false);
+  const [isCircling, setIsCircling] = useState(false);
+  const [marketType, setMarketType] = useState<
+    null | 'loanMarket' | 'stockMarket' | 'goldMarket'
+  >(null);
 
   const { scene, mixer, pickUpAnimation } = useCharacter({
     characterURL,
@@ -86,7 +91,6 @@ export default function Character({
     0,
     Math.cos(rotation),
   );
-  // const characterRotation = new THREE.Euler(0, rotation, 0);
 
   // 특정 거래소 좌표에 입장/퇴장한 유저에게만 해당 거래소 모달 열고 닫기
   const openMarketForPlayer = (modalId: string, playerNickname: string) => {
@@ -126,126 +130,153 @@ export default function Character({
     }
   };
 
+  // modal open close
   useEffect(() => {
-    if (modals[nickname]?.loanMarket) {
+    if (
+      modals[nickname]?.loanMarket ||
+      modals[nickname]?.stockMarket ||
+      modals[nickname]?.goldMarket
+    ) {
       setIsModalOpen(true);
     } else {
       setIsModalOpen(false);
     }
   }, [modals, nickname]);
 
+  // 거래소 진입 시 카메라 전환
+  useEffect(() => {
+    if (marketType && !isCircling) {
+      setIsCircling(true);
+    }
+  }, [marketType, isCircling]);
+
   useEffect(() => {
     // 자신의 캐릭터가 아닌 경우 모달 제어 로직을 실행하지 않음
     if (!isOwnCharacter) return;
 
-    const prevPosition = prevPositionRef.current;
-    if (
-      characterPosition.x !== prevPosition.x ||
-      characterPosition.y !== prevPosition.y ||
-      characterPosition.z !== prevPosition.z
-    ) {
-      console.log('캐릭터 현재 위치:', {
-        x: characterPosition.x,
-        y: characterPosition.y,
-        z: characterPosition.z,
-      });
-      prevPositionRef.current.copy(characterPosition); // 현재 위치를 이전 위치로 업데이트
+    // 거래소
+    const insideStockMarket = isInZone(characterPosition, zones.stockMarket);
+    if (insideStockMarket && !isInStockMarketZone) {
+      setIsInStockMarketZone(true);
+      setMarketType('stockMarket');
+      setIsModalOpen(true);
+      setIsCircling(true);
+      openMarketForPlayer('stockMarket', nickname);
+      console.log('주식 시장 진입');
+    } else if (!insideStockMarket && isInStockMarketZone) {
+      setIsInStockMarketZone(false);
+      setMarketType(null);
+      closeMarketForPlayer('stockMarket', nickname);
+      setIsModalOpen(false);
+      console.log('주식 시장 벗어남');
+    }
+    const insideLoanMarket = isInZone(characterPosition, zones.loanMarket);
+    if (insideLoanMarket && !isInLoanMarketZone) {
+      setIsInLoanMarketZone(true);
+      setMarketType('loanMarket');
+      setIsModalOpen(true);
+      setIsCircling(true);
+      openMarketForPlayer('loanMarket', nickname);
+      console.log('대출 방 진입');
+    } else if (!insideLoanMarket && isInLoanMarketZone) {
+      setIsInLoanMarketZone(false);
+      setMarketType(null);
+      closeMarketForPlayer('loanMarket', nickname);
+      setIsModalOpen(false);
+      console.log('대출 방 벗어남');
+    }
+    const insideGoldMarket = isInZone(characterPosition, zones.goldMarket);
+    if (insideGoldMarket && !isInGoldMarketZone) {
+      setIsInGoldMarketZone(true);
+      setMarketType('goldMarket');
+      setIsModalOpen(true);
+      setIsCircling(true);
+      openMarketForPlayer('goldMarket', nickname);
+      console.log('금 거래소 진입');
+    } else if (!insideGoldMarket && isInGoldMarketZone) {
+      setIsInGoldMarketZone(false);
+      setMarketType(null);
+      closeMarketForPlayer('goldMarket', nickname);
+      setIsModalOpen(false);
+      console.log('금 거래소 벗어남');
+    }
 
-      // 거래소
-      const insideStockMarket = isInZone(characterPosition, zones.stockMarket);
-      if (insideStockMarket && !isInStockMarketZone) {
-        setIsInStockMarketZone(true);
-        openMarketForPlayer('stockMarket', nickname);
-        console.log('주식 시장 진입');
-      } else if (!insideStockMarket && isInStockMarketZone) {
-        setIsInStockMarketZone(false);
-        closeMarketForPlayer('stockMarket', nickname);
-        console.log('주식 시장 벗어남');
-      }
-      const insideLoanMarket = isInZone(characterPosition, zones.loanMarket);
-      if (insideLoanMarket && !isInLoanMarketZone) {
-        setIsInLoanMarketZone(true);
-        setIsModalOpen(true);
-        openMarketForPlayer('loanMarket', nickname);
-        console.log('대출 방 진입');
-      } else if (!insideLoanMarket && isInLoanMarketZone) {
-        setIsInLoanMarketZone(false);
-        closeMarketForPlayer('loanMarket', nickname);
-        setIsModalOpen(false);
-        console.log('대출 방 벗어남');
-      }
-      const insideGoldMarket = isInZone(characterPosition, zones.goldMarket);
-      if (insideGoldMarket && !isInGoldMarketZone) {
-        setIsInGoldMarketZone(true);
-        openMarketForPlayer('goldMarket', nickname);
-        console.log('금 거래소 진입');
-      } else if (!insideGoldMarket && isInGoldMarketZone) {
-        setIsInGoldMarketZone(false);
-        closeMarketForPlayer('goldMarket', nickname);
-        console.log('금 거래소 벗어남');
-      }
+    // 시장 영역 상태 업데이트
+    setIsTrading(insideStockMarket || insideLoanMarket || insideGoldMarket);
 
-      // 자기 집
-      // 0: 산타 캐릭터일 때 산타 MyRoom 모달 열기
-      if (characterType === 0) {
-        const insideSantaHouse = isInZone(characterPosition, zones.santaHouse);
-        if (insideSantaHouse && !isInSantaHouseZone) {
-          setIsInSantaHouseZone(true);
-          openModalForPlayer('myRoom', nickname);
-          console.log('산타 집 진입');
-        } else if (!insideSantaHouse && isInSantaHouseZone) {
-          setIsInSantaHouseZone(false);
-          closeModalForPlayer('myRoom', nickname);
-          console.log('산타 집 벗어남');
-        }
-      }
+    // 자기 집
+    const insideHouse =
+      (characterType === 0 && isInZone(characterPosition, zones.santaHouse)) ||
+      (characterType === 1 && isInZone(characterPosition, zones.elfHouse)) ||
+      (characterType === 2 &&
+        isInZone(characterPosition, zones.snowmanHouse)) ||
+      (characterType === 3 &&
+        isInZone(characterPosition, zones.gingerbreadHouse));
 
-      // 1 : 엘프 캐릭터일 때 엘프 MyRoom 모달 열기
-      if (characterType === 1) {
-        const insideElfHouse = isInZone(characterPosition, zones.elfHouse);
-        if (insideElfHouse && !isInElfHouseZone) {
-          setIsInElfHouseZone(true);
-          openModalForPlayer('myRoom', nickname);
-          console.log('엘프 집 진입');
-        } else if (!insideElfHouse && isInElfHouseZone) {
-          setIsInElfHouseZone(false);
-          closeModalForPlayer('myRoom', nickname);
-          console.log('엘프 집 벗어남');
-        }
-      }
+    if (insideHouse) {
+      setIsTrading(true); // 집에 들어갔을 때 시장 영역 상태 업데이트
+    }
 
-      // 2 : 눈사람 캐릭터일 때 눈사람 MyRoom 모달 열기
-      if (characterType === 2) {
-        const insideSnowmanHouse = isInZone(
-          characterPosition,
-          zones.snowmanHouse,
-        );
-        if (insideSnowmanHouse && !isInSnowmanHouseZone) {
-          setIsInSnowmanHouseZone(true);
-          openModalForPlayer('myRoom', nickname);
-          console.log('snowman 집 진입');
-        } else if (!insideSnowmanHouse && isInSnowmanHouseZone) {
-          setIsInSnowmanHouseZone(false);
-          closeModalForPlayer('myRoom', nickname);
-          console.log('snowman 집 벗어남');
-        }
+    // 자기 집
+    // 0: 산타 캐릭터일 때 산타 MyRoom 모달 열기
+    if (characterType === 0) {
+      const insideSantaHouse = isInZone(characterPosition, zones.santaHouse);
+      if (insideSantaHouse && !isInSantaHouseZone) {
+        setIsInSantaHouseZone(true);
+        openModalForPlayer('myRoom', nickname);
+        console.log('산타 집 진입');
+      } else if (!insideSantaHouse && isInSantaHouseZone) {
+        setIsInSantaHouseZone(false);
+        closeModalForPlayer('myRoom', nickname);
+        console.log('산타 집 벗어남');
       }
+    }
 
-      // 3 : 진저브레드 캐릭터일 때 진저브레드 MyRoom 모달 열기
-      if (characterType === 3) {
-        const insideGingerbreadHouse = isInZone(
-          characterPosition,
-          zones.gingerbreadHouse,
-        );
-        if (insideGingerbreadHouse && !isInGingerbreadHouseZone) {
-          setIsInGingerbreadHouseZone(true);
-          openModalForPlayer('myRoom', nickname);
-          console.log('gingerbread 집 진입');
-        } else if (!insideGingerbreadHouse && isInGingerbreadHouseZone) {
-          setIsInGingerbreadHouseZone(false);
-          closeModalForPlayer('myRoom', nickname);
-          console.log('Exited gingerbread 집 벗어남');
-        }
+    // 1 : 엘프 캐릭터일 때 엘프 MyRoom 모달 열기
+    if (characterType === 1) {
+      const insideElfHouse = isInZone(characterPosition, zones.elfHouse);
+      if (insideElfHouse && !isInElfHouseZone) {
+        setIsInElfHouseZone(true);
+        openModalForPlayer('myRoom', nickname);
+        console.log('엘프 집 진입');
+      } else if (!insideElfHouse && isInElfHouseZone) {
+        setIsInElfHouseZone(false);
+        closeModalForPlayer('myRoom', nickname);
+        console.log('엘프 집 벗어남');
+      }
+    }
+
+    // 2 : 눈사람 캐릭터일 때 눈사람 MyRoom 모달 열기
+    if (characterType === 2) {
+      const insideSnowmanHouse = isInZone(
+        characterPosition,
+        zones.snowmanHouse,
+      );
+      if (insideSnowmanHouse && !isInSnowmanHouseZone) {
+        setIsInSnowmanHouseZone(true);
+        openModalForPlayer('myRoom', nickname);
+        console.log('snowman 집 진입');
+      } else if (!insideSnowmanHouse && isInSnowmanHouseZone) {
+        setIsInSnowmanHouseZone(false);
+        closeModalForPlayer('myRoom', nickname);
+        console.log('snowman 집 벗어남');
+      }
+    }
+
+    // 3 : 진저브레드 캐릭터일 때 진저브레드 MyRoom 모달 열기
+    if (characterType === 3) {
+      const insideGingerbreadHouse = isInZone(
+        characterPosition,
+        zones.gingerbreadHouse,
+      );
+      if (insideGingerbreadHouse && !isInGingerbreadHouseZone) {
+        setIsInGingerbreadHouseZone(true);
+        openModalForPlayer('myRoom', nickname);
+        console.log('gingerbread 집 진입');
+      } else if (!insideGingerbreadHouse && isInGingerbreadHouseZone) {
+        setIsInGingerbreadHouseZone(false);
+        closeModalForPlayer('myRoom', nickname);
+        console.log('Exited gingerbread 집 벗어남');
       }
     }
   }, [
@@ -267,18 +298,26 @@ export default function Character({
 
   // 물리 충돌 이벤트 핸들러
   const handleCollisionEnter = () => {
-    if (!showIntro) {
+    if (!showIntro && isOwnCharacter) {
       console.log('충돌 발생!');
       collisionRef.current = true;
     }
   };
 
   const handleCollisionExit = () => {
-    if (!showIntro) {
+    if (!showIntro && isOwnCharacter) {
       console.log('충돌 해제!');
       collisionRef.current = false;
     }
   };
+
+  useEffect(() => {
+    if (carryingCount.some(count => count > 0)) {
+      setIsCarrying(true);
+    } else {
+      setIsCarrying(false);
+    }
+  }, [carryingCount]);
 
   useFrame((_, delta) => {
     mixer.current?.update(delta);
@@ -287,7 +326,7 @@ export default function Character({
 
       // 회전 처리: 키가 눌린 순간에만 회전
       if (rightPressed) {
-        setRotation(rotation - Math.PI / 100); // 오른쪽 90도 회
+        setRotation(rotation - Math.PI / 100); // 오른쪽 90도 회전
       }
       if (leftPressed) {
         setRotation(rotation + Math.PI / 100); // 왼쪽 90도 회전
@@ -295,7 +334,7 @@ export default function Character({
 
       if (isOwnCharacter) {
         // 이동 속도 설정
-        const moveDistance = 0.2;
+        const moveDistance = 0.25;
         // 현재 캐릭터 위치 복사
         const newPosition = characterPosition.clone();
 
@@ -326,7 +365,14 @@ export default function Character({
         if (!newPosition.equals(prevPositionRef.current)) {
           const positionArray = newPosition.toArray();
           const directionArray = [Math.sin(rotation), 0, Math.cos(rotation)];
-          movePlayer(positionArray, directionArray, localActionToggle);
+          movePlayer(
+            positionArray,
+            directionArray,
+            localActionToggle,
+            isTrading,
+            isCarrying,
+            movementStateRef.current,
+          );
           prevPositionRef.current.copy(newPosition);
         }
         // 캐릭터 위치 업데이트
@@ -338,7 +384,7 @@ export default function Character({
           movementStateRef.current === 'walking' ||
           movementStateRef.current === 'running'
         ) {
-          const moveSpeed = movementStateRef.current === 'walking' ? 0.2 : 0.3;
+          const moveSpeed = movementStateRef.current === 'walking' ? 0.25 : 0.3;
           const forwardDirection = new THREE.Vector3(
             Math.sin(rotation),
             0,
@@ -374,29 +420,6 @@ export default function Character({
   });
 
   useEffect(() => {
-    if (scene && allRendered) {
-      const positionArray = scene.position.toArray();
-      const directionArray = [Math.sin(rotation), 0, Math.cos(rotation)];
-
-      if (isOwnCharacter) {
-        movePlayer(positionArray, directionArray, localActionToggle);
-      }
-    }
-  }, [scene, rotation, allRendered, isOwnCharacter, localActionToggle]);
-
-  // 트리 장식 배열 데이터 (예시)
-  const items: { itemName: StockItem; count: number }[] = useMemo(
-    () => [
-      { itemName: 'candy', count: 1 },
-      { itemName: 'cupcake', count: 1 },
-      { itemName: 'gift', count: 1 },
-      { itemName: 'hat', count: 1 },
-      { itemName: 'socks', count: 1 },
-    ],
-    [],
-  );
-
-  useEffect(() => {
     if (localActionToggle) {
       pickUpAnimation();
       setTimeout(() => {
@@ -411,14 +434,14 @@ export default function Character({
         <IntroCamera
           characterPosition={characterPosition}
           characterDirection={characterDirection}
-          isInStockMarketZone={isInStockMarketZone}
-          isInLoanMarketZone={isInLoanMarketZone}
-          isInGoldMarketZone={isInGoldMarketZone}
           isModalOpen={isModalOpen}
+          setIsCircling={setIsCircling}
+          marketType={marketType}
         />
       )}
 
       <RigidBody
+        key={`body-${characterType}`}
         type='dynamic'
         colliders={false}
         lockRotations={true}
@@ -433,7 +456,6 @@ export default function Character({
           position={characterPosition}
           startPosition={startPosition}
         />
-
         <CuboidCollider
           position={
             new THREE.Vector3(
@@ -449,17 +471,41 @@ export default function Character({
           ]}
         />
 
-        {items.map((item, itemIndex) =>
-          [...Array(item.count)].map((_, index) => (
-            <Item
-              key={`${item.itemName}-${itemIndex}-${index}`}
-              disabled={true}
-              position={characterPosition}
-              index={index + itemIndex * 2}
-              itemName={item.itemName}
-            />
-          )),
-        )}
+        {(() => {
+          const flattenedItems: JSX.Element[] = [];
+
+          // 거래 중일 때 거래 상태를 표시
+          if (isTrading && isOwnCharacter) {
+            flattenedItems.push(
+              <Html
+                key={`trading-${characterType}`}
+                position={[
+                  characterPosition.x,
+                  characterPosition.y + characterScale[1] * 6,
+                  characterPosition.z,
+                ]}
+                center
+              >
+                <div className='w-20 h-20 bg-blue'>거래 중...</div>
+              </Html>,
+            );
+          }
+
+          // 물건을 들고 있을 때 Item 컴포넌트를 표시
+          if (isCarrying && isOwnCharacter) {
+            flattenedItems.push(
+              <Item
+                key={`carrying-${characterType}`}
+                disabled={true}
+                position={characterPosition}
+                index={flattenedItems.length * 1.8}
+                itemName={'candy'}
+              />,
+            );
+          }
+
+          return flattenedItems;
+        })()}
       </RigidBody>
     </>
   );

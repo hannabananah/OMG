@@ -1,5 +1,5 @@
 import { useFloatingObject } from '@/hooks/useFloatingObject';
-import { StockItem } from '@/types';
+import type { AboveHead, StockItem } from '@/types';
 import { useGLTF } from '@react-three/drei';
 import * as THREE from 'three';
 
@@ -7,7 +7,7 @@ interface ItemProps {
   disabled: boolean;
   position: THREE.Vector3;
   index: number;
-  itemName: StockItem;
+  itemName: StockItem | AboveHead;
 }
 
 export default function Item({
@@ -20,7 +20,7 @@ export default function Item({
 
   const itemPosition = new THREE.Vector3(
     position.x,
-    position.y + 4.5 + index * 0.5, // 인덱스에 따라 높이를 조정
+    position.y + 5.5 + index * 0.5, // 인덱스에 따라 높이를 조정
     position.z,
   );
 

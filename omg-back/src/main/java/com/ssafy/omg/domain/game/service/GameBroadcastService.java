@@ -70,7 +70,7 @@ public class GameBroadcastService {
         }
         // TODO 필요에 따라 데이터 수정
         List<PlayerStateDto> playerStateDtos = game.getPlayers().stream()
-                .map(p -> new PlayerStateDto(p.getNickname(), p.getPosition(), p.getDirection(), p.sendActionToggle()))
+                .map(p -> new PlayerStateDto(p.getNickname(), p.getPosition(), p.getDirection(), p.sendActionToggle(), p.isTrading(), p.isCarrying(), p.getAnimation()))
                 .collect(Collectors.toList());
 
         gameRepository.saveArena(roomId, arena);

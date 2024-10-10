@@ -12,7 +12,7 @@ button,
 a,
 input,
 svg .clickable {
-  cursor: url('/system/cursor.cur'), auto;
+  cursor: url('/system/cursor.cur'), auto !important;
 }
 
 html {
@@ -76,18 +76,18 @@ button:disabled {
 }
 
 @font-face {
-  font-family: 'Laundry';
-  src: url('https://fastly.jsdelivr.net/gh/projectnoonnu/2403-2@1.0/TTLaundryGothicB.woff2')
-    format('woff2');
-  font-weight: 400;
-  font-style: normal;
-}
-
-@font-face {
   font-family: 'Partial';
   src: url('https://fastly.jsdelivr.net/gh/projectnoonnu/noonfonts_2307-1@1.1/PartialSansKR-Regular.woff2')
     format('woff2');
   font-weight: normal;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: 'Laundry';
+  src: url('https://fastly.jsdelivr.net/gh/projectnoonnu/2403-2@1.0/TTLaundryGothicB.woff2')
+    format('woff2');
+  font-weight: 400;
   font-style: normal;
 }
 
@@ -304,6 +304,20 @@ button:disabled {
 }
 .test_obj span:nth-of-type(5) {
   animation-delay: 0.5s;
+}
+.fade-in {
+  animation: fade-in 0.5s ease-in-out forwards;
+}
+
+@keyframes fade-in {
+  0% {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 /* 대출 이자 추가 */
