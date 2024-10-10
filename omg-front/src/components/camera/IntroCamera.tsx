@@ -172,16 +172,20 @@ export default function IntroCamera({
     // 2. 거래소 진입해서 원 돌 때
     if (circleProgress < 0.9) {
       let targetPosition;
+      let angle;
 
       if (marketType === 'loanMarket') {
         targetPosition = loanMarketTarget;
+        angle = circleProgress * (Math.PI / 3);
       } else if (marketType === 'stockMarket') {
         targetPosition = stockMarketTarget;
+        angle = (1 - circleProgress) * (Math.PI / 3);
       } else if (marketType === 'goldMarket') {
         targetPosition = goldMarketTarget;
+        angle = (1 - circleProgress) * (Math.PI / 3);
       }
 
-      const angle = circleProgress * (Math.PI / 3);
+      // const angle = circleProgress * (Math.PI / 3);
       camera.position.set(
         targetPosition.x + Math.cos(angle) * circleRadius,
         targetPosition.y + 1,
@@ -195,18 +199,35 @@ export default function IntroCamera({
     // 회전 완료
     if (circleProgress >= 0.9) {
       // 서클링 종료 후 카메라 위치 고정
-      let targetPosition;
+      let finalPosition;
 
       if (marketType === 'loanMarket') {
-        targetPosition = loanMarketTarget;
+        finalPosition = loanMarketTarget;
       } else if (marketType === 'stockMarket') {
-        targetPosition = stockMarketTarget;
+        // targetPosition = stockMarketTarget;
+        finalPosition = new THREE.Vector3(
+          stockMarketTarget.x + Math.cos(0) * circleRadius,
+          stockMarketTarget.y + 1,
+          stockMarketTarget.z + Math.sin(0) * circleRadius,
+        );
       } else if (marketType === 'goldMarket') {
-        targetPosition = goldMarketTarget;
+        // targetPosition = goldMarketTarget;
+        // goldMarket은 원의 시작 위치로 고정
+        finalPosition = new THREE.Vector3(
+          goldMarketTarget.x + Math.cos(0) * circleRadius,
+          goldMarketTarget.y + 1,
+          goldMarketTarget.z + Math.sin(0) * circleRadius,
+        );
       }
 
-      camera.position.set(targetPosition.x, targetPosition.y, targetPosition.z);
-      camera.lookAt(targetPosition);
+      camera.position.set(finalPosition.x, finalPosition.y, finalPosition.z);
+      camera.lookAt(
+        marketType === 'loanMarket'
+          ? loanMarketTarget
+          : marketType === 'stockMarket'
+            ? stockMarketTarget
+            : goldMarketTarget,
+      );
       setCircleProgress(1);
       setIsCircling(false);
       return;
