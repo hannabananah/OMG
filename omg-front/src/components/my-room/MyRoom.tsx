@@ -33,7 +33,11 @@ export default function MyRoom() {
   const { isExitingRoom, setIsExitingRoom, isFadingOut, setIsFadingOut } =
     useMyRoomStore();
 
-  const { setCarryingCount } = useGameStore();
+  const {
+    setCarryingToMarketCount,
+    carryingToHomeCount,
+    setCarryingToHomeCount,
+  } = useGameStore();
   const { stockPrices, tradableStockCnt } = useMainBoardStore();
   const { stock } = usePersonalBoardStore();
 
@@ -53,6 +57,10 @@ export default function MyRoom() {
   // 컴포넌트가 마운트될 때 페이드 인 시작
   useEffect(() => {
     setIsFadingIn(true);
+    if (carryingToHomeCount.some(count => count > 0)) {
+      ToastAlert('매수한 아이템을 안전히 집으로 가져왔습니다.');
+      setCarryingToHomeCount([0, 0, 0, 0, 0, 0]);
+    }
   }, []);
 
   // 보유한 아이템들만 필터링
@@ -135,7 +143,7 @@ export default function MyRoom() {
       ToastAlert('아이템을 선택하지 않았습니다.');
     }
 
-    setCarryingCount(selectedCounts);
+    setCarryingToMarketCount(selectedCounts);
 
     setTimeout(() => {
       handleBackButton();

@@ -127,20 +127,6 @@ export default function MainMap() {
     return () => clearTimeout(timer);
   }, [eventEffectMessage]);
 
-  // useEffect(() => {
-  //   if (gameRoundMessage.message === '1' || gameRoundMessage.message === '10') {
-  //     const timer = setTimeout(() => {
-  //       setIsTimerVisible(true);
-  //     }, 5000);
-  //     return () => clearTimeout(timer);
-  //   } else {
-  //     const timer = setTimeout(() => {
-  //       setIsTimerVisible(true);
-  //     }, 10000);
-  //     return () => clearTimeout(timer);
-  //   }
-  // }, [gameRoundMessage]);
-
   // [리렌더링 문제로 인해] 주가 변동 메시지를 받았을 때 알림을 표시하는 로직 따로 처리
   useEffect(() => {
     if (!gameRoundMessage.message) return;
@@ -248,6 +234,9 @@ export default function MainMap() {
       position: user.position,
       direction: user.direction,
       actionToggle: user.actionToggle,
+      isTrading: user.isTrading,
+      isCarrying: user.isCarrying,
+      animation: user.animation,
     };
   });
 
@@ -418,6 +407,9 @@ export default function MainMap() {
                     actionToggle={userCharacter.actionToggle}
                     startPosition={userCharacter.startPosition}
                     isOwnCharacter={false}
+                    isTrading={userCharacter.isTrading}
+                    isCarrying={userCharacter.isCarrying}
+                    animation={userCharacter.animation}
                   />
 
                   <spotLight
