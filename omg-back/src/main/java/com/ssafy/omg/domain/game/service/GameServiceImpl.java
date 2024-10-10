@@ -25,6 +25,7 @@ import com.ssafy.omg.domain.player.entity.PlayerStatus;
 import com.ssafy.omg.domain.socket.dto.StompPayload;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.messaging.simp.SimpMessageSendingOperations;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -79,6 +80,7 @@ public class GameServiceImpl implements GameService {
     private final GameRepository gameRepository;
     private final StockState stockState;
     private Random random = new Random();
+    private final SimpMessageSendingOperations messagingTemplate;
 
     /**
      * 진행중인 게임의 리스트를 반환 ( 모든 진행중인 게임들을 관리 )
@@ -1332,13 +1334,36 @@ public class GameServiceImpl implements GameService {
         synchronized (arena) {
             Player player = findPlayer(arena, payload.getSender());
             PlayerMoveRequest playerMoveRequest = payload.getData();
+
             player.setDirection(playerMoveRequest.direction());
             player.setPosition(playerMoveRequest.position());
             player.setActionToggle(playerMoveRequest.actionToggle());
+            player.setTrading(playerMoveRequest.isTrading());
+            player.setCarrying(playerMoveRequest.isCarrying());
+            player.setAnimation(player.getAnimation());
 
+//            for (Player otherPlayer : arena.getGame().getPlayers()) {
+//                if (!otherPlayer.getNickname().equals(player.getNickname())) {
+//                    double distance = player.distanceTo(otherPlayer);
+//                    boolean isClose = distance <= 5;
+//                    notifyPlayerDistance(roomId, player, otherPlayer, isClose);
+//                }
+//            }
             gameRepository.saveArena(roomId, arena);
         }
     }
+
+//    private void notifyPlayerDistance(String roomId, Player p1, Player p2, boolean isClose) {
+//        String message = p1.getNickname() + ":" + p2.getNickname();
+//        StompPayload<PlayerDistanceDto> payload = new StompPayload<>(
+//                isClose ? "BATTLE_AVAILABLE" : "BATTLE_UNAVAILABLE",
+//                roomId,
+//                null,
+//                new PlayerDistanceDto(message, isClose)
+//        );
+//        messagingTemplate.convertAndSend("/sub/" + roomId + "/game", payload);
+//    }
+
 
     @Override
     public void buyStock(StompPayload<StockRequest> payload) throws BaseException, MessageException {
