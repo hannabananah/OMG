@@ -122,8 +122,8 @@ export default function IntroCamera({
       const targetDirection = characterDirection.clone().normalize();
 
       const currentDirection = new THREE.Vector3().lerpVectors(
-        startDirection.current,
-        targetDirection,
+        startDirection.current, // 초기 카메라 방향
+        targetDirection, // 캐릭터 목표 방향
         easeProgress,
       );
 
@@ -134,6 +134,7 @@ export default function IntroCamera({
         setIsTransitioning(false);
       }
     } else {
+      // 거래소 진입
       if (isCircling) {
         const angle = circleProgress * Math.PI * 2;
         camera.position.set(
@@ -172,13 +173,7 @@ export default function IntroCamera({
 
         const targetDirection = characterDirection.clone().normalize();
 
-        const currentDirection = new THREE.Vector3().lerpVectors(
-          startDirection.current,
-          targetDirection,
-          0.5,
-        );
-
-        const lookAtPosition = camera.position.clone().add(currentDirection);
+        const lookAtPosition = camera.position.clone().add(targetDirection);
         camera.lookAt(lookAtPosition);
       }
     }
