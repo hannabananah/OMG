@@ -167,13 +167,13 @@ export default function MyRoom() {
 
   return (
     <div
-      className={`fixed top-0 left-0 z-50 flex items-center justify-center w-full h-full ${
+      className={`fixed top-0 left-0 z-20 flex items-center justify-center w-full h-full ${
         isFadingIn && !isFadingOut ? 'opacity-100' : 'opacity-0'
       } transition-opacity duration-1000`}
     >
       {/* 내 방 퇴장 알림 메시지 */}
       {isExitingRoom[nickname] && (
-        <div className='absolute inset-0 z-50 flex items-center justify-center bg-black bg-opacity-75'>
+        <div className='absolute inset-0 z-40 flex items-center justify-center bg-black bg-opacity-75'>
           <p className='tracking-wider text-white text-omg-50b test_obj'>
             <span>방</span>
             <span>에</span>
@@ -193,11 +193,11 @@ export default function MyRoom() {
       )}
 
       <main
-        className='relative z-10 w-full h-screen bg-center bg-cover'
+        className='relative z-20 w-full h-screen bg-center bg-cover'
         style={{ backgroundImage: 'url("/assets/myroom.jpg")' }}
       >
         {/* Header: 뒤로 가기 & Round-Timer 고정 렌더링 */}
-        <section className='absolute top-0 left-0 z-10 flex items-start justify-between w-full px-10 py-10 text-black text-omg-40b'>
+        <section className='absolute top-0 left-0 z-20 flex items-start justify-between w-full px-10 py-10 text-black text-omg-40b'>
           <div className='text-white'>
             <BackButton onClick={handleBackButton} />
           </div>
@@ -208,12 +208,12 @@ export default function MyRoom() {
         </section>
 
         {/* 말풍선 */}
-        <section className='absolute z-10 flex -translate-x-1/2 left-1/2 top-28'>
+        <section className='absolute z-20 flex -translate-x-1/2 left-1/2 top-28'>
           <SpeechBubble text={alertText} />
         </section>
 
         {/* Footer: 채팅 & 종료 버튼 고정 렌더링 */}
-        <section className='absolute bottom-0 left-0 z-10 flex items-end justify-between w-full p-6 text-white text-omg-40b'>
+        <section className='absolute bottom-0 left-0 z-20 flex items-end justify-between w-full p-6 text-white text-omg-40b'>
           <ChatButton isWhite={true} onClick={openChattingModal} />
           {isChatOpen && <Chatting closeChattingModal={closeChattingModal} />}
 
