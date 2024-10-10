@@ -71,7 +71,7 @@ export default function MarketStatusBoard() {
         >
           <h4 className='text-omg-18'>[실시간 금 시세]</h4>
           <div className='flex items-center gap-2'>
-            <img src='/assets/gold.png' alt='gold' width={24} />
+            <img src='/assets/goldbell.png' alt='goldbell' width={22} />
             <p>${formatNumberWithCommas(goldPrice)}</p>
           </div>
         </section>
