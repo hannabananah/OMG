@@ -168,8 +168,9 @@ export default function IntroCamera({
       setCircleProgress(0);
       return;
     }
+
     // 2. 거래소 진입해서 원 돌 때
-    if (circleProgress < 1) {
+    if (circleProgress < 0.9) {
       let targetPosition;
 
       if (marketType === 'loanMarket') {
@@ -189,19 +190,26 @@ export default function IntroCamera({
       camera.lookAt(targetPosition);
 
       setCircleProgress(prev => prev + circleSpeed * delta);
+    }
 
-      // 회전 완료
-      if (circleProgress >= 0.9) {
-        // 서클링 종료 후 카메라 위치 고정
-        camera.position.set(
-          targetPosition.x,
-          targetPosition.y,
-          targetPosition.z,
-        );
-        camera.lookAt(targetPosition);
-        setCircleProgress(1);
-        setIsCircling(false);
+    // 회전 완료
+    if (circleProgress >= 0.9) {
+      // 서클링 종료 후 카메라 위치 고정
+      let targetPosition;
+
+      if (marketType === 'loanMarket') {
+        targetPosition = loanMarketTarget;
+      } else if (marketType === 'stockMarket') {
+        targetPosition = stockMarketTarget;
+      } else if (marketType === 'goldMarket') {
+        targetPosition = goldMarketTarget;
       }
+
+      camera.position.set(targetPosition.x, targetPosition.y, targetPosition.z);
+      camera.lookAt(targetPosition);
+      setCircleProgress(1);
+      setIsCircling(false);
+      return;
     }
   });
 
