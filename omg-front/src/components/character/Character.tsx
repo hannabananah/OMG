@@ -27,7 +27,7 @@ interface Props {
   startPosition?: [number, number, number];
   isTrading?: boolean;
   isCarrying?: boolean;
-  animation?: string;
+  animation?: 'idle' | 'walking' | 'running';
 }
 
 export default function Character({
@@ -40,7 +40,7 @@ export default function Character({
   startPosition,
   isTrading: serverIsTrading,
   isCarrying: serverIsCarrying,
-  animation,
+  animation: externalAnimationState,
 }: Props) {
   const { movePlayer } = useContext(SocketContext);
   const { modals, openModal, closeModal } = useModalStore();
@@ -92,6 +92,7 @@ export default function Character({
     onPositionChange: setCharacterPosition,
     onActionToggleChange: setLocalActionToggle,
     isOwnCharacter,
+    animation: externalAnimationState,
   });
 
   // 캐릭터 방향과 회전 설정
