@@ -237,46 +237,27 @@ export default function Character({
         // 현재 캐릭터 위치 복사
         const newPosition = characterPosition.clone();
 
-        // 키 입력에 따른 위치 변경 (rotation 값에 맞춰 전진/후진 처리)
-        if (backPressed) {
-          if (collisionRef.current) {
-            if (leftPressed || rightPressed || forwardPressed) {
-              collisionRef.current = false;
-              scene.position.copy(prevPositionRef.current);
-              characterPosition.copy(prevPositionRef.current);
-              newPosition.copy(prevPositionRef.current);
-            } else {
-              scene.position.copy(prevPositionRef.current);
-              characterPosition.copy(prevPositionRef.current);
-              newPosition.copy(prevPositionRef.current);
-              return;
-            }
-          }
-
-          if (!collisionRef.current) {
-            newPosition.x -= Math.sin(rotation) * moveDistance;
-            newPosition.z -= Math.cos(rotation) * moveDistance;
+        if (collisionRef.current) {
+          if (backPressed) {
+            collisionRef.current = false;
+            scene.position.copy(prevPositionRef.current);
+            characterPosition.copy(prevPositionRef.current);
+            newPosition.copy(prevPositionRef.current);
+          } else {
+            scene.position.copy(prevPositionRef.current);
+            characterPosition.copy(prevPositionRef.current);
+            newPosition.copy(prevPositionRef.current);
+            return;
           }
         }
-        if (forwardPressed) {
-          if (collisionRef.current) {
-            if (leftPressed || rightPressed || backPressed) {
-              collisionRef.current = false;
-              scene.position.copy(prevPositionRef.current);
-              characterPosition.copy(prevPositionRef.current);
-              newPosition.copy(prevPositionRef.current);
-            } else {
-              scene.position.copy(prevPositionRef.current);
-              characterPosition.copy(prevPositionRef.current);
-              newPosition.copy(prevPositionRef.current);
-              return;
-            }
-          }
 
-          if (!collisionRef.current) {
-            newPosition.x += Math.sin(rotation) * moveDistance;
-            newPosition.z += Math.cos(rotation) * moveDistance;
-          }
+        if (forwardPressed && !collisionRef.current) {
+          newPosition.x += Math.sin(rotation) * moveDistance;
+          newPosition.z += Math.cos(rotation) * moveDistance;
+        }
+        if (backPressed && !collisionRef.current) {
+          newPosition.x -= Math.sin(rotation) * moveDistance;
+          newPosition.z -= Math.cos(rotation) * moveDistance;
         }
 
         // 캐릭터 위치가 변했을 때만 서버로 전송
