@@ -1,4 +1,4 @@
-import { useContext, useEffect, useRef, useState } from 'react';
+import { useContext, useEffect, useMemo, useRef, useState } from 'react';
 
 import { Controls } from '@/components/main-map/MainMap';
 import { useCharacter } from '@/stores/useCharacter';
@@ -53,7 +53,12 @@ export default function Character({
   const [characterPosition, setCharacterPosition] = useState(
     new THREE.Vector3(...startPosition),
   );
-  const { carryingToMarketCount, carryingToHomeCount } = useGameStore();
+  const {
+    gameData,
+    carryingToMarketCount,
+    carryingToHomeCount,
+    isClosedEachOther,
+  } = useGameStore();
   const [rotation, setRotation] = useState(0);
   const movementStateRef = useRef<'idle' | 'walking' | 'running'>('idle');
   const prevPositionRef = useRef(new THREE.Vector3()); // 캐릭터 이전 위치
@@ -404,7 +409,7 @@ export default function Character({
           movementStateRef.current === 'walking' ||
           movementStateRef.current === 'running'
         ) {
-          const moveSpeed = movementStateRef.current === 'walking' ? 0.3 : 0.35;
+          const moveSpeed = movementStateRef.current === 'walking' ? 0.35 : 0.4;
           const forwardDirection = new THREE.Vector3(
             Math.sin(rotation),
             0,
@@ -447,6 +452,42 @@ export default function Character({
       }, 160);
     }
   }, [localActionToggle]);
+
+  const [player1, player2] = isClosedEachOther?.players?.split(':') || ['', ''];
+  const playerRankings = player1 && player2 && gameData?.playerRanking;
+
+  const getPlayerRank = (
+    player: string | undefined,
+    rankings: string[] | undefined,
+  ) => {
+    return player && Array.isArray(rankings) && rankings.includes(player)
+      ? rankings.indexOf(player) + 1
+      : null;
+  };
+
+  const player1Rank = getPlayerRank(player1, playerRankings);
+  const player2Rank = getPlayerRank(player2, playerRankings);
+
+  const isCloseEnough = isClosedEachOther?.isAvailable ?? false;
+
+  const [showRank, setShowRank] = useState(false);
+
+  useEffect(() => {
+    if (
+      isOwnCharacter &&
+      player1Rank !== null &&
+      player2Rank !== null &&
+      isCloseEnough
+    ) {
+      setShowRank(true);
+
+      const timer = setTimeout(() => {
+        setShowRank(false);
+      }, 3000);
+
+      return () => clearTimeout(timer);
+    }
+  }, [isOwnCharacter, player1Rank, player2Rank, isCloseEnough]);
 
   return (
     <>
@@ -494,8 +535,8 @@ export default function Character({
         lockRotations={true}
         onCollisionEnter={handleCollisionEnter}
         onCollisionExit={handleCollisionExit}
-        restitution={0} // 반발 계수 없애기
-        friction={1} // 마찰력
+        restitution={0}
+        friction={1}
       >
         <primitive
           object={scene}
@@ -521,7 +562,6 @@ export default function Character({
         {(() => {
           const flattenedItems: JSX.Element[] = [];
 
-          // 거래 상태를 상대 캐릭터에게 표시
           if (serverIsTrading) {
             flattenedItems.push(
               <Html
@@ -533,14 +573,13 @@ export default function Character({
                 ]}
                 center
               >
-                <div className='flex items-center justify-center w-24 h-10 p-2 border-4 border-white bounce-animation bg-white1 text-nowrap bg-opacity-90 rounded-20 text-omg-'>
+                <div className='flex items-center justify-center w-24 h-10 p-2 border-4 border-white font-omg-event-content bounce-animation bg-white1 text-nowrap bg-opacity-90 rounded-20'>
                   거래중...
                 </div>
               </Html>,
             );
           }
 
-          // 물건을 들고 있는 상태를 나 포함 모든 캐릭터에게 표시
           if (isCarrying) {
             flattenedItems.push(
               <Item
@@ -550,6 +589,30 @@ export default function Character({
                 index={flattenedItems.length * 1.8}
                 itemName={'pouch'}
               />,
+            );
+          }
+
+          if (showRank) {
+            flattenedItems.push(
+              <Html
+                key={`rank-${characterType}`}
+                position={[
+                  characterPosition.x,
+                  characterPosition.y + 6,
+                  characterPosition.z,
+                ]}
+                center
+              >
+                <div className='flex flex-col items-center justify-center w-32 h-12 p-2 border-4 border-white bg-white1 text-nowrap bg-opacity-90 font-omg-event-content rounded-20 text-omg-'>
+                  {nickname === player1 ? (
+                    <div>상대방 순위 {player2Rank}위</div>
+                  ) : (
+                    nickname === player2 && (
+                      <div>상대방 순위 {player1Rank}위</div>
+                    )
+                  )}
+                </div>
+              </Html>,
             );
           }
 
