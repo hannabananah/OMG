@@ -21,7 +21,7 @@ export default function StockBuy() {
   const {
     selectedCount,
     setSelectedCount,
-    carryingToMarketCount,
+    // carryingToMarketCount,
     setCarryingToHomeCount,
   } = useGameStore();
   const { tradableStockCnt } = useMainBoardStore();
