@@ -11,17 +11,22 @@ import { IoVolumeHigh, IoVolumeMuteSharp } from 'react-icons/io5';
 import { CharacterInfo } from '@/assets/data/characterInfo';
 import Character from '@/components/character/Character';
 import Chatting from '@/components/chat/Chatting';
-import ExitButton from '@/components/common/ExitButton';
-import Notification from '@/components/common/Notification';
-import Round from '@/components/common/Round';
-import Timer from '@/components/common/Timer';
-import CanvasLoader from '@/components/game/CanvasLoader';
-import EventCard from '@/components/game/EventCard';
-import EventEffect from '@/components/game/EventEffect';
-import GameResult from '@/components/game/GameResult';
+import {
+  ChatButton,
+  ExitButton,
+  Notification,
+  Round,
+  Timer,
+} from '@/components/common';
+import {
+  CanvasLoader,
+  EventCard,
+  EventEffect,
+  GameResult,
+} from '@/components/game';
 import Map from '@/components/main-map/Map';
 import MiniMap from '@/components/mini-map/MiniMap';
-import StockMarket from '@/components/stock-market/StockMarket';
+import { StockMarket } from '@/components/stock-market';
 import { useAlertStore } from '@/stores/useAlertStore';
 import { useIntroStore } from '@/stores/useIntroStore';
 import { useModalStore } from '@/stores/useModalStore';
@@ -34,7 +39,6 @@ import { KeyboardControls } from '@react-three/drei';
 import { Canvas } from '@react-three/fiber';
 import { Physics } from '@react-three/rapier';
 
-import ChatButton from '../common/ChatButton';
 import GoldMarket from '../gold-market/GoldMarket';
 import LoanMarket from '../loan-market/LoanMarket';
 import MyRoom from '../my-room/MyRoom';

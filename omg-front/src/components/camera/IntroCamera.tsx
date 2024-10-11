@@ -238,7 +238,6 @@ export default function IntroCamera({
   return <PerspectiveCamera ref={cameraRef} makeDefault near={3} />;
 }
 
-// 이징 함수: 부드러운 애니메이션을 위해 사용
 function easeInOutCubic(t: number): number {
   return t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
 }

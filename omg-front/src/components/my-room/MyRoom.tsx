@@ -9,7 +9,7 @@ import Round from '@/components/common/Round';
 import Snowing from '@/components/common/Snowing';
 import SpeechBubble from '@/components/common/SpeechBubble';
 import Timer from '@/components/common/Timer';
-import Item from '@/components/stock-market/Item';
+import { Item } from '@/components/stock-market';
 import { treeItemNameInKorean } from '@/hooks/useStock';
 import { useGameStore } from '@/stores/useGameStore';
 import { useMainBoardStore } from '@/stores/useMainBoardStore';

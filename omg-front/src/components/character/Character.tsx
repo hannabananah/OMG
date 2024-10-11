@@ -359,7 +359,7 @@ export default function Character({
 
       if (isOwnCharacter) {
         // 이동 속도 설정
-        const moveDistance = 0.3;
+        const moveDistance = 0.35;
         // 현재 캐릭터 위치 복사
         const newPosition = characterPosition.clone();
 
@@ -404,7 +404,7 @@ export default function Character({
         setCharacterPosition(newPosition);
         scene.position.copy(newPosition);
 
-        // 걷기 및 달리기 상태
+        // 걷기 및 달리기 상태ㅇ
         if (
           movementStateRef.current === 'walking' ||
           movementStateRef.current === 'running'
