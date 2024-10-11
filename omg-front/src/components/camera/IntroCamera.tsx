@@ -22,7 +22,7 @@ export default function IntroCamera({
   marketType,
 }: IntroCameraProps) {
   const cameraRef = useRef<THREE.PerspectiveCamera>(null);
-  const { showIntro, setShowIntro } = useIntroStore();
+  const { showIntro, setShowIntro, openTutorialModal } = useIntroStore();
   const [isTransitioning, setIsTransitioning] = useState(false);
   const transitionStartTime = useRef(0);
   const startPosition = useRef(new THREE.Vector3());
@@ -136,6 +136,7 @@ export default function IntroCamera({
 
       if (progress === 1) {
         setIsTransitioning(false);
+        openTutorialModal();
       }
       return;
     }

@@ -4,11 +4,14 @@ export default function CanvasLoader() {
   const { progress } = useProgress();
   return (
     <Html center>
-      <div className='flex flex-col items-center justify-center w-screen h-screen bg-white text-omg-30b'>
+      <div
+        className='flex flex-col items-center justify-center w-screen h-screen text-omg-30b'
+        style={{ backgroundImage: 'url("/assets/game-bg.png")' }}
+      >
         <div className='w-48'>
           <img src='/assets/logo.png' className='w-full' alt='로고 이미지' />
         </div>
-        <p className='text-center font-omg-event-title'>
+        <p className='text-center text-white font-omg-event-title'>
           크리스마스 마을로 이동 중...
         </p>
         <span className='font-omg-body text-omg-24'>

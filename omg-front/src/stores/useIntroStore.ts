@@ -5,6 +5,9 @@ import { createJSONStorage, persist } from 'zustand/middleware';
 interface IntroStore {
   showIntro: boolean;
   setShowIntro: () => void;
+  isTutorialModalOpen: boolean;
+  openTutorialModal: () => void;
+  closeTutorialModal: () => void;
 }
 
 export const useIntroStore = create<IntroStore>()(
@@ -13,6 +16,13 @@ export const useIntroStore = create<IntroStore>()(
       showIntro: true, // 처음에는 true로 설정
       setShowIntro: () => {
         set({ showIntro: false }); // 호출되면 false로 변경
+      },
+      isTutorialModalOpen: false,
+      openTutorialModal: () => {
+        set({ isTutorialModalOpen: true });
+      },
+      closeTutorialModal: () => {
+        set({ isTutorialModalOpen: false });
       },
     }),
     {
