@@ -10,7 +10,7 @@ interface OtherUserState {
     actionToggle: boolean;
     isTrading: boolean;
     isCarrying: boolean;
-    animation: string;
+    animation: 'idle' | 'walking' | 'running';
   }>;
   setOtherUsers: (
     users: Array<{
@@ -22,7 +22,7 @@ interface OtherUserState {
       actionToggle: boolean;
       isTrading: boolean;
       isCarrying: boolean;
-      animation: string;
+      animation: 'idle' | 'walking' | 'running';
     }>,
   ) => void;
   updateUserPosition: (
@@ -32,7 +32,7 @@ interface OtherUserState {
     actionToggle: boolean,
     isTrading: boolean,
     isCarrying: boolean,
-    animation: string,
+    animation: 'idle' | 'walking' | 'running',
   ) => void;
 
   transactionMessage: {

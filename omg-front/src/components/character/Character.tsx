@@ -27,7 +27,7 @@ interface Props {
   startPosition?: [number, number, number];
   isTrading?: boolean;
   isCarrying?: boolean;
-  animation?: string;
+  animation?: 'idle' | 'walking' | 'running';
 }
 
 export default function Character({
@@ -40,7 +40,7 @@ export default function Character({
   startPosition,
   isTrading: serverIsTrading,
   isCarrying: serverIsCarrying,
-  animation,
+  animation: externalAnimationState,
 }: Props) {
   const { movePlayer } = useContext(SocketContext);
   const { modals, openModal, closeModal } = useModalStore();
@@ -92,6 +92,7 @@ export default function Character({
     onPositionChange: setCharacterPosition,
     onActionToggleChange: setLocalActionToggle,
     isOwnCharacter,
+    animation: externalAnimationState,
   });
 
   // 캐릭터 방향과 회전 설정
@@ -464,10 +465,10 @@ export default function Character({
           characterPosition.y + 5,
           characterPosition.z,
         ]}
-        intensity={2}
+        intensity={1}
       />
       <directionalLight
-        intensity={1.6}
+        intensity={1.2}
         position={[
           characterPosition.x,
           characterPosition.y + 10,
@@ -481,9 +482,9 @@ export default function Character({
           characterPosition.y + 8,
           characterPosition.z + 2,
         ]}
-        angle={1.2} // 각도를 더 넓게 설정
-        intensity={10} // 빛의 강도를 높이기
-        penumbra={0.4} // 빛의 경계가 부드러워지도록 설정
+        angle={1.2}
+        intensity={10}
+        penumbra={0.4}
         castShadow
       />
       <RigidBody
