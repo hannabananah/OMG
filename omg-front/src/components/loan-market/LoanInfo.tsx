@@ -59,7 +59,13 @@ export default function LoanInfo() {
 
   return (
     <div className='flex flex-col items-center w-full gap-4'>
-      <p className='text-omg-18'>
+      <p className='text-omg-18 flex items-center'>
+        <img
+          src='/assets/money.png'
+          alt='Money'
+          className='w-6 h-6 mr-2'
+          style={{ width: '3rem', height: '3rem' }}
+        />
         보유 현금{' '}
         <span ref={cashRef} className='text-omg-20 font-omg-title'>
           ${formatNumberWithCommas(animatedCash)}
