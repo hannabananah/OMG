@@ -6,7 +6,7 @@ import {
   TbSquareArrowUp,
 } from 'react-icons/tb';
 
-import { introduction } from '@/data/introduction';
+import { introduction } from '@/assets/data/introduction';
 
 function splitIntoSentences(text: string) {
   // 마침표, 느낌표, 물음표, 쉼표 뒤에 공백이 있는 경우 기준으로 문장 나누기

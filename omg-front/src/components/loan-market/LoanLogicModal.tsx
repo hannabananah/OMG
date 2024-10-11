@@ -1,4 +1,4 @@
-import { loanLimitLogic } from '@/data/loanLimitLogic';
+import { loanLimitLogic } from '@/assets/data/loanLimitLogic';
 
 interface LoanLogicModalProps {
   isTooltipVisible: boolean;

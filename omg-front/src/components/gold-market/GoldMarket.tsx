@@ -1,4 +1,4 @@
-import MarketState from '@/components/stock-market/MarketState';
+import { MarketState } from '@/components/stock-market';
 import { useModalStore } from '@/stores/useModalStore';
 import useUser from '@/stores/useUser';
 
