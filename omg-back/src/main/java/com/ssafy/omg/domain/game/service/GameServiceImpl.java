@@ -4,14 +4,7 @@ import com.ssafy.omg.config.baseresponse.BaseException;
 import com.ssafy.omg.config.baseresponse.MessageException;
 import com.ssafy.omg.domain.arena.entity.Arena;
 import com.ssafy.omg.domain.game.GameRepository;
-import com.ssafy.omg.domain.game.dto.GameResultResponse;
-import com.ssafy.omg.domain.game.dto.GoldMarketInfoResponse;
-import com.ssafy.omg.domain.game.dto.IndividualMessageDto;
-import com.ssafy.omg.domain.game.dto.MainMessageDto;
-import com.ssafy.omg.domain.game.dto.PlayerMoveRequest;
-import com.ssafy.omg.domain.game.dto.PlayerRankingResponse;
-import com.ssafy.omg.domain.game.dto.StockMarketResponse;
-import com.ssafy.omg.domain.game.dto.StockRequest;
+import com.ssafy.omg.domain.game.dto.*;
 import com.ssafy.omg.domain.game.entity.Game;
 import com.ssafy.omg.domain.game.entity.GameEvent;
 import com.ssafy.omg.domain.game.entity.GameStatus;
@@ -1344,27 +1337,27 @@ public class GameServiceImpl implements GameService {
             player.setCarrying(playerMoveRequest.isCarrying());
             player.setAnimation(playerMoveRequest.animation());
 
-//            for (Player otherPlayer : arena.getGame().getPlayers()) {
-//                if (!otherPlayer.getNickname().equals(player.getNickname())) {
-//                    double distance = player.distanceTo(otherPlayer);
-//                    boolean isClose = distance <= 5;
-//                    notifyPlayerDistance(roomId, player, otherPlayer, isClose);
-//                }
-//            }
+            for (Player otherPlayer : arena.getGame().getPlayers()) {
+                if (!otherPlayer.getNickname().equals(player.getNickname())) {
+                    double distance = player.distanceTo(otherPlayer);
+                    boolean isClose = distance <= 5;
+                    notifyPlayerDistance(roomId, player, otherPlayer, isClose);
+                }
+            }
             gameRepository.saveArena(roomId, arena);
         }
     }
 
-//    private void notifyPlayerDistance(String roomId, Player p1, Player p2, boolean isClose) {
-//        String message = p1.getNickname() + ":" + p2.getNickname();
-//        StompPayload<PlayerDistanceDto> payload = new StompPayload<>(
-//                isClose ? "BATTLE_AVAILABLE" : "BATTLE_UNAVAILABLE",
-//                roomId,
-//                null,
-//                new PlayerDistanceDto(message, isClose)
-//        );
-//        messagingTemplate.convertAndSend("/sub/" + roomId + "/game", payload);
-//    }
+    private void notifyPlayerDistance(String roomId, Player p1, Player p2, boolean isClose) {
+        String message = p1.getNickname() + ":" + p2.getNickname();
+        StompPayload<PlayerDistanceDto> payload = new StompPayload<>(
+                isClose ? "BATTLE_AVAILABLE" : "BATTLE_UNAVAILABLE",
+                roomId,
+                null,
+                new PlayerDistanceDto(message, isClose)
+        );
+        messagingTemplate.convertAndSend("/sub/" + roomId + "/game", payload);
+    }
 
 
     @Override

@@ -33,6 +33,10 @@ interface GameStore {
   carryingToMarketCount: number[];
   carryingToHomeCount: number[];
   selectedCount: number[];
+  isClosedEachOther: {
+    isAvailable: boolean;
+    players: string;
+  };
   setGameData: (data: Partial<GameData>) => void; // Partial 타입 사용하여 일부 필드만 업데이트 가능하도록 설정
   setCarryingToMarketCount: (
     data: number[] | ((prevData: number[]) => number[]),
@@ -43,6 +47,10 @@ interface GameStore {
   setSelectedCount: (
     data: number[] | ((prevData: number[]) => number[]),
   ) => void;
+  setIsClosedEachOther: (data: {
+    isAvailable: boolean;
+    players: string;
+  }) => void;
 }
 
 export const useGameStore = create<GameStore>(set => ({
@@ -50,12 +58,13 @@ export const useGameStore = create<GameStore>(set => ({
   carryingToMarketCount: [0, 0, 0, 0, 0, 0],
   carryingToHomeCount: [0, 0, 0, 0, 0, 0],
   selectedCount: [0, 0, 0, 0, 0, 0],
-  // 일부 데이터만 업데이트
+  isClosedEachOther: undefined,
+
   setGameData: (data: Partial<GameData>) => {
     set(state => ({
       gameData: {
-        ...state.gameData, // 기존 데이터 유지
-        ...data, // 새로운 데이터로 덮어쓰기 (일부 필드만 업데이트)
+        ...state.gameData,
+        ...data,
       },
     }));
   },
@@ -88,5 +97,8 @@ export const useGameStore = create<GameStore>(set => ({
     } else {
       set({ selectedCount: data });
     }
+  },
+  setIsClosedEachOther: (data: { isAvailable: boolean; players: string }) => {
+    set({ isClosedEachOther: data });
   },
 }));
