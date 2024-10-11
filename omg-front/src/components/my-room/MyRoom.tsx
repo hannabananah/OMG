@@ -267,7 +267,6 @@ export default function MyRoom() {
                 <Item
                   itemName={item.itemName}
                   position={{ x: positionX, y: 0.6, z: 1 }}
-                  onClick={() => console.log(`${item.itemName} 클릭됨`)}
                   disabled={false}
                 />
 

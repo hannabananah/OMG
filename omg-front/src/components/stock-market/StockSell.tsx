@@ -94,7 +94,6 @@ export default function StockSell() {
                     <Item
                       itemName={item.itemName}
                       position={{ x: positionX, y: 0.3, z: 0 }}
-                      onClick={() => console.log(`${item.itemName} 클릭됨`)}
                       disabled={false}
                     />
 
