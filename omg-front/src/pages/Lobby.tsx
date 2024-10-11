@@ -83,7 +83,10 @@ export default function Lobby() {
   }, []);
 
   return (
-    <div className='relative flex flex-col justify-center w-full h-screen p-10'>
+    <div
+      className='relative flex flex-col justify-center w-full h-screen p-10'
+      style={{ backgroundImage: 'url("/assets/matrix2.gif")' }}
+    >
       <div className='absolute right-8 bottom-9 text-omg-30'>
         <ExitButton showText={true} />
       </div>
@@ -93,7 +96,7 @@ export default function Lobby() {
           <div>
             <button
               onClick={handleClickCreateRoom}
-              className='w-full p-2 text-omg-40b'
+              className='w-full p-2 text-white text-omg-40b'
               disabled={createRoomMutation.isPending}
             >
               {createRoomMutation.isPending ? '방 생성중...' : '방 생성하기'}
@@ -128,7 +131,7 @@ export default function Lobby() {
             </div>
 
             <button
-              className='w-1/4 text-omg-40b'
+              className='w-1/4 text-white text-omg-40b'
               onClick={handleClickEnterRoom}
             >
               입장

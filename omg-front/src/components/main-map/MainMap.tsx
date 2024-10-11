@@ -23,6 +23,7 @@ import Map from '@/components/main-map/Map';
 import MiniMap from '@/components/mini-map/MiniMap';
 import StockMarket from '@/components/stock-market/StockMarket';
 import { useAlertStore } from '@/stores/useAlertStore';
+import { useIntroStore } from '@/stores/useIntroStore';
 import { useModalStore } from '@/stores/useModalStore';
 import { useMyRoomStore } from '@/stores/useMyRoomStore';
 import { useOtherUserStore } from '@/stores/useOtherUserState';
@@ -41,6 +42,7 @@ import StockChangeAlert from '../notification/StockChangeAlert';
 import { getAlertComponent } from '../notification/getAlertComponent';
 import PersonalBoard from '../personal-board/PersonalBoard';
 import MarketStatusBoard from './MarketStatusBoard';
+import Tutorial from './Tutorial';
 
 export const Controls = {
   forward: 'forward',
@@ -66,6 +68,8 @@ export default function MainMap() {
 
   const { modals } = useModalStore();
   const { isEnteringRoom } = useMyRoomStore();
+
+  const { isTutorialModalOpen, closeTutorialModal } = useIntroStore();
 
   const { nickname } = useUser();
 
@@ -154,6 +158,7 @@ export default function MainMap() {
         setIsTimerVisible(false);
         break;
       case 'ROUND_START':
+        closeTutorialModal();
         setIsRoundVisible(true);
         setIsTimerVisible(true);
         setIsBoardVisible(true);
@@ -264,6 +269,13 @@ export default function MainMap() {
           opacity: 0.9,
         }}
       ></div>
+
+      {/* 제일 처음에만 보여줄 튜토리얼 */}
+      {isTutorialModalOpen && (
+        <div className='absolute top-0 left-0 z-50 w-full h-full'>
+          <Tutorial />
+        </div>
+      )}
 
       {/* 내 방 입장 알림 메시지 */}
       {isEnteringRoom[nickname] && (
