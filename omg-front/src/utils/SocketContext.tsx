@@ -1,4 +1,11 @@
-import { ReactNode, createContext, useEffect, useMemo, useState } from 'react';
+import {
+  ReactNode,
+  createContext,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 
 import { useGameResultStore } from '@/stores/useGameResultStore';
@@ -111,7 +118,7 @@ export default function SocketProvider({ children }: SocketProviderProps) {
     setEventEffectMessage,
     setGameRoundMessage,
   } = useSocketMessage();
-  const { setGameData } = useGameStore();
+  const { setGameData, setIsClosedEachOther } = useGameStore();
   const { setMainBoardData } = useMainBoardStore();
   const { setPersonalBoardData } = usePersonalBoardStore();
   const { setStockMarketData } = useStockStore();
@@ -139,6 +146,11 @@ export default function SocketProvider({ children }: SocketProviderProps) {
   const subRoomId = `room-${roomId}`;
   const subChatId = `chat-${roomId}`;
   const subGameId = `game-${roomId}`;
+
+  const prevClosedEachOtherRef = useRef({
+    isAvailable: false,
+    players: [],
+  });
 
   const isSocketConnected = () => {
     if (!socket || !socket.connected) {
@@ -210,10 +222,6 @@ export default function SocketProvider({ children }: SocketProviderProps) {
             );
             setPlayer(playerNicknames);
             setHostPlayer(host);
-            break;
-          case 'ENTER_FAILURE':
-            break;
-          case 'PREPARE_GAME_START':
             break;
           case 'LEAVE_ROOM':
             setPlayer(prevPlayers =>
@@ -550,6 +558,75 @@ export default function SocketProvider({ children }: SocketProviderProps) {
           case 'RANKING_NOTIFICATION':
             setGameData(parsedMessage.data);
             break;
+
+          case 'BATTLE_AVAILABLE':
+            const handleBattleAvailable = () => {
+              const currentPlayers = parsedMessage.data.players.split(':');
+
+              const isUserAtFront = currentPlayers[0] === nickname;
+
+              if (isUserAtFront) {
+                if (
+                  prevClosedEachOtherRef.current.isAvailable !== true ||
+                  !Array.isArray(prevClosedEachOtherRef.current.players) ||
+                  prevClosedEachOtherRef.current.players.join(':') !==
+                    parsedMessage.data.players
+                ) {
+                  setIsClosedEachOther({
+                    isAvailable: true,
+                    players: currentPlayers.join(':'),
+                  });
+
+                  console.log('거리 가까워짐', parsedMessage.data);
+
+                  prevClosedEachOtherRef.current = {
+                    isAvailable: true,
+                    players: currentPlayers,
+                  };
+                }
+              }
+            };
+
+            handleBattleAvailable();
+            break;
+
+          // case 'BATTLE_UNAVAILABLE':
+          //   const handleBattleUnavailable = () => {
+          //     const currentPlayers = parsedMessage.data.players.split(':');
+
+          //     // 현재 사용자가 players 배열의 첫 번째 요소에 포함되어 있는지 확인
+          //     const isUserAtFront = currentPlayers[0] === nickname;
+
+          //     // 이전 상태가 true일 때만 업데이트
+          //     if (
+          //       isUserAtFront &&
+          //       prevClosedEachOtherRef.current.isAvailable === true
+          //     ) {
+          //       if (
+          //         !Array.isArray(prevClosedEachOtherRef.current.players) ||
+          //         prevClosedEachOtherRef.current.players.join(':') !==
+          //           parsedMessage.data.players
+          //       ) {
+          //         setIsClosedEachOther({
+          //           isAvailable: false,
+          //           players: currentPlayers.join(':'),
+          //         });
+
+          //         console.log('거리 멀어짐', parsedMessage.data);
+
+          //         prevClosedEachOtherRef.current = {
+          //           isAvailable: false,
+          //           players: currentPlayers,
+          //         };
+          //       }
+          //     }
+          //   };
+
+          //   handleBattleUnavailable();
+          //   break;
+
+          default:
+            break;
         }
       },
       { id: subGameId },
@@ -832,6 +909,7 @@ export default function SocketProvider({ children }: SocketProviderProps) {
       enterLoan,
       isGameResultVisible,
       transactionMessage,
+      setIsClosedEachOther,
     }),
     [
       socket,
@@ -852,6 +930,7 @@ export default function SocketProvider({ children }: SocketProviderProps) {
       enterLoan,
       isGameResultVisible,
       transactionMessage,
+      setIsClosedEachOther,
     ],
   );
 
