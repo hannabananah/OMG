@@ -79,10 +79,10 @@ export default function StockBuy() {
   );
 
   const handleBuying = () => {
-    if (carryingToMarketCount) {
-      ToastAlert('집에서 가져온 아이템을 먼저 매도해주세요!');
-      return;
-    }
+    // if (carryingToMarketCount) {
+    //   ToastAlert('집에서 가져온 아이템을 먼저 매도해주세요!');
+    //   return;
+    // }
     buyStock(selectedCount);
     setCarryingToHomeCount(selectedCount);
     setSelectedCount([0, 0, 0, 0, 0, 0]);
