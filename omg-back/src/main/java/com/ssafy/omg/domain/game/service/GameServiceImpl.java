@@ -14,6 +14,7 @@ import com.ssafy.omg.domain.player.entity.PlayerStatus;
 import com.ssafy.omg.domain.socket.dto.StompPayload;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.messaging.MessagingException;
 import org.springframework.messaging.simp.SimpMessageSendingOperations;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -589,30 +590,48 @@ public class GameServiceImpl implements GameService {
                 .orElseThrow(() -> new BaseException(ARENA_NOT_FOUND));
         Game game = arena.getGame();
 
+        // 잘못된 moneyPoint 값 체크
+        if (!MoneyState.MONEY_COORDINATES.containsKey(moneyPoint)) {
+            throw new BaseException(INVALID_MONEY_POINT);
+        }
+
         List<MoneyPoint> moneyPoints = game.getMoneyPoints();
         int addedMoney = 0;
-        int[] selectedCoordinate = MoneyState.MONEY_COORDINATES.get(moneyPoint);
+        double[] selectedCoordinate = MoneyState.MONEY_COORDINATES.get(moneyPoint);
 
-        for (MoneyPoint point : moneyPoints) {
-            if (Arrays.equals(point.getMoneyCoordinates(), selectedCoordinate) && point.getMoneyStatus() != 0) {
-                // 돈 줍기
-                point.setMoneyStatus(0);
+        MoneyPoint point = moneyPoints.stream()
+                .filter(moneypoint -> Arrays.equals(moneypoint.getMoneyCoordinates(), selectedCoordinate))
+                .findFirst()
+                .orElseThrow(() -> new BaseException(MONEY_POINT_NOT_FOUND));
 
-                Player player = findPlayer(arena, userNickname);
-                int amount = (point.getMoneyStatus() == 2) ? 5 : 1; //TODO 비싼 돈은 5, 싼 돈은 1
-                addedMoney = amount;
-                player.addCash(amount);
+        if (point.getMoneyStatus() == 0) {
+            throw new BaseException(MONEY_ALREADY_COLLECTED);
+        }
 
-                // Arena 저장
-                gameRepository.saveGameToRedis(game);
-                break;
-            }
+        // 돈 줍기
+        point.setMoneyStatus(0);
+
+        Player player = findPlayer(arena, userNickname);
+        int amount = (point.getMoneyStatus() == 2) ? 5 : 1; //TODO 비싼 돈은 5, 싼 돈은 1
+        addedMoney = amount;
+        player.addCash(amount);
+
+        try {
+            // Arena 저장
+            gameRepository.saveGameToRedis(game);
+        } catch (Exception e) {
+            log.error("레디스 저장 실패.", e);
+            throw new BaseException(GAME_SAVE_FAILED);
         }
 
         // 돈 줍기 성공 응답 전송
         StompPayload<Integer> response = null;
         response = new StompPayload<>("SUCCESS_MONEY_PICKUP", roomId, userNickname, addedMoney);
-        messagingTemplate.convertAndSend("/sub/" + roomId + "/game", response);
+        try {
+            messagingTemplate.convertAndSend("/sub/" + roomId + "/game", response);
+        } catch (MessagingException e) {
+            log.error("돈 줍기 메시지 전송에 실패했습니다.", e);
+        }
 
         return MoneyCollectionResponse.builder()
                 .moneyPoints(moneyPoints)
