@@ -97,16 +97,20 @@ export default function MainMap() {
 
   const [bgm, setBgm] = useState(null);
   const [isMuted, setIsMuted] = useState(false);
+  const [isKeyboardPossible, setIsKeyboardPossible] = useState(false);
 
   const keyboardMap = useMemo(
-    () => [
-      { name: Controls.forward, keys: ['ArrowUp'] },
-      { name: Controls.back, keys: ['ArrowDown'] },
-      { name: Controls.left, keys: ['ArrowLeft'] },
-      { name: Controls.right, keys: ['ArrowRight'] },
-      { name: Controls.pickup, keys: ['Space'] },
-    ],
-    [],
+    () =>
+      isKeyboardPossible
+        ? [
+            { name: Controls.forward, keys: ['ArrowUp'] },
+            { name: Controls.back, keys: ['ArrowDown'] },
+            { name: Controls.left, keys: ['ArrowLeft'] },
+            { name: Controls.right, keys: ['ArrowRight'] },
+            { name: Controls.pickup, keys: ['Space'] },
+          ]
+        : [],
+    [isKeyboardPossible],
   );
 
   useEffect(() => {
@@ -159,15 +163,18 @@ export default function MainMap() {
 
     switch (gameRoundMessage.roundStatus) {
       case 'ROUND_END':
+        setIsKeyboardPossible(false);
         setIsTimerVisible(false);
         break;
       case 'ROUND_START':
         closeTutorialModal();
+        setIsKeyboardPossible(true);
         setIsRoundVisible(true);
         setIsTimerVisible(true);
         setIsBoardVisible(true);
         break;
       case 'GAME_FINISHED':
+        setIsKeyboardPossible(false);
         setIsRoundVisible(false);
         setIsTimerVisible(false);
         break;
