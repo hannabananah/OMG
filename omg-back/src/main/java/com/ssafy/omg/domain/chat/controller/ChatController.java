@@ -32,7 +32,7 @@ public class ChatController {
     }
 
     @PostMapping("/chatbot/response")
-    public Mono<String> getResponse(@RequestParam String roomId, @RequestParam String message) throws BaseException {
-        return chatbotService.getChatbotResponse(roomId, message);
+    public Mono<String> getResponse(@RequestParam String roomId, @RequestParam String sender, @RequestParam String message) throws BaseException {
+        return chatbotService.getChatbotResponse(roomId, sender, message);
     }
 }

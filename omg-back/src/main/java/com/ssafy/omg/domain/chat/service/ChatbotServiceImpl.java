@@ -6,6 +6,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ssafy.omg.config.baseresponse.BaseException;
 import com.ssafy.omg.domain.arena.entity.Arena;
 import com.ssafy.omg.domain.game.GameRepository;
+import com.ssafy.omg.domain.player.entity.Player;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -20,6 +21,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import static com.ssafy.omg.config.baseresponse.BaseResponseStatus.ARENA_NOT_FOUND;
+import static com.ssafy.omg.config.baseresponse.BaseResponseStatus.PLAYER_NOT_FOUND;
 import static org.hibernate.query.sqm.tree.SqmNode.log;
 
 
@@ -41,9 +43,14 @@ public class ChatbotServiceImpl implements ChatbotService {
     }
 
     @Override
-    public Mono<String> getChatbotResponse(String roomId, String userMessage) throws BaseException {
+    public Mono<String> getChatbotResponse(String roomId, String userNickname, String userMessage) throws BaseException {
         Arena arena = gameRepository.findArenaByRoomId(roomId)
                 .orElseThrow(() -> new BaseException(ARENA_NOT_FOUND));
+
+        Player currentPlayer = arena.getGame().getPlayers().stream()
+                .filter(player -> player.getNickname().equals(userNickname))
+                .findFirst()
+                .orElseThrow(() -> new BaseException(PLAYER_NOT_FOUND));
 
         String prompt = buildPrompt(arena, userMessage);
         String requestBody = buildRequestBody(prompt);
