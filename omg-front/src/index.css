@@ -135,6 +135,14 @@ button:disabled {
   .modal-container {
     @apply flex flex-col w-[80%] h-[80%] bg-white bg-opacity-80 rounded-[30px];
   }
+
+  .alert-container {
+    @apply absolute z-50 w-full h-full;
+  }
+
+  .alert-message-layout {
+    @apply absolute -translate-x-1/2 -translate-y-1/2 left-1/2 text-center;
+  }
 }
 
 @layer utilities {

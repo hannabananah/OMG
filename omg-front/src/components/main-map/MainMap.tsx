@@ -26,8 +26,14 @@ import {
 } from '@/components/game';
 import Map from '@/components/main-map/Map';
 import MiniMap from '@/components/mini-map/MiniMap';
+import {
+  BattleAlert,
+  StockChangeAlert,
+  getAlertComponent,
+} from '@/components/notification';
 import { StockMarket } from '@/components/stock-market';
 import { useAlertStore } from '@/stores/useAlertStore';
+import { useBattleStore } from '@/stores/useBattleStore';
 import { useIntroStore } from '@/stores/useIntroStore';
 import { useModalStore } from '@/stores/useModalStore';
 import { useMyRoomStore } from '@/stores/useMyRoomStore';
@@ -42,8 +48,6 @@ import { Physics } from '@react-three/rapier';
 import GoldMarket from '../gold-market/GoldMarket';
 import LoanMarket from '../loan-market/LoanMarket';
 import MyRoom from '../my-room/MyRoom';
-import StockChangeAlert from '../notification/StockChangeAlert';
-import { getAlertComponent } from '../notification/getAlertComponent';
 import PersonalBoard from '../personal-board/PersonalBoard';
 import MarketStatusBoard from './MarketStatusBoard';
 import Tutorial from './Tutorial';
@@ -79,6 +83,8 @@ export default function MainMap() {
 
   const { eventCardMessage, eventEffectMessage, gameRoundMessage } =
     useSocketMessage();
+  const { isBattleAvailable, battleRequester, battleReceiver } =
+    useBattleStore();
 
   const [isChatOpen, setIsChatOpen] = useState(false);
   const [isEventCardVisible, setIsEventCardVisible] = useState(false);
@@ -87,6 +93,7 @@ export default function MainMap() {
   const [isTimerVisible, setIsTimerVisible] = useState(false);
   const [isRoundVisible, setIsRoundVisible] = useState(false);
   const [isBoardVisible, setIsBoardVisible] = useState(false);
+  const [isRequestBattleVisible, setIsRequestBattleVisible] = useState(false);
 
   const {
     isStockChangeAlertVisible,
@@ -134,6 +141,11 @@ export default function MainMap() {
     }, 5000);
     return () => clearTimeout(timer);
   }, [eventEffectMessage]);
+
+  useEffect(() => {
+    if (isBattleAvailable) setIsRequestBattleVisible(true);
+    else setIsRequestBattleVisible(false);
+  }, [isBattleAvailable]);
 
   // [리렌더링 문제로 인해] 주가 변동 메시지를 받았을 때 알림을 표시하는 로직 따로 처리
   useEffect(() => {
@@ -353,15 +365,22 @@ export default function MainMap() {
 
       {/* 모든 Round 알람 */}
       {isAlertVisible && gameRoundMessage.message && (
-        <div className='absolute z-50 w-full h-full'>
+        <div className='alert-container'>
           {getAlertComponent(gameRoundMessage.message)}
         </div>
       )}
 
       {/* 주가 변동 알림 */}
       {isStockChangeAlertVisible && stockChangeAlertMessage && (
-        <div className='absolute z-50 w-full h-full'>
+        <div className='alert-container'>
           <StockChangeAlert message={stockChangeAlertMessage} />
+        </div>
+      )}
+
+      {/* 배틀 관련 신청 알림 */}
+      {isRequestBattleVisible && (
+        <div className='alert-container'>
+          <BattleAlert />
         </div>
       )}
 
