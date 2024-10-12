@@ -59,11 +59,11 @@ export default function LoanInfo() {
 
   return (
     <div className='flex flex-col items-center w-full gap-4'>
-      <p className='text-omg-18 flex items-center'>
+      <p className='flex items-center text-omg-18'>
         <img
           src='/assets/money.png'
           alt='Money'
-          className='w-6 h-6 mr-2'
+          className='w-20 h-20 mr-6'
           style={{ width: '3rem', height: '3rem' }}
         />
         보유 현금{' '}
