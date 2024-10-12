@@ -1,6 +1,8 @@
 spring:
   application:
     name: omg-back
+    config:
+      import: "application-secret.yml"
 
   datasource:
     url: jdbc:mysql://localhost:3306/omg
