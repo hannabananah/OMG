@@ -300,13 +300,16 @@ export default function Character({
 
   // 물리 충돌 이벤트 핸들러
   const handleCollisionEnter = () => {
-    if (!showIntro && isOwnCharacter) {
+    if (!showIntro && isOwnCharacter && !collisionRef.current) {
+      // console.log('충돌 발생!');
       collisionRef.current = true;
+      prevPositionRef.current.copy(characterPosition);
     }
   };
 
   const handleCollisionExit = () => {
-    if (!showIntro && isOwnCharacter) {
+    if (!showIntro && isOwnCharacter && collisionRef.current && backPressed) {
+      // console.log('충돌 종료!');
       collisionRef.current = false;
     }
   };
@@ -364,16 +367,14 @@ export default function Character({
         const newPosition = characterPosition.clone();
 
         if (collisionRef.current) {
+          // console.log('충돌 중입니다');
+          scene.position.copy(prevPositionRef.current);
+          characterPosition.copy(prevPositionRef.current);
+          newPosition.copy(prevPositionRef.current);
+
           if (backPressed) {
+            // console.log('충돌 해제 조건 충족: backPressed');
             collisionRef.current = false;
-            scene.position.copy(prevPositionRef.current);
-            characterPosition.copy(prevPositionRef.current);
-            newPosition.copy(prevPositionRef.current);
-          } else {
-            scene.position.copy(prevPositionRef.current);
-            characterPosition.copy(prevPositionRef.current);
-            newPosition.copy(prevPositionRef.current);
-            return;
           }
         }
 
@@ -404,7 +405,7 @@ export default function Character({
         setCharacterPosition(newPosition);
         scene.position.copy(newPosition);
 
-        // 걷기 및 달리기 상태ㅇ
+        // 걷기 및 달리기 상태
         if (
           movementStateRef.current === 'walking' ||
           movementStateRef.current === 'running'
@@ -498,6 +499,7 @@ export default function Character({
           isModalOpen={isModalOpen}
           setIsCircling={setIsCircling}
           marketType={marketType}
+          isColliding={collisionRef.current}
         />
       )}
       <pointLight
@@ -535,7 +537,7 @@ export default function Character({
         lockRotations={true}
         onCollisionEnter={handleCollisionEnter}
         onCollisionExit={handleCollisionExit}
-        restitution={0}
+        restitution={0} // 반발력
         friction={1}
       >
         <primitive

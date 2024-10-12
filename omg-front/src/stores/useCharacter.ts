@@ -38,6 +38,7 @@ export const useCharacter = ({
   const activeKeys = useRef(new Set<string>());
 
   useEffect(() => {
+    console.log(animations);
     if (!allRendered) return;
 
     if (animations.length > 0 && scene) {

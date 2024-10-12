@@ -12,6 +12,7 @@ interface IntroCameraProps {
   isModalOpen: boolean;
   setIsCircling: React.Dispatch<React.SetStateAction<boolean>>;
   marketType: 'loanMarket' | 'stockMarket' | 'goldMarket' | null;
+  isColliding: boolean;
 }
 
 export default function IntroCamera({
@@ -20,6 +21,7 @@ export default function IntroCamera({
   isModalOpen,
   setIsCircling,
   marketType,
+  isColliding,
 }: IntroCameraProps) {
   const cameraRef = useRef<THREE.PerspectiveCamera>(null);
   const { showIntro, setShowIntro, openTutorialModal } = useIntroStore();
@@ -31,6 +33,10 @@ export default function IntroCamera({
   const radius = 100;
   const speed = 0.85;
   const transitionDuration = 4; // 전환 애니메이션 지속 시간
+
+  const [collisionCameraLocked, setCollisionCameraLocked] = useState(false); // 충돌 후 고정 상태
+  const collisionTimeRef = useRef<number | null>(null); // 충돌 시점 기록
+  const lastCameraPositionRef = useRef(new THREE.Vector3()); // 마지막 카메라 위치 저장
 
   const loanMarketTarget = new THREE.Vector3(
     47.54649835206037,
@@ -51,13 +57,26 @@ export default function IntroCamera({
   const circleSpeed = 0.3;
   const [circleProgress, setCircleProgress] = useState(0);
 
-  // 초기 카메라 설정
+  // [카메라 오류 수정중]
+  useEffect(() => {
+    if (isColliding) {
+      // 충돌이 발생한 경우, 현재 카메라 위치를 저장하고 고정
+      lastCameraPositionRef.current.copy(cameraRef.current!.position);
+      setCollisionCameraLocked(true);
+      collisionTimeRef.current = null; // 충돌이 끝난 후 대기 시간을 위한 타이머 초기화
+    } else if (!isColliding && collisionCameraLocked) {
+      // 충돌이 끝났을 때 타이머 시작
+      if (!collisionTimeRef.current) {
+        collisionTimeRef.current = Date.now();
+      }
+    }
+  }, [isColliding]);
+
+  // 1. 초기 카메라 설정 - 이거 건들면 시작 때 다 망함
   useEffect(() => {
     if (!cameraRef.current || showIntro) return;
 
     const camera = cameraRef.current;
-
-    // 캐릭터 위치 기반으로 카메라 위치 설정
     camera.position.set(
       characterPosition.x,
       characterPosition.y - 3,
@@ -65,8 +84,6 @@ export default function IntroCamera({
     );
 
     camera.lookAt(characterPosition);
-
-    // 카메라 회전 설정
     camera.rotation.set(0, Math.PI, 0);
   }, [characterPosition, showIntro]);
 
@@ -76,7 +93,7 @@ export default function IntroCamera({
     const camera = cameraRef.current;
     const elapsedTime = state.clock.getElapsedTime();
 
-    // 원 그리면서 전체 맵 돌기
+    //  2. 원 그리면서 전체 맵 돌기
     if (showIntro) {
       const targetZoom = 5;
       const x = Math.cos(elapsedTime * speed) * radius;
@@ -97,7 +114,7 @@ export default function IntroCamera({
       return;
     }
 
-    // 전체 맵 다 돌고 캐릭터 줌인하면서 카메라 전환 중
+    // 3. 캐릭터 줌인하면서 캐릭터 카메라로 전환
     if (isTransitioning) {
       const transitionTime = elapsedTime - transitionStartTime.current;
       const progress = Math.min(transitionTime / transitionDuration, 1);
@@ -141,7 +158,7 @@ export default function IntroCamera({
       return;
     }
 
-    // 1. 거래소 제외한 일반 캐릭터 카메라 - 기본(코드 수정하면 안됨)
+    // 4. 거래소 제외한 일반 캐릭터 카메라 - 기본(코드 수정하면 안됨)
     if (!isModalOpen) {
       const cameraDistance = 15; // 카메라와 캐릭터 사이의 거리
 
@@ -170,7 +187,22 @@ export default function IntroCamera({
       return;
     }
 
-    // 2. 거래소 진입해서 원 돌 때
+    if (collisionCameraLocked) {
+      // 충돌 중일 때는 마지막 위치로 카메라 고정
+      camera.position.copy(lastCameraPositionRef.current);
+
+      // 충돌이 끝난 후 1초 대기 후 다시 캐릭터를 따라감
+      if (!isColliding && collisionTimeRef.current) {
+        const timeSinceCollision =
+          (Date.now() - collisionTimeRef.current) / 1000;
+        if (timeSinceCollision >= 1) {
+          setCollisionCameraLocked(false); // 1초 후 고정 해제
+        }
+      }
+      return;
+    }
+
+    // 5. 거래소 진입해서 원 돌 때
     if (circleProgress < 0.9) {
       let targetPosition;
       let angle;
@@ -197,7 +229,7 @@ export default function IntroCamera({
       setCircleProgress(prev => prev + circleSpeed * delta);
     }
 
-    // 회전 완료
+    // 6. 회전 완료
     if (circleProgress >= 0.9) {
       // 서클링 종료 후 카메라 위치 고정
       let finalPosition;
