@@ -1,4 +1,4 @@
-import { useContext, useEffect, useMemo, useRef, useState } from 'react';
+import { useContext, useEffect, useRef, useState } from 'react';
 
 import { Controls } from '@/components/main-map/MainMap';
 import { useCharacter } from '@/stores/useCharacter';
@@ -480,12 +480,8 @@ export default function Character({
       isCloseEnough
     ) {
       setShowRank(true);
-
-      const timer = setTimeout(() => {
-        setShowRank(false);
-      }, 3000);
-
-      return () => clearTimeout(timer);
+    } else {
+      setShowRank(false);
     }
   }, [isOwnCharacter, player1Rank, player2Rank, isCloseEnough]);
 
@@ -595,6 +591,7 @@ export default function Character({
           if (showRank) {
             flattenedItems.push(
               <Html
+                zIndexRange={[20, 0]}
                 key={`rank-${characterType}`}
                 position={[
                   characterPosition.x,
@@ -603,7 +600,7 @@ export default function Character({
                 ]}
                 center
               >
-                <div className='flex flex-col items-center justify-center w-32 h-12 p-2 border-4 border-white bg-white1 text-nowrap bg-opacity-90 font-omg-event-content rounded-20 text-omg-'>
+                <div className='flex flex-col items-center justify-center w-32 h-12 p-2 border-4 border-white bg-white1 text-nowrap bg-opacity-90 font-omg-event-content rounded-20'>
                   {nickname === player1 ? (
                     <div>상대방 순위 {player2Rank}위</div>
                   ) : (
