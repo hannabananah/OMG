@@ -5,12 +5,7 @@ import com.ssafy.omg.config.baseresponse.MessageException;
 import com.ssafy.omg.domain.arena.entity.Arena;
 import com.ssafy.omg.domain.game.GameRepository;
 import com.ssafy.omg.domain.game.dto.*;
-import com.ssafy.omg.domain.game.entity.Game;
-import com.ssafy.omg.domain.game.entity.GameEvent;
-import com.ssafy.omg.domain.game.entity.GameStatus;
-import com.ssafy.omg.domain.game.entity.LoanProduct;
-import com.ssafy.omg.domain.game.entity.StockInfo;
-import com.ssafy.omg.domain.game.entity.StockState;
+import com.ssafy.omg.domain.game.entity.*;
 import com.ssafy.omg.domain.game.repository.GameEventRepository;
 import com.ssafy.omg.domain.player.dto.PlayerAnimation;
 import com.ssafy.omg.domain.player.dto.PlayerResult;
@@ -23,39 +18,13 @@ import org.springframework.messaging.simp.SimpMessageSendingOperations;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.AbstractMap;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Random;
-import java.util.Set;
-import java.util.TreeSet;
+import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
-import static com.ssafy.omg.config.baseresponse.BaseResponseStatus.ARENA_NOT_FOUND;
-import static com.ssafy.omg.config.baseresponse.BaseResponseStatus.EVENT_NOT_FOUND;
-import static com.ssafy.omg.config.baseresponse.BaseResponseStatus.EXCEEDS_DIFF_RANGE;
-import static com.ssafy.omg.config.baseresponse.BaseResponseStatus.IMPOSSIBLE_STOCK_CNT;
-import static com.ssafy.omg.config.baseresponse.BaseResponseStatus.INSUFFICIENT_STOCK;
-import static com.ssafy.omg.config.baseresponse.BaseResponseStatus.INVALID_BLACK_TOKEN;
-import static com.ssafy.omg.config.baseresponse.BaseResponseStatus.INVALID_ROUND;
-import static com.ssafy.omg.config.baseresponse.BaseResponseStatus.INVALID_SELL_STOCKS;
-import static com.ssafy.omg.config.baseresponse.BaseResponseStatus.INVALID_STOCK_GROUP;
-import static com.ssafy.omg.config.baseresponse.BaseResponseStatus.PLAYER_NOT_FOUND;
-import static com.ssafy.omg.config.baseresponse.BaseResponseStatus.PLAYER_STATE_ERROR;
-import static com.ssafy.omg.config.baseresponse.BaseResponseStatus.REQUEST_ERROR;
-import static com.ssafy.omg.config.baseresponse.MessageResponseStatus.AMOUNT_EXCEED_CASH;
-import static com.ssafy.omg.config.baseresponse.MessageResponseStatus.AMOUNT_EXCEED_DEBT;
+import static com.ssafy.omg.config.baseresponse.BaseResponseStatus.*;
 import static com.ssafy.omg.config.baseresponse.MessageResponseStatus.AMOUNT_OUT_OF_RANGE;
-import static com.ssafy.omg.config.baseresponse.MessageResponseStatus.INSUFFICIENT_CASH;
-import static com.ssafy.omg.config.baseresponse.MessageResponseStatus.INVALID_STOCK_COUNT;
-import static com.ssafy.omg.config.baseresponse.MessageResponseStatus.OUT_OF_CASH;
-import static com.ssafy.omg.config.baseresponse.MessageResponseStatus.STOCK_NOT_AVAILABLE;
+import static com.ssafy.omg.config.baseresponse.MessageResponseStatus.*;
 import static com.ssafy.omg.domain.game.entity.RoundStatus.STOCK_FLUCTUATION;
 import static com.ssafy.omg.domain.game.entity.RoundStatus.TUTORIAL;
 import static com.ssafy.omg.domain.player.entity.PlayerStatus.COMPLETED;
@@ -1341,11 +1310,22 @@ public class GameServiceImpl implements GameService {
                 if (!otherPlayer.getNickname().equals(player.getNickname())) {
                     double distance = player.distanceTo(otherPlayer);
                     boolean isClose = distance <= 5;
-                    notifyPlayerDistance(roomId, player, otherPlayer, isClose);
+
+                    // 플레이어가 주식 혹은 금을 손에 들고있는지 체크
+                    boolean isPlayerCarryingSomething = isCarryingSomething(player);
+                    boolean isOtherPlayerCarryingSomething = isCarryingSomething(player);
+                    if (isClose && isPlayerCarryingSomething && isOtherPlayerCarryingSomething) {
+                        notifyPlayerDistance(roomId, player, otherPlayer, isClose);
+                    }
+//                    notifyPlayerDistance(roomId, player, otherPlayer, isClose);
                 }
             }
             gameRepository.saveArena(roomId, arena);
         }
+    }
+
+    private boolean isCarryingSomething(Player player) {
+        return player.getCarryingGolds() > 0 || Arrays.stream(player.getCarryingStocks()).sum() > 0;
     }
 
     private void notifyPlayerDistance(String roomId, Player p1, Player p2, boolean isClose) {
