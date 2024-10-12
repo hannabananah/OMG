@@ -1,5 +1,6 @@
 package com.ssafy.omg.domain.chat.controller;
 
+import com.ssafy.omg.config.baseresponse.BaseException;
 import com.ssafy.omg.domain.chat.dto.ChatMessage;
 import com.ssafy.omg.domain.chat.service.ChatbotService;
 import com.ssafy.omg.domain.socket.dto.StompPayload;
@@ -31,7 +32,7 @@ public class ChatController {
     }
 
     @PostMapping("/chatbot/response")
-    public Mono<String> getResponse(@RequestParam String roomId, @RequestParam String message) {
+    public Mono<String> getResponse(@RequestParam String roomId, @RequestParam String message) throws BaseException {
         return chatbotService.getChatbotResponse(roomId, message);
     }
 }
