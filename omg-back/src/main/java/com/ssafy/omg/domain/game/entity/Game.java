@@ -3,11 +3,7 @@ package com.ssafy.omg.domain.game.entity;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.ssafy.omg.domain.player.entity.Player;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 
 import java.util.List;
 
@@ -50,6 +46,8 @@ public class Game {
     private int[] stockSellTrack;                 // 매도 트랙
     private int[] stockBuyTrack;                  // 매수 트랙
     private int[] goldBuyTrack;                   // 금 매입 트랙
+
+    private List<MoneyPoint> moneyPoints;         // 돈 줍기 정보
 
     // [게임] 금괴 정보
     private int goldPrice;                        // 금괴 가격

@@ -33,6 +33,9 @@ public interface GameService {
     // 전 라운드 경제 이벤트를 현 라운드에 적용
     Game applyEconomicEvent(String roomId) throws BaseException;
 
+    // 돈 줍기
+    MoneyCollectionResponse collectMoney(String roomId, String userNickname, String moneyPoint) throws BaseException;
+
     // 매입한 금괴 개수를 플레이어 자산 및 금괴 매입 트랙( + 추가개수)에 반영
     void purchaseGold(String roomId, String userNickname, int goldButCount) throws BaseException, MessageException;
 
