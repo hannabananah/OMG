@@ -103,7 +103,7 @@ export default function Waiting() {
               {isRoomFull ? (
                 <span className='text-omg-100b'>GAME START</span>
               ) : (
-                <p className='text-white'>
+                <p className='text-white text-omg-30b'>
                   {4 - player.length}명의 플레이어를 기다리고 있습니다.
                 </p>
               )}
