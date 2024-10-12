@@ -114,21 +114,21 @@ public class GameScheduler {
         if (!game.isPaused() && game.getTime() > 0) {
             game.setTime(game.getTime() - 1);
         }
-        log.debug("게임 {}의 현재 시간 : {}초", game.getGameId(), game.getTime());
+//        log.debug("게임 {}의 현재 시간 : {}초", game.getGameId(), game.getTime());
     }
 
     private void decreasePauseTime(Game game) {
         if (game.isPaused() && game.getPauseTime() > 0) {
             game.setPauseTime(game.getPauseTime() - 1);
         }
-        log.debug("게임 {}의 현재 시간 : {}초", game.getGameId(), game.getTime());
+//        log.debug("게임 {}의 현재 시간 : {}초", game.getGameId(), game.getTime());
     }
 
     private void handleTutorial(Game game) {
         if (game.getTime() == 0) {
             game.setRoundStatus(ROUND_START);
             game.setTime(3);
-            log.debug("상태를 ROUND_START로 변경. 새 시간: {}", game.getTime());
+//            log.debug("상태를 ROUND_START로 변경. 새 시간: {}", game.getTime());
         }
     }
 

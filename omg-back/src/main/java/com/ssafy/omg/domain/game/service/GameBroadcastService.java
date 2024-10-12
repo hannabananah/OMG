@@ -77,7 +77,7 @@ public class GameBroadcastService {
 
         StompResponsePayload<List<PlayerStateDto>> payload1 = new StompResponsePayload<>("PLAYER_STATE", playerStateDtos);
 
-        log.debug("send payload roomId = {}", roomId);
+//        log.debug("send payload roomId = {}", roomId);
         messagingTemplate.convertAndSend("/sub/" + roomId + "/game", payload1);
 
         List<PlayerMinimapDto> playerMinimapDtos = game.getPlayers().stream()
