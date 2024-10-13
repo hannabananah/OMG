@@ -108,7 +108,8 @@ button:disabled {
   .text-omg-20,
   .text-omg-24,
   .text-omg-28,
-  .text-omg-30 {
+  .text-omg-30,
+  .text-omg-32 {
     @apply font-omg-body;
   }
 
