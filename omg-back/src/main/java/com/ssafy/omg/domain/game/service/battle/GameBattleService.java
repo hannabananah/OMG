@@ -9,6 +9,7 @@ import com.ssafy.omg.domain.game.dto.BattleRequestDto;
 import com.ssafy.omg.domain.game.dto.BattleResultDto;
 import com.ssafy.omg.domain.game.dto.ClickStatusDto;
 import com.ssafy.omg.domain.game.entity.Game;
+import com.ssafy.omg.domain.game.service.GameService;
 import com.ssafy.omg.domain.player.entity.Player;
 import com.ssafy.omg.domain.socket.dto.StompPayload;
 import lombok.RequiredArgsConstructor;
@@ -23,9 +24,7 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import static com.ssafy.omg.config.baseresponse.BaseResponseStatus.ARENA_NOT_FOUND;
 import static com.ssafy.omg.config.baseresponse.BaseResponseStatus.PLAYER_NOT_FOUND;
-import static com.ssafy.omg.config.baseresponse.MessageResponseStatus.ALREADY_IN_BATTLE;
-import static com.ssafy.omg.config.baseresponse.MessageResponseStatus.INVALID_GAME_TIME;
-import static com.ssafy.omg.config.baseresponse.MessageResponseStatus.PLAYER_WITH_NO_ASSETS;
+import static com.ssafy.omg.config.baseresponse.MessageResponseStatus.*;
 
 @Slf4j
 @Service
@@ -33,6 +32,7 @@ import static com.ssafy.omg.config.baseresponse.MessageResponseStatus.PLAYER_WIT
 public class GameBattleService {
 
     private final GameRepository gameRepository;
+    private final GameService gameService;
     private final SimpMessageSendingOperations messagingTemplate;
 
     private final Map<String, Thread> waitingTimers = new ConcurrentHashMap<>();
@@ -62,7 +62,16 @@ public class GameBattleService {
         log.debug("요청자: {}, 상대자: {}", requester.getNickname(), receiver.getNickname());
 
         validateBattleState(requester, receiver, roomId);
+
+        // 배틀 요청 중복 방지
+        if (receiver.isBattleRequestPending()) {
+            log.warn("플레이어 {}에게 이미 진행 중인 배틀 요청이 있습니다 (방 ID: {})", receiverNickname, roomId);
+            throw new MessageException(roomId, requesterNickname, BATTLE_REQUEST_ALREADY_PENDING);
+        }
+
         setPlayersToBattleState(requester, receiver, arena, roomId);
+        receiver.setBattleRequestPending(true, requesterNickname);
+        gameRepository.saveArena(roomId, arena);
 
         notifyBattleRequest("BATTLE_REQUEST", roomId, requesterNickname, receiverNickname);
 
@@ -77,9 +86,16 @@ public class GameBattleService {
         String roomId = payload.getRoomId();
         updatePlayerStateAndCancelWaitingTimer(roomId, requesterNickname, receiverNickname);
         notifyBattleRequest("BATTLE_REQUEST_IS_REJECTED", roomId, requesterNickname, receiverNickname);
+
+        Arena arena = gameRepository.findArenaByRoomId(roomId).orElseThrow(() -> new BaseException(ARENA_NOT_FOUND));
+        Player receiver = gameService.findPlayer(arena, receiverNickname);
+        Player requester = gameService.findPlayer(arena, requesterNickname);
+        receiver.clearBattleRequest();
+        requester.clearBattleRequest();
+        gameRepository.saveArena(roomId, arena);
     }
 
-    public void acceptBattleRequest(StompPayload<BattleRequestDto> payload) {
+    public void acceptBattleRequest(StompPayload<BattleRequestDto> payload) throws BaseException {
         String receiverNickname = payload.getSender();
         String requesterNickname = payload.getData().opponentPlayer();
         String roomId = payload.getRoomId();
@@ -90,6 +106,13 @@ public class GameBattleService {
         notifyBattleRequest("BATTLE_START", roomId, requesterNickname, receiverNickname);
 
         startBattle(roomId, requesterNickname, receiverNickname);
+
+        Arena arena = gameRepository.findArenaByRoomId(roomId).orElseThrow(() -> new BaseException(ARENA_NOT_FOUND));
+        Player receiver = gameService.findPlayer(arena, receiverNickname);
+        Player requester = gameService.findPlayer(arena, requesterNickname);
+        receiver.clearBattleRequest();
+        requester.clearBattleRequest();
+        gameRepository.saveArena(roomId, arena);
     }
 
     public void updateClickCount(StompPayload<BattleClickDto> payload) {
@@ -116,7 +139,7 @@ public class GameBattleService {
 
         Thread battleTimer = Thread.ofVirtual().start(() -> {
             try {
-                for(int i = 0; i < 12; i++) {
+                for (int i = 0; i < 12; i++) {
                     notifyPlayerClickStatus(roomId, requesterNickname, receiverNickname);
                     Thread.sleep(1000);
                 }
@@ -195,7 +218,7 @@ public class GameBattleService {
         BattleState battleState = battleStateMap.get(roomId);
         StompPayload<ClickStatusDto> response = new StompPayload<>(
                 "CLICK_STATUS", roomId, null, new ClickStatusDto(
-                        requesterNickname, receiverNickname, battleState.getClickCount(requesterNickname), battleState.getClickCount(receiverNickname)
+                requesterNickname, receiverNickname, battleState.getClickCount(requesterNickname), battleState.getClickCount(receiverNickname)
         )
         );
         messagingTemplate.convertAndSend("/sub/" + roomId + "/game", response);
@@ -220,7 +243,7 @@ public class GameBattleService {
     private void validateBattleState(Player requester, Player receiver, String roomId) throws MessageException {
         String receiverNickname = receiver.getNickname();
         String requesterNickname = requester.getNickname();
-        log.debug("상대방 {} 및 요청한 사람{}의 배틀 상태, 지갑 확인 (방 ID: {})", receiverNickname, requesterNickname,roomId);
+        log.debug("상대방 {} 및 요청한 사람{}의 배틀 상태, 지갑 확인 (방 ID: {})", receiverNickname, requesterNickname, roomId);
 
         if (receiver.isBattleState()) {
             log.warn("플레이어 {}는 이미 배틀 중입니다 (방 ID: {})", receiverNickname, roomId);

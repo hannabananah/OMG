@@ -22,6 +22,7 @@ public enum MessageResponseStatus {
     INVALID_GAME_TIME(3301, "라운드 종료 30초 전입니다."),
     ALREADY_IN_BATTLE(3302, "해당 플레이어가 이미 배틀 중입니다."),
     PLAYER_WITH_NO_ASSETS(3303, "플레이어가 보유 자산이 없어 배틀을 시작할 수 없습니다."),
+    BATTLE_REQUEST_ALREADY_PENDING(3304, "배틀 신청이 보류중입니다."),
 
     // RepayLoan
     AMOUNT_EXCEED_DEBT(3108, "상환 금액이 총 부채보다 많습니다."),

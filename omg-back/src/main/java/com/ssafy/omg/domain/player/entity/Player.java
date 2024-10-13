@@ -2,11 +2,7 @@ package com.ssafy.omg.domain.player.entity;
 
 import com.ssafy.omg.domain.game.entity.LoanProduct;
 import com.ssafy.omg.domain.player.dto.PlayerAnimation;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 
 import java.util.TreeSet;
 
@@ -42,6 +38,9 @@ public class Player {
     private PlayerAction action;       // 플레이어 행위 (주식 매수, 주식 매도, 금괴 매입, 대출, 상환)
     private PlayerStatus state;        // 플레이어 행위 상태 (시작전, 진행중, 완료)
     private boolean battleState;
+    private boolean battleRequestPending = false;
+    @Getter
+    private String battleRequestFrom = null;
     private int isConnected;           // 플레이어 접속 상태 (0: 끊김, 1: 연결됨)
     private boolean isTrading;
     private boolean isCarrying;
@@ -63,5 +62,15 @@ public class Player {
 
     public double distanceTo(Player other) {
         return Math.sqrt(Math.pow(this.position[0] - other.position[0], 2) + Math.pow(this.position[2] - other.position[2], 2));
+    }
+
+    public void setBattleRequestPending(boolean pending, String from) {
+        this.battleRequestPending = pending;
+        this.battleRequestFrom = from;
+    }
+
+    public void clearBattleRequest() {
+        this.battleRequestPending = false;
+        this.battleRequestFrom = null;
     }
 }

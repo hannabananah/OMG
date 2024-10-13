@@ -234,7 +234,7 @@ public class IndividualMessageController {
     }
 
     @MessageMapping("/accept-battle")
-    public void acceptBattle(@Payload StompPayload<BattleRequestDto> payload) {
+    public void acceptBattle(@Payload StompPayload<BattleRequestDto> payload) throws BaseException {
         gameBattleService.acceptBattleRequest(payload);
     }
 
