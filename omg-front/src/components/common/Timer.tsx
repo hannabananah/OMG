@@ -18,7 +18,7 @@ export default function Timer({
 
   return (
     <p
-      className={`text-omg-40b drop-shadow-xl fade-in ${remainingTime <= 5 ? 'text-red animate-shake' : isOddRound ? 'text-black' : 'text-white'}`}
+      className={`text-omg-50b drop-shadow-xl fade-in ${remainingTime <= 5 ? 'text-red animate-shake' : isOddRound ? 'text-black' : 'text-white'}`}
     >
       {formatTime(remainingTime)}
     </p>

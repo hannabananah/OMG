@@ -34,9 +34,9 @@ export default function Tutorial() {
   }, []);
 
   return (
-    <div className='relative flex items-center justify-center w-full h-full bg-black bg-opacity-80'>
-      <div className='flex flex-col items-center justify-center gap-20'>
-        <main className='absolute flex flex-col items-center justify-center gap-2 top-44'>
+    <div className='flex items-center justify-center w-full h-full bg-black bg-opacity-80'>
+      <div className='flex flex-col items-center justify-start w-full h-full'>
+        <main className='w-full flex flex-col items-center justify-end gap-2 h-[40%]'>
           <div className='flex items-center'>
             <img src='/assets/logo.png' alt='logo' className='mr-4 w-36 h-36' />
             <p className='text-omg-100b text-[#E5BB47]'> M G</p>
@@ -46,37 +46,38 @@ export default function Tutorial() {
           </h2>
         </main>
 
-        <body className='absolute max-w-[70%] top-[490px] text-center'>
-          <p
-            className={`text-white text-omg-20 transition-opacity duration-1000 leading-relaxed ${showContent ? 'opacity-100' : 'opacity-0'}`}
-          >
-            {/* {tips[currentStep].content} */}
-            {splitIntoSentences(tips[currentStep].content).map(
-              (sentence: string, index: number) => (
-                <span key={index}>
-                  {sentence}
-                  <br /> {/* 문장 단위로 줄 바꿈 */}
-                </span>
-              ),
-            )}
-          </p>
+        <body className='w-full h-[50%] flex items-center'>
+          <div className='max-w-[70%] mx-auto text-center'>
+            <p
+              className={`text-white text-omg-20 transition-opacity duration-1000 leading-relaxed ${showContent ? 'opacity-100' : 'opacity-0'}`}
+            >
+              {splitIntoSentences(tips[currentStep].content).map(
+                (sentence: string, index: number) => (
+                  <span key={index}>
+                    {sentence}
+                    <br />
+                  </span>
+                ),
+              )}
+            </p>
 
-          {currentStep === 0 && (
-            <div className='flex justify-center'>
-              <TbSquareArrowDown className='mt-2 text-white text-omg-30' />
-            </div>
-          )}
-          {currentStep === 1 && (
-            <div className='flex items-center justify-center mt-2 space-x-2'>
-              <TbSquareArrowLeft className='text-white text-omg-30' />
-              <TbSquareArrowUp className='text-white text-omg-30' />
-              <TbSquareArrowRightFilled className='text-white text-omg-30' />
-            </div>
-          )}
+            {currentStep === 0 && (
+              <div className='flex justify-center'>
+                <TbSquareArrowDown className='mt-2 text-white text-omg-30' />
+              </div>
+            )}
+            {currentStep === 1 && (
+              <div className='flex items-center justify-center mt-2 space-x-2'>
+                <TbSquareArrowLeft className='text-white text-omg-30' />
+                <TbSquareArrowUp className='text-white text-omg-30' />
+                <TbSquareArrowRightFilled className='text-white text-omg-30' />
+              </div>
+            )}
+          </div>
         </body>
 
-        <footer>
-          <p className='absolute text-white -translate-x-1/2 left-1/2 bottom-16 text-omg-14 font-omg-event-content'>
+        <footer className='h-[10%] w-full flex justify-center items-center'>
+          <p className='text-white text-omg-14 font-omg-event-content'>
             {footer}
           </p>
         </footer>

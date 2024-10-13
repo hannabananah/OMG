@@ -333,7 +333,7 @@ export default function MainMap() {
       )}
 
       {/* Round & Timer 고정 위치 렌더링 */}
-      <section className='absolute z-10 flex flex-col items-end gap-4 top-20 right-10'>
+      <section className='absolute z-10 flex flex-col items-end gap-4 top-36 right-10'>
         {isRoundVisible && <Round presentRound={presentRound} />}
         {isTimerVisible && (
           <Timer time={roundTimer} presentRound={presentRound} />
@@ -353,7 +353,7 @@ export default function MainMap() {
         </div>
       )}
 
-      <section className='absolute z-10 left-4 top-20 drop-shadow-2xl'>
+      <section className='absolute z-10 left-4 top-32 drop-shadow-2xl'>
         {/* 미니맵 */}
         {isBoardVisible && <MiniMap />}
       </section>
