@@ -1313,9 +1313,18 @@ public class GameServiceImpl implements GameService {
 
                     // 플레이어가 주식 혹은 금을 손에 들고있는지 체크
                     boolean isPlayerCarryingSomething = isCarryingSomething(player);
-                    boolean isOtherPlayerCarryingSomething = isCarryingSomething(player);
+                    boolean isOtherPlayerCarryingSomething = isCarryingSomething(otherPlayer);
+
                     if (isClose && isPlayerCarryingSomething && isOtherPlayerCarryingSomething) {
-                        notifyPlayerDistance(roomId, player, otherPlayer, isClose);
+                        if (!player.isBattleRequestPending() && !otherPlayer.isBattleRequestPending()) {
+                            notifyPlayerDistance(roomId, player, otherPlayer, true);
+                            player.setBattleRequestPending(true, otherPlayer.getNickname());
+                            otherPlayer.setBattleRequestPending(true, player.getNickname());
+                        }
+                    } else if (player.isBattleRequestPending() && player.getBattleRequestFrom().equals(otherPlayer.getNickname())) {
+                        notifyPlayerDistance(roomId, player, otherPlayer, false);
+                        player.clearBattleRequest();
+                        otherPlayer.clearBattleRequest();
                     }
 //                    notifyPlayerDistance(roomId, player, otherPlayer, isClose);
                 }
@@ -1484,7 +1493,7 @@ public class GameServiceImpl implements GameService {
         game.getGoldPriceChart()[idx] = game.getGoldPrice();
     }
 
-    private Player findPlayer(Arena arena, String nickname) throws BaseException {
+    public Player findPlayer(Arena arena, String nickname) throws BaseException {
         return arena.getGame().getPlayers().stream()
                 .filter(p -> p.getNickname().equals(nickname))
                 .findFirst()

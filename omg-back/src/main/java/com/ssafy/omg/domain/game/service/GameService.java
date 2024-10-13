@@ -6,6 +6,7 @@ import com.ssafy.omg.domain.arena.entity.Arena;
 import com.ssafy.omg.domain.game.dto.*;
 import com.ssafy.omg.domain.game.entity.Game;
 import com.ssafy.omg.domain.game.entity.GameEvent;
+import com.ssafy.omg.domain.player.entity.Player;
 import com.ssafy.omg.domain.socket.dto.StompPayload;
 
 import java.util.List;
@@ -75,4 +76,8 @@ public interface GameService {
 
     // 게임 종료시 결과 정보 생성
     GameResultResponse gameResult(Game game) throws BaseException;
+
+    // 플레이어 찾기
+    Player findPlayer(Arena arena, String nickname) throws BaseException;
+
 }
