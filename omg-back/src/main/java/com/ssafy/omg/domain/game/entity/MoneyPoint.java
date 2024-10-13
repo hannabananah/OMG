@@ -10,6 +10,7 @@ import lombok.Setter;
 @RequiredArgsConstructor
 @AllArgsConstructor
 public class MoneyPoint {
+    private String pointId;
     private double[] moneyCoordinates;  // 돈 좌표
     private int moneyStatus;         // 0: 먹음, 1: 안 먹은 돈(싼 거 1), 2: 안 먹은 돈(비싼 거 5)
 }

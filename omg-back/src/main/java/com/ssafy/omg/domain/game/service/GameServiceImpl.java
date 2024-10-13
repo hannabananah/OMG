@@ -578,29 +578,27 @@ public class GameServiceImpl implements GameService {
     /**
      * 돈 주우면서 돈 배열 수정 및 개인판 수정
      *
-     * @param roomId       게임방 키
-     * @param userNickname 유저명
-     * @param moneyPoint   돈 있는 좌표
+     * @param roomId        게임방 키
+     * @param userNickname  유저명
+     * @param moneyPointKey 돈 있는 좌표
      * @return MoneyCollectionResponse
      * @throws BaseException 예외처리
      */
     @Override
-    public MoneyCollectionResponse collectMoney(String roomId, String userNickname, String moneyPoint) throws BaseException {
+    public MoneyCollectionResponse collectMoney(String roomId, String userNickname, String moneyPointKey) throws BaseException {
         Arena arena = gameRepository.findArenaByRoomId(roomId)
                 .orElseThrow(() -> new BaseException(ARENA_NOT_FOUND));
         Game game = arena.getGame();
 
         // 잘못된 moneyPoint 값 체크
-        if (!MoneyState.MONEY_COORDINATES.containsKey(moneyPoint)) {
+        if (!MoneyState.MONEY_COORDINATES.containsKey(moneyPointKey)) {
             throw new BaseException(INVALID_MONEY_POINT);
         }
 
         List<MoneyPoint> moneyPoints = game.getMoneyPoints();
-        int addedMoney = 0;
-        double[] selectedCoordinate = MoneyState.MONEY_COORDINATES.get(moneyPoint);
 
         MoneyPoint point = moneyPoints.stream()
-                .filter(moneypoint -> Arrays.equals(moneypoint.getMoneyCoordinates(), selectedCoordinate))
+                .filter(moneypoint -> moneypoint.getPointId().equals(moneyPointKey))
                 .findFirst()
                 .orElseThrow(() -> new BaseException(MONEY_POINT_NOT_FOUND));
 
@@ -612,9 +610,8 @@ public class GameServiceImpl implements GameService {
         point.setMoneyStatus(0);
 
         Player player = findPlayer(arena, userNickname);
-        int amount = (point.getMoneyStatus() == 2) ? 5 : 1; //TODO 비싼 돈은 5, 싼 돈은 1
-        addedMoney = amount;
-        player.addCash(amount);
+        int addedMoney = (point.getMoneyStatus() == 2) ? 5 : 1; //TODO 비싼 돈은 5, 싼 돈은 1
+        player.addCash(addedMoney);
 
         try {
             // Arena 저장

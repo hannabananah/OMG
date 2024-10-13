@@ -272,7 +272,7 @@ public class IndividualMessageController {
             gameScheduler.notifyPlayersRankingMessage(game);
 
         } catch (BaseException e) {
-            log.error("돈 줍기 처리 중 오류 발생: {}", e.getMessage());
+            log.error("돈 줍기 처리 중 오류 발생: {}", e.getStatus().getMessage());
             StompPayload<String> errorResponse = new StompPayload<>("ERROR", roomId, userNickname, "돈 줍기 처리 중 오류가 발생했습니다.");
             messagingTemplate.convertAndSend("/sub/" + roomId + "/game", errorResponse);
         }

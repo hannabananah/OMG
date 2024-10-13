@@ -15,14 +15,11 @@ import com.ssafy.omg.domain.socket.dto.StompPayload;
 import jdk.jfr.Description;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.messaging.handler.annotation.MessageMapping;
-import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.messaging.simp.SimpMessageSendingOperations;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
-import static com.ssafy.omg.config.baseresponse.MessageResponseStatus.AMOUNT_OUT_OF_RANGE;
 import static com.ssafy.omg.config.baseresponse.MessageResponseStatus.OUT_OF_CASH;
 
 @Slf4j
@@ -40,7 +37,7 @@ public class GameController {
     @PostMapping("/initialize")
     public BaseResponse<Arena> initializeGame(@RequestParam String roomId, @RequestBody List<String> players) throws BaseException {
         Arena arena = gameService.initializeGame(roomId, players);
-    //    gameBroadcastService.startBroadcast(roomId);
+        //    gameBroadcastService.startBroadcast(roomId);
         return new BaseResponse<>(arena);
     }
 
@@ -58,7 +55,7 @@ public class GameController {
                 return new BaseResponse<>("현재 보유한 자산이 부족하여 금괴를 매입할 수 없습니다.");
             }
             // 다른 MessageException 처리
-            return new BaseResponse<>(e.getMessage());
+            return new BaseResponse<>(e.getStatus().getMessage());
         } catch (BaseException e) {
             // 일단 추가 할 수도 있음
             return new BaseResponse<>(e.getStatus());
