@@ -85,7 +85,9 @@ export default function Lobby() {
   return (
     <div
       className='relative flex flex-col justify-center w-full h-screen p-10'
-      style={{ backgroundImage: 'url("/assets/matrix2.gif")' }}
+      style={{
+        backgroundImage: 'url("/assets/matrix2.gif")',
+      }}
     >
       <div className='absolute right-8 bottom-9 text-omg-30'>
         <ExitButton showText={true} />

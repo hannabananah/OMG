@@ -73,12 +73,13 @@ export default function Waiting() {
       <button className='absolute right-4 bottom-4' onClick={handleExit}>
         <p>대기방 나가기</p>
       </button>
-      <div className='flex flex-col justify-between w-2/3 text-center h-2/3'>
-        <div className='flex flex-col justify-between gap-10'>
+
+      <div className='flex flex-col justify-between w-2/3 text-center h-[70%]'>
+        <div className='flex flex-col justify-between gap-24'>
           <h2 className='relative tracking-wider text-omg-40b'>
             대기방 ({player.length}/4)
           </h2>
-          <ul className='flex flex-col mx-auto h-52 text-omg-24'>
+          <ul className='flex flex-col mx-auto h-52 text-omg-30'>
             {player.map((currentPlayer, index) => (
               <li key={index} className='relative flex items-center'>
                 {currentPlayer}
@@ -89,15 +90,16 @@ export default function Waiting() {
             ))}
           </ul>
         </div>
-        <div className='relative'>
+
+        <div className='relative mx-auto'>
           {hostPlayer === nickname ? (
             <button
               onClick={handleGameStart}
               disabled={!isRoomFull}
               className={
                 isRoomFull
-                  ? 'transition-all duration-1000 animate-shake hover:bg-gradient-animation hover:scale-90'
-                  : ''
+                  ? 'relative flex items-center justify-center h-32 transition-all duration-1000 animate-shake hover:bg-gradient-animation hover:scale-90'
+                  : 'flex items-center justify-center h-32'
               }
             >
               {isRoomFull ? (
