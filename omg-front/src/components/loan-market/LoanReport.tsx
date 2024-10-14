@@ -69,41 +69,55 @@ function Deck() {
         const index = loanProducts.length - i;
         return (
           <animated.div
-            className='absolute w-[460px] h-[300px] will-change-transform flex items-center justify-center touch-none'
+            className='absolute w-[540px] h-[400px] will-change-transform flex items-center justify-center touch-none'
             key={i}
             style={{ x, y, rotate: rot, scale }}
             {...bind(i)}
           >
-            <div className='flex flex-col w-full h-full p-2 bg-white rounded-lg shadow-2xl will-change-transform'>
-              <h2 className='my-8 font-medium text-center text-omg-24'>
+            <div
+              className='flex flex-col w-full h-full gap-12 p-2 rounded-lg shadow-2xl will-change-transform'
+              style={{
+                backgroundImage: 'url("/assets/loan-card.jpg")',
+                backgroundSize: 'cover',
+              }}
+            >
+              <h2 className='font-medium text-center mt-28 text-skyblue text-omg-24'>
                 대출 상품 {index}
               </h2>
-              <div className='flex flex-col h-full my-2 justify-evenly'>
-                <div className='grid grid-cols-3 gap-4'>
+              <div className='flex flex-col h-full gap-10'>
+                <div className='flex justify-center gap-20'>
                   <div className='flex flex-col items-center'>
-                    <h4 className='text-omg-24'>{product.round}</h4>
-                    <span className='text-omg-14 text-gray'>대출한 라운드</span>
-                  </div>
-                  <div className='flex flex-col items-center'>
-                    <h4 className='text-omg-24'>
-                      {formatTime(product.loanTimestampInSeconds)}
+                    <h4 className='text-white text-omg-24'>
+                      {product.round}ROUND{' '}
+                      <span className='text-omg-18'>
+                        ({formatTime(product.loanTimestampInSeconds)}초)
+                      </span>
                     </h4>
-                    <span className='text-omg-14 text-gray'>대출 시각</span>
+                    <span className='text-omg-14 text-gray'>대출 시점</span>
                   </div>
                   <div className='flex flex-col items-center'>
-                    <h4 className='text-omg-24'>{product.interestRate}%</h4>
-                    <span className='text-omg-14 text-gray'>금리</span>
+                    <h4 className='text-white text-omg-24'>
+                      {product.interestRate}%
+                    </h4>
+                    <span className='text-omg-14 text-gray'>
+                      (대출 시점) 금리
+                    </span>
                   </div>
                 </div>
-                <div className='grid grid-cols-2 gap-4 mt-4'>
+
+                <div className='grid grid-cols-2 gap-0 mx-20'>
                   <div className='flex flex-col items-center'>
-                    <h4 className='text-omg-24'>{product.loanPrincipal}</h4>
-                    <span className='text-omg-14 text-gray'>갚아야 할 돈</span>
+                    <h4 className='text-white text-omg-24'>
+                      ${product.loanPrincipal}
+                    </h4>
+                    <span className='text-omg-14 text-gray'>대출 원금</span>
                   </div>
                   <div className='flex flex-col items-center'>
-                    <h4 className='text-omg-24'>{product.loanInterest}</h4>
+                    <h4 className='text-white text-omg-24'>
+                      ${product.loanInterest}
+                    </h4>
                     <span className='text-omg-14 text-gray'>
-                      현재 대출상품에 적용된 이자
+                      현재 대출상품에서 발생한 이자
                     </span>
                   </div>
                 </div>

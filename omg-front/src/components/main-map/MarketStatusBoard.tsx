@@ -34,14 +34,14 @@ export default function MarketStatusBoard() {
     <Marquee
       gradient={true}
       speed={100}
-      className='h-16 bg-opacity-80 text-omg-14'
+      className='h-28 bg-opacity-80 text-omg-30'
     >
-      <div className='flex items-center gap-6'>
+      <div className='flex items-center gap-14'>
         {/* 주식 */}
         <section
-          className={`flex items-center gap-3 ml-6 ${presentRound % 2 === 0 ? 'text-white' : 'text-black'}`}
+          className={`flex items-center gap-8 ml-14 ${presentRound % 2 === 0 ? 'text-white' : 'text-black'}`}
         >
-          <h4 className='text-omg-18'>[실시간 주가]</h4>
+          <h4 className='text-omg-50 font-omg-event-title'>[실시간 주가]</h4>
           <div className='flex items-center gap-4'>
             {stockItems.map((item, idx) => {
               return (
@@ -67,9 +67,9 @@ export default function MarketStatusBoard() {
 
         {/* 금 */}
         <section
-          className={`flex items-center gap-3 ${presentRound % 2 === 0 ? 'text-white' : 'text-black'}`}
+          className={`flex items-center gap-8 ${presentRound % 2 === 0 ? 'text-white' : 'text-black'}`}
         >
-          <h4 className='text-omg-18'>[실시간 금 시세]</h4>
+          <h4 className='text-omg-50 font-omg-event-title'>[실시간 금 시세]</h4>
           <div className='flex items-center gap-2'>
             <img src='/assets/goldbell.png' alt='goldbell' width={22} />
             <p>${formatNumberWithCommas(goldPrice)}</p>
@@ -78,15 +78,20 @@ export default function MarketStatusBoard() {
 
         {/* 추가 시장 정보 */}
         <section
-          className={`flex items-center gap-3 ${presentRound % 2 === 0 ? 'text-white' : 'text-black'}`}
+          className={`flex items-center gap-8 ${presentRound % 2 === 0 ? 'text-white' : 'text-black'}`}
         >
-          <h4 className='text-omg-18'>[실시간 시장 정보]</h4>
+          <h4 className='text-omg-50 font-omg-event-title'>
+            [실시간 시장 정보]
+          </h4>
           <div className='flex items-center gap-4'>
             {infoItems.map((item, idx) => {
               return (
                 <div key={idx} className='flex items-center gap-2'>
                   <p>{item.label}</p>
-                  <p>{item.value}</p>
+                  <p>{item.value} </p>
+                  {idx < infoItems.length - 1 && (
+                    <span className='mx-2'> | </span>
+                  )}
                 </div>
               );
             })}
@@ -94,9 +99,9 @@ export default function MarketStatusBoard() {
         </section>
 
         {/* 가격 변동까지 남은 게이지 */}
-        <section className='flex items-center gap-3'>
+        <section className='flex items-center gap-8'>
           <h4
-            className={`text-omg-18 ${presentRound % 2 === 0 ? 'text-white' : 'text-black'}`}
+            className={`text-omg-50 font-omg-event-title ${presentRound % 2 === 0 ? 'text-white' : 'text-black'}`}
           >
             [가격 변동까지 남은 게이지]
           </h4>

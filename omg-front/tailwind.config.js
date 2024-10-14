@@ -13,6 +13,7 @@ export default {
       'omg-24': '1.71rem', // 24px
       'omg-28': '2rem', // 28px
       'omg-30': '2.14rem', // 30px
+      'omg-32': '2.2857rem', // 32px
 
       'omg-24b': '1.71rem', // 24px
       'omg-28b': '2rem', // 28px
