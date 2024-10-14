@@ -1,5 +1,6 @@
 import { useCallback, useContext, useEffect, useRef, useState } from 'react';
 
+import { isPoint, point } from '@/assets/data/coinLocation';
 import { SocketContext } from '@/utils/SocketContext';
 import { useGLTF } from '@react-three/drei';
 import * as THREE from 'three';
@@ -29,16 +30,16 @@ export const useCharacter = ({
   const [_movementState, setMovementState] = useState<
     'idle' | 'walking' | 'running'
   >('idle');
-  const { allRendered } = useContext(SocketContext);
-
+  const { allRendered, miniMoney } = useContext(SocketContext);
   const [rotation, setRotation] = useState(0);
   const [isMoving, setIsMoving] = useState(false);
   const clock = useRef(new THREE.Clock());
   const runTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const activeKeys = useRef(new Set<string>());
 
+  const coinPoints = point;
+
   useEffect(() => {
-    console.log(animations);
     if (!allRendered) return;
 
     if (animations.length > 0 && scene) {
@@ -91,13 +92,11 @@ export const useCharacter = ({
   ) => {
     let newRotation = rotation;
 
-    // 만약 회전이 필요하다면 회전 적용
     if (newRotation !== rotation) {
       rotateCharacterSmoothly(newRotation);
     } else {
       setAnimationState('walking');
     }
-    // 일정 시간 후 달리기 애니메이션으로 전환
     runTimeoutRef.current = setTimeout(() => {
       if (isMoving) {
         setAnimationState('running');
@@ -127,11 +126,14 @@ export const useCharacter = ({
 
   const pickUpAnimation = () => {
     const pickUpAction = mixer.current!.clipAction(animations[1]);
-    action?.stop();
+    if (action) {
+      action.stop();
+    }
     pickUpAction.reset().setLoop(THREE.LoopOnce, 1).clampWhenFinished = true;
     pickUpAction.play();
     setAction(pickUpAction);
     onActionToggleChange(true);
+
     setTimeout(() => {
       onActionToggleChange(false);
     }, 160);
@@ -154,10 +156,23 @@ export const useCharacter = ({
       }
 
       if (event.key === ' ') {
-        pickUpAnimation();
+        const characterPosition = new THREE.Vector3(
+          scene.position.x,
+          -7,
+          scene.position.z,
+        );
+
+        const pointId = isPoint(characterPosition, point);
+
+        if (pointId) {
+          pickUpAnimation();
+          miniMoney(pointId);
+        } else {
+          console.log('주변에 코인이 없습니다.');
+        }
       }
     },
-    [isOwnCharacter, isMoving],
+    [isOwnCharacter, isMoving, coinPoints],
   );
 
   useEffect(() => {
