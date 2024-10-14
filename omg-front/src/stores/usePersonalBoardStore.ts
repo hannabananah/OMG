@@ -8,13 +8,13 @@ interface PersonalBoardStore {
   currentLoanPrincipal: number;
   goldOwned: number;
   loanLimit: number;
-  loanProducts: []; // 따로 TreeSet<LoanProduct> 있음
+  loanProducts: [];
   state: string;
   stock: number[];
   totalDebt: number;
 
   setPersonalBoardData: (
-    data: Omit<PersonalBoardStore, 'setPersonalBoardData'>,
+    data: Partial<Omit<PersonalBoardStore, 'setPersonalBoardData'>>,
   ) => void;
 }
 
@@ -26,13 +26,14 @@ export const usePersonalBoardStore = create<PersonalBoardStore>(set => ({
   currentLoanPrincipal: 0,
   goldOwned: 0,
   loanLimit: 0,
-  loanProducts: [], // 따로 TreeSet<LoanProduct> 있음
+  loanProducts: [],
   state: '',
   stock: [0, 0, 0, 0, 0, 0],
   totalDebt: 0,
 
   setPersonalBoardData: data =>
-    set(() => ({
+    set(state => ({
+      ...state,
       ...data,
     })),
 }));

@@ -46,7 +46,7 @@ export default function Tutorial() {
           </h2>
         </main>
 
-        <body className='w-full h-[50%] flex items-center'>
+        <main className='w-full h-[50%] flex items-center'>
           <div className='max-w-[70%] mx-auto text-center'>
             <p
               className={`text-white text-omg-28 transition-opacity duration-1000 leading-relaxed ${showContent ? 'opacity-100' : 'opacity-0'}`}
@@ -74,7 +74,7 @@ export default function Tutorial() {
               </div>
             )}
           </div>
-        </body>
+        </main>
 
         <footer className='h-[10%] w-full flex justify-center items-center'>
           <p className='text-white text-omg-28 font-omg-event-content'>

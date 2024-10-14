@@ -3,6 +3,7 @@ import { useContext, useEffect, useRef, useState } from 'react';
 import { Controls } from '@/components/main-map/MainMap';
 import { useCharacter } from '@/stores/useCharacter';
 import { useGameStore } from '@/stores/useGameStore';
+import { useMiniMoneyStore } from '@/stores/useMiniMoneyStore';
 import { useModalStore } from '@/stores/useModalStore';
 import { useMyRoomStore } from '@/stores/useMyRoomStore';
 import useUser from '@/stores/useUser';
@@ -46,6 +47,7 @@ export default function Character({
   const { modals, openModal, closeModal } = useModalStore();
   const { setIsEnteringRoom, setIsExitingRoom, setIsFadingOut } =
     useMyRoomStore();
+  const { playerCash } = useMiniMoneyStore();
 
   const { nickname, characterType } = useUser();
 
@@ -89,6 +91,47 @@ export default function Character({
   const [marketType, setMarketType] = useState<
     null | 'loanMarket' | 'stockMarket' | 'goldMarket'
   >(null);
+  const getPlayerRank = (
+    player: string | undefined,
+    rankings: string[] | undefined,
+  ) => {
+    return player && Array.isArray(rankings) && rankings.includes(player)
+      ? rankings.indexOf(player) + 1
+      : null;
+  };
+
+  const [player1, player2] = isClosedEachOther?.players?.split(':') || ['', ''];
+  const playerRankings = player1 && player2 && gameData?.playerRanking;
+
+  const player1Rank = getPlayerRank(player1, playerRankings);
+  const player2Rank = getPlayerRank(player2, playerRankings);
+
+  const isCloseEnough = isClosedEachOther?.isAvailable ?? false;
+
+  const [showRank, setShowRank] = useState(false);
+  const [showMoney, setShowMoney] = useState(false);
+
+  useEffect(() => {
+    if (
+      isOwnCharacter &&
+      player1Rank !== null &&
+      player2Rank !== null &&
+      isCloseEnough
+    ) {
+      setShowRank(true);
+    } else {
+      setShowRank(false);
+    }
+  }, [isOwnCharacter, player1Rank, player2Rank, isCloseEnough]);
+
+  useEffect(() => {
+    if ((isOwnCharacter && playerCash === 1) || playerCash === 5) {
+      setShowMoney(true);
+
+      const timer = setTimeout(() => setShowMoney(false), 1000);
+      return () => clearTimeout(timer);
+    }
+  }, [playerCash]);
 
   const { scene, mixer, pickUpAnimation } = useCharacter({
     characterURL,
@@ -301,7 +344,6 @@ export default function Character({
   // 물리 충돌 이벤트 핸들러
   const handleCollisionEnter = () => {
     if (!showIntro && isOwnCharacter && !collisionRef.current) {
-      // console.log('충돌 발생!');
       collisionRef.current = true;
       prevPositionRef.current.copy(characterPosition);
     }
@@ -309,7 +351,6 @@ export default function Character({
 
   const handleCollisionExit = () => {
     if (!showIntro && isOwnCharacter && collisionRef.current && backPressed) {
-      // console.log('충돌 종료!');
       collisionRef.current = false;
     }
   };
@@ -338,14 +379,7 @@ export default function Character({
         movementStateRef.current,
       );
     }
-  }, [
-    characterPosition,
-    rotation,
-    localActionToggle,
-    isTrading,
-    isCarrying,
-    isOwnCharacter,
-  ]);
+  }, [characterPosition, rotation, localActionToggle, isTrading, isCarrying]);
 
   useFrame((_, delta) => {
     mixer.current?.update(delta);
@@ -361,19 +395,16 @@ export default function Character({
       }
 
       if (isOwnCharacter) {
-        // 이동 속도 설정
-        const moveDistance = 0.35;
+        const moveDistance = 0.3;
         // 현재 캐릭터 위치 복사
         const newPosition = characterPosition.clone();
 
         if (collisionRef.current) {
-          // console.log('충돌 중입니다');
           scene.position.copy(prevPositionRef.current);
           characterPosition.copy(prevPositionRef.current);
           newPosition.copy(prevPositionRef.current);
 
           if (backPressed) {
-            // console.log('충돌 해제 조건 충족: backPressed');
             collisionRef.current = false;
           }
         }
@@ -410,7 +441,7 @@ export default function Character({
           movementStateRef.current === 'walking' ||
           movementStateRef.current === 'running'
         ) {
-          const moveSpeed = movementStateRef.current === 'walking' ? 0.35 : 0.4;
+          const moveSpeed = movementStateRef.current === 'walking' ? 0.3 : 0.4;
           const forwardDirection = new THREE.Vector3(
             Math.sin(rotation),
             0,
@@ -453,42 +484,6 @@ export default function Character({
       }, 160);
     }
   }, [localActionToggle]);
-
-  const [player1, player2] = isClosedEachOther?.players?.split(':') || ['', ''];
-  const playerRankings = player1 && player2 && gameData?.playerRanking;
-
-  const getPlayerRank = (
-    player: string | undefined,
-    rankings: string[] | undefined,
-  ) => {
-    return player && Array.isArray(rankings) && rankings.includes(player)
-      ? rankings.indexOf(player) + 1
-      : null;
-  };
-
-  const player1Rank = getPlayerRank(player1, playerRankings);
-  const player2Rank = getPlayerRank(player2, playerRankings);
-
-  const isCloseEnough = isClosedEachOther?.isAvailable ?? false;
-
-  const [showRank, setShowRank] = useState(false);
-
-  useEffect(() => {
-    if (
-      isOwnCharacter &&
-      player1Rank !== null &&
-      player2Rank !== null &&
-      isCloseEnough
-    ) {
-      setShowRank(true);
-
-      const timer = setTimeout(() => {
-        setShowRank(false);
-      }, 3000);
-
-      return () => clearTimeout(timer);
-    }
-  }, [isOwnCharacter, player1Rank, player2Rank, isCloseEnough]);
 
   return (
     <>
@@ -605,7 +600,7 @@ export default function Character({
                 ]}
                 center
               >
-                <div className='flex flex-col items-center justify-center w-32 h-12 p-2 border-4 border-white bg-white1 text-nowrap bg-opacity-90 font-omg-event-content rounded-20 text-omg-'>
+                <div className='flex flex-col items-center justify-center w-32 h-12 p-2 border-4 border-white bg-white1 text-nowrap bg-opacity-90 font-omg-event-content rounded-20'>
                   {nickname === player1 ? (
                     <div>상대방 순위 {player2Rank}위</div>
                   ) : (
@@ -613,6 +608,25 @@ export default function Character({
                       <div>상대방 순위 {player1Rank}위</div>
                     )
                   )}
+                </div>
+              </Html>,
+            );
+          }
+
+          if (showMoney && isOwnCharacter) {
+            flattenedItems.push(
+              <Html
+                zIndexRange={[20, 0]}
+                key={`miniMoney-${characterType}`}
+                position={[
+                  characterPosition.x,
+                  characterPosition.y + 6,
+                  characterPosition.z,
+                ]}
+                center
+              >
+                <div className='flex flex-col items-center justify-center w-32 h-12 p-2 border-4 border-white bg-white1 text-nowrap bg-opacity-90 font-omg-event-content rounded-20 text-omg-24b move-up-fade-out'>
+                  +{playerCash}
                 </div>
               </Html>,
             );

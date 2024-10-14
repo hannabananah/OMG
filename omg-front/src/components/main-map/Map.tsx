@@ -15,7 +15,7 @@ export default function Map() {
       action.play();
 
       const animate = () => {
-        mixer.current.update(0.01); // 애니메이션을 업데이트할 시간 (기본은 0.01)
+        mixer.current?.update(0.01);
         requestAnimationFrame(animate);
       };
 
@@ -30,7 +30,7 @@ export default function Map() {
   }, [animations, scene]);
 
   return (
-    <RigidBody type='fixed' colliders={'hull'} restitution={0}>
+    <RigidBody type='fixed' colliders='hull' restitution={0}>
       <primitive
         object={scene}
         scale={[0.05, 0.05, 0.05]}

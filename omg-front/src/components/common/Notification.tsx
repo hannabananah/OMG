@@ -47,13 +47,13 @@ export default function Notification({ onNewNotification }: NotificationProps) {
         user => user.id === transactionMessage.userNickname,
       );
       const characterType = user ? user.characterType : undefined;
-
       const newItem = {
         key: (lastKey += 1),
         msg: transactionMessage.message,
         userNickname: transactionMessage.userNickname,
         characterType,
       };
+
       setItems(prevItems => [...prevItems, newItem]);
       onNewNotification();
 
@@ -61,7 +61,7 @@ export default function Notification({ onNewNotification }: NotificationProps) {
         setItems(prevItems =>
           prevItems.filter(item => item.key !== newItem.key),
         );
-      }, timeout);
+      }, 5000);
 
       return () => clearTimeout(timeoutId);
     }

@@ -58,7 +58,7 @@ export default function StockChangeAlert({ message }: StockChangeProps) {
     : message;
 
   return (
-    <div className='absolute z-50 w-full h-full bg-white bg-opacity-90'>
+    <div className='bg-white alert-container bg-opacity-90'>
       <div className='absolute top-0 left-0 grid w-full h-full grid-cols-10 grid-rows-10'>
         {/* 격자 이미지를 표시할 부분 */}
         {gridImages.map((row, rowIndex) =>
