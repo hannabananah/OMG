@@ -16,47 +16,47 @@ public class MoneyState {
     static {
         // 총 17개 그룹
         // 고정좌표 그룹
-        MONEY_COORDINATES.put("point1", Arrays.asList(new double[]{3, -7.5, -10}));
-        MONEY_COORDINATES.put("point2", Arrays.asList(new double[]{-2, -7.5, 20}));
-        MONEY_COORDINATES.put("point3", Arrays.asList(new double[]{-17, -7.5, 10}));
-        MONEY_COORDINATES.put("point4", Arrays.asList(new double[]{-19, -7.5, 8}));
-        MONEY_COORDINATES.put("point5", Arrays.asList(new double[]{-24, -7.5, -8}));
-        MONEY_COORDINATES.put("point6", Arrays.asList(new double[]{100, -7.5, -16}));
-        MONEY_COORDINATES.put("point7", Arrays.asList(new double[]{103, -7.5, 22}));
-        MONEY_COORDINATES.put("point8", Arrays.asList(new double[]{90, -7.5, 28}));
-        MONEY_COORDINATES.put("point9", Arrays.asList(new double[]{55, -7.5, 78}));
+        MONEY_COORDINATES.put("point1", Arrays.asList(new double[]{3, -7, -10}));
+        MONEY_COORDINATES.put("point2", Arrays.asList(new double[]{-2, -7, 20}));
+        MONEY_COORDINATES.put("point3", Arrays.asList(new double[]{-17, -7, 10}));
+        MONEY_COORDINATES.put("point4", Arrays.asList(new double[]{-19, -7, 8}));
+        MONEY_COORDINATES.put("point5", Arrays.asList(new double[]{-24, -7, -8}));
+        MONEY_COORDINATES.put("point6", Arrays.asList(new double[]{100, -7, -16}));
+        MONEY_COORDINATES.put("point7", Arrays.asList(new double[]{103, -7, 22}));
+        MONEY_COORDINATES.put("point8", Arrays.asList(new double[]{90, -7, 28}));
+        MONEY_COORDINATES.put("point9", Arrays.asList(new double[]{55, -7, 78}));
 
         // 범위좌표 그룹
         MONEY_COORDINATES.put("point10", IntStream.rangeClosed(18, 20)
-                .mapToObj(z -> new double[]{-3, -7.5, z})
+                .mapToObj(z -> new double[]{-3, -7, z})
                 .collect(Collectors.toList()));
 
         MONEY_COORDINATES.put("point11", IntStream.rangeClosed(28, 30)
-                .mapToObj(x -> new double[]{x, -7.5, -10})
+                .mapToObj(x -> new double[]{x, -7, -10})
                 .collect(Collectors.toList()));
 
         MONEY_COORDINATES.put("point12", IntStream.rangeClosed(-16, -8)
-                .mapToObj(z -> new double[]{5, -7.5, z})
+                .mapToObj(z -> new double[]{5, -7, z})
                 .collect(Collectors.toList()));
 
         MONEY_COORDINATES.put("point13", IntStream.rangeClosed(-10, 20)
-                .mapToObj(z -> new double[]{0, -7.5, z})
+                .mapToObj(z -> new double[]{0, -7, z})
                 .collect(Collectors.toList()));
 
         MONEY_COORDINATES.put("point14", IntStream.rangeClosed(-6, 5)
-                .mapToObj(z -> new double[]{-23, -7.5, z})
+                .mapToObj(z -> new double[]{-23, -7, z})
                 .collect(Collectors.toList()));
 
         MONEY_COORDINATES.put("point15", IntStream.rangeClosed(-17, -6)
-                .mapToObj(x -> new double[]{x, -7.5, 13})
+                .mapToObj(x -> new double[]{x, -7, 13})
                 .collect(Collectors.toList()));
 
         MONEY_COORDINATES.put("point16", IntStream.rangeClosed(-20, -14)
-                .mapToObj(x -> new double[]{x, -7.5, 73})
+                .mapToObj(x -> new double[]{x, -7, 73})
                 .collect(Collectors.toList()));
 
         MONEY_COORDINATES.put("point17", IntStream.rangeClosed(80, 83)
-                .mapToObj(x -> new double[]{x, -7.5, 22})
+                .mapToObj(x -> new double[]{x, -7, 22})
                 .collect(Collectors.toList()));
     }
 
