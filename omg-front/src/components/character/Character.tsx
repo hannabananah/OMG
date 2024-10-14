@@ -344,7 +344,6 @@ export default function Character({
   // 물리 충돌 이벤트 핸들러
   const handleCollisionEnter = () => {
     if (!showIntro && isOwnCharacter && !collisionRef.current) {
-      // console.log('충돌 발생!');
       collisionRef.current = true;
       prevPositionRef.current.copy(characterPosition);
     }
@@ -352,7 +351,6 @@ export default function Character({
 
   const handleCollisionExit = () => {
     if (!showIntro && isOwnCharacter && collisionRef.current && backPressed) {
-      // console.log('충돌 종료!');
       collisionRef.current = false;
     }
   };
@@ -397,19 +395,16 @@ export default function Character({
       }
 
       if (isOwnCharacter) {
-        // 이동 속도 설정
-        const moveDistance = 0.35;
+        const moveDistance = 0.3;
         // 현재 캐릭터 위치 복사
         const newPosition = characterPosition.clone();
 
         if (collisionRef.current) {
-          // console.log('충돌 중입니다');
           scene.position.copy(prevPositionRef.current);
           characterPosition.copy(prevPositionRef.current);
           newPosition.copy(prevPositionRef.current);
 
           if (backPressed) {
-            // console.log('충돌 해제 조건 충족: backPressed');
             collisionRef.current = false;
           }
         }
@@ -446,7 +441,7 @@ export default function Character({
           movementStateRef.current === 'walking' ||
           movementStateRef.current === 'running'
         ) {
-          const moveSpeed = movementStateRef.current === 'walking' ? 0.35 : 0.4;
+          const moveSpeed = movementStateRef.current === 'walking' ? 0.3 : 0.4;
           const forwardDirection = new THREE.Vector3(
             Math.sin(rotation),
             0,
