@@ -6,7 +6,8 @@ import lombok.*;
 @Setter
 @ToString
 @EqualsAndHashCode
-@RequiredArgsConstructor
+@NoArgsConstructor
+@AllArgsConstructor
 public class ChatMessage {
     private String sender;
     private String content;

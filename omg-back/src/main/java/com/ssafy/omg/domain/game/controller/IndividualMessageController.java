@@ -5,11 +5,9 @@ import com.ssafy.omg.config.baseresponse.BaseException;
 import com.ssafy.omg.config.baseresponse.BaseResponse;
 import com.ssafy.omg.config.baseresponse.MessageException;
 import com.ssafy.omg.domain.game.GameRepository;
-import com.ssafy.omg.domain.game.dto.BattleClickDto;
-import com.ssafy.omg.domain.game.dto.BattleRequestDto;
-import com.ssafy.omg.domain.game.dto.IndividualMessageDto;
-import com.ssafy.omg.domain.game.dto.StockRequest;
+import com.ssafy.omg.domain.game.dto.*;
 import com.ssafy.omg.domain.game.entity.Game;
+import com.ssafy.omg.domain.game.entity.MoneyPoint;
 import com.ssafy.omg.domain.game.service.GameBroadcastService;
 import com.ssafy.omg.domain.game.service.GameScheduler;
 import com.ssafy.omg.domain.game.service.GameService;
@@ -22,6 +20,8 @@ import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.messaging.simp.SimpMessageSendingOperations;
 import org.springframework.web.bind.annotation.CrossOrigin;
+
+import java.util.List;
 
 import static com.ssafy.omg.config.baseresponse.BaseResponseStatus.PLAYER_STATE_ERROR;
 import static com.ssafy.omg.config.baseresponse.MessageResponseStatus.OUT_OF_CASH;
@@ -241,5 +241,40 @@ public class IndividualMessageController {
     @MessageMapping("/click-button")
     public void clickButton(@Payload StompPayload<BattleClickDto> payload) {
         gameBattleService.updateClickCount(payload);
+    }
+
+    /**
+     * 돈 줍기
+     *
+     * @param payload
+     * @throws BaseException
+     */
+    @MessageMapping("/money")
+    public void collectMoney(@Payload StompPayload<MoneyCollectionRequest> payload) throws BaseException {
+        String roomId = payload.getRoomId();
+        String userNickname = payload.getSender();
+        MoneyCollectionRequest request = payload.getData();
+
+        try {
+            MoneyCollectionResponse response = gameService.collectMoney(roomId, userNickname, request.getPointId());
+
+            // 개인 메시지 전송
+            IndividualMessageDto individualMessage = gameService.getIndividualMessage(roomId, userNickname);
+            StompPayload<IndividualMessageDto> individualResponse = new StompPayload<>("INDIVIDUAL_MESSAGE_NOTIFICATION", roomId, userNickname, individualMessage);
+            messagingTemplate.convertAndSend("/sub/" + roomId + "/game", individualResponse);
+
+            // 돈 포인트 정보 업데이트
+            StompPayload<List<MoneyPoint>> moneyPointsResponse = new StompPayload<>("MONEY_POINTS_NOTIFICATION", roomId, "GAME_MANAGER", response.getMoneyPoints());
+            messagingTemplate.convertAndSend("/sub/" + roomId + "/game", moneyPointsResponse);
+
+            // 랭킹 업데이트
+            Game game = gameRepository.findArenaByRoomId(roomId).get().getGame();
+            gameScheduler.notifyPlayersRankingMessage(game);
+
+        } catch (BaseException e) {
+            log.error("돈 줍기 처리 중 오류 발생: {}", e.getStatus().getMessage());
+            StompPayload<String> errorResponse = new StompPayload<>("ERROR", roomId, userNickname, "돈 줍기 처리 중 오류가 발생했습니다.");
+            messagingTemplate.convertAndSend("/sub/" + roomId + "/game", errorResponse);
+        }
     }
 }

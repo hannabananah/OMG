@@ -61,6 +61,9 @@ public enum BaseResponseStatus {
     PLAYER_STATE_ERROR(false, 3037, "거래할 수 없는 플레이어 상태입니다"),
     INVALID_STOCK_GROUP(false, 3038, "유효하지 않은 주식 산업 그룹입니다."),
     INVALID_MARKET_INFO(false, 3039, "거래소 정보 전송에 실패했습니다."),
+    INVALID_MONEY_POINT(false, 3041, "유효하지 않은 돈 좌표입니다."),
+    MONEY_POINT_NOT_FOUND(false, 3042, "해당 좌표에 돈이 존재하지 않습니다."),
+    MONEY_ALREADY_COLLECTED(false, 3043, "이미 주워진 돈입니다."),
 
 
     // 3101 ~~ 3199 : 이가은
@@ -86,7 +89,8 @@ public enum BaseResponseStatus {
     /**
      * 5000 : Server 오류
      */
-    SERVER_ERROR(false, 5000, "서버와의 연결에 실패하였습니다.");
+    SERVER_ERROR(false, 5000, "서버와의 연결에 실패하였습니다."),
+    GAME_SAVE_FAILED(false, 5001, "게임 상태 저장에 실패했습니다.");;
 
     private final boolean isSuccess;
     private final int code;
