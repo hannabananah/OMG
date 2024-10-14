@@ -41,7 +41,7 @@ export default function Tutorial() {
             <img src='/assets/logo.png' alt='logo' className='mr-4 w-36 h-36' />
             <p className='text-omg-100b text-[#E5BB47]'> M G</p>
           </div>
-          <h2 className='font-omg-event-content text-omg-40b text-[#E5BB47]'>
+          <h2 className='font-omg-event-content text-omg-30b text-[#E5BB47]'>
             {header}
           </h2>
         </main>
@@ -49,7 +49,7 @@ export default function Tutorial() {
         <body className='w-full h-[50%] flex items-center'>
           <div className='max-w-[70%] mx-auto text-center'>
             <p
-              className={`text-white text-omg-20 transition-opacity duration-1000 leading-relaxed ${showContent ? 'opacity-100' : 'opacity-0'}`}
+              className={`text-white text-omg-28 transition-opacity duration-1000 leading-relaxed ${showContent ? 'opacity-100' : 'opacity-0'}`}
             >
               {splitIntoSentences(tips[currentStep].content).map(
                 (sentence: string, index: number) => (
@@ -63,21 +63,21 @@ export default function Tutorial() {
 
             {currentStep === 0 && (
               <div className='flex justify-center'>
-                <TbSquareArrowDown className='mt-2 text-white text-omg-30' />
+                <TbSquareArrowDown className='mt-2 text-white text-omg-32' />
               </div>
             )}
             {currentStep === 1 && (
               <div className='flex items-center justify-center mt-2 space-x-2'>
-                <TbSquareArrowLeft className='text-white text-omg-30' />
-                <TbSquareArrowUp className='text-white text-omg-30' />
-                <TbSquareArrowRightFilled className='text-white text-omg-30' />
+                <TbSquareArrowLeft className='text-white text-omg-32' />
+                <TbSquareArrowUp className='text-white text-omg-32' />
+                <TbSquareArrowRightFilled className='text-white text-omg-32' />
               </div>
             )}
           </div>
         </body>
 
         <footer className='h-[10%] w-full flex justify-center items-center'>
-          <p className='text-white text-omg-14 font-omg-event-content'>
+          <p className='text-white text-omg-28 font-omg-event-content'>
             {footer}
           </p>
         </footer>
