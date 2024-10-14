@@ -24,7 +24,7 @@ export default function Notification({ onNewNotification }: NotificationProps) {
   const [items, setItems] = useState<Item[]>([]);
   const { otherUsers, transactionMessage } = useOtherUserStore();
 
-  const timeout = 3000;
+  const timeout = 5000;
   const transitions = useTransition(items, {
     from: { opacity: 0, transform: 'translateX(100%)', height: 0 },
     keys: item => item.key,
@@ -61,7 +61,7 @@ export default function Notification({ onNewNotification }: NotificationProps) {
         setItems(prevItems =>
           prevItems.filter(item => item.key !== newItem.key),
         );
-      }, 5000);
+      }, timeout);
 
       return () => clearTimeout(timeoutId);
     }
