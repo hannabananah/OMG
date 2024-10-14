@@ -24,7 +24,7 @@ export default function LoanInfo() {
 
     if (loanMessage.isCompleted) {
       ToastAlert(
-        `대출 신청이 완료되었습니다! 대출액: ${formatNumberWithCommas(Number(loanMessage.message))}`,
+        `대출 신청이 완료되었습니다! 대출액 : ${formatNumberWithCommas(Number(loanMessage.message))}`,
       );
     } else {
       ToastAlert(loanMessage.message);
