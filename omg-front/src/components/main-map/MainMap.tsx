@@ -265,6 +265,9 @@ export default function MainMap() {
 
   const closeChattingModal = () => {
     setIsChatOpen(false);
+    if (nickname) {
+      playClickChatSound();
+    }
   };
 
   const toggleChatBot = () => {

@@ -13,6 +13,7 @@ interface SoundStore {
   playGetCoinSound: () => void;
   playGetChatAnswerSound: () => void;
   playClickChatSound: () => void;
+  playTypingSound: () => void;
   playLeftTimeAlertSound: () => void;
   playEndRoundSound: () => void;
   playChangePriceSound: () => void;
@@ -133,6 +134,20 @@ export const useSoundStore = create<SoundStore>(set => ({
 
   playClickChatSound: () => {
     const alertSound = new Audio('/music/click-chat-alert.mp3');
+    alertSound.play();
+
+    setTimeout(() => {
+      set(state => {
+        if (state.bgm && !state.isMuted) {
+          state.bgm.play();
+        }
+        return {};
+      });
+    }, 2000);
+  },
+
+  playTypingSound: () => {
+    const alertSound = new Audio('/music/typing-sound.mp3');
     alertSound.play();
 
     setTimeout(() => {
