@@ -6,7 +6,9 @@ import { useGameStore } from '@/stores/useGameStore';
 import { useMainBoardStore } from '@/stores/useMainBoardStore';
 import { usePersonalBoardStore } from '@/stores/usePersonalBoardStore';
 import { useSocketMessage } from '@/stores/useSocketMessage';
+import { useSoundStore } from '@/stores/useSoundStore';
 import { useStockStore } from '@/stores/useStockStore';
+import useUser from '@/stores/useUser';
 import { SocketContext } from '@/utils/SocketContext';
 import { ToastAlert } from '@/utils/ToastAlert';
 import formatNumberWithCommas from '@/utils/formatNumberWithCommas';
@@ -16,7 +18,7 @@ import PossessionChart from './PossessionChart';
 
 export default function StockBuy() {
   const { buyStock } = useContext(SocketContext);
-
+  const { nickname } = useUser();
   const { stockPrices, leftStocks } = useStockStore();
   const {
     selectedCount,
@@ -26,6 +28,7 @@ export default function StockBuy() {
   } = useGameStore();
   const { tradableStockCnt } = useMainBoardStore();
   const { cash } = usePersonalBoardStore();
+  const { playSuccessStockSound } = useSoundStore();
 
   const { buyStockMessage, setBuyMessage } = useSocketMessage();
 
@@ -86,6 +89,10 @@ export default function StockBuy() {
     buyStock(selectedCount);
     setCarryingToHomeCount(selectedCount);
     setSelectedCount([0, 0, 0, 0, 0, 0]);
+
+    if (nickname) {
+      playSuccessStockSound();
+    }
   };
 
   return (
