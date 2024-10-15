@@ -51,6 +51,7 @@ export default function Chatting({ closeChattingModal }: ChattingProps) {
           setIsOpen(false);
           setTimeout(closeChattingModal, 500);
         }}
+        aria-label='채팅 닫기 버튼'
       >
         <TbFoldDown size={24} />
       </button>

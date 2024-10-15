@@ -8,7 +8,7 @@ export default function StockInfoButton() {
   };
 
   return (
-    <button onClick={openStockInfo}>
+    <button onClick={openStockInfo} aria-label='주식 정보 버튼'>
       <IoMdInformationCircleOutline />
     </button>
   );

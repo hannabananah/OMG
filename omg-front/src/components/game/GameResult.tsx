@@ -36,7 +36,11 @@ export default function GameResult() {
           {showTotalResult ? <GameTotalResult /> : <GamePersonalResult />}
         </div>
         <div className='flex justify-end w-full mt-4'>
-          <button onClick={handleToggle} className='text-omg-28'>
+          <button
+            onClick={handleToggle}
+            className='text-omg-28'
+            aria-label='장 넘기기 버튼'
+          >
             {showTotalResult ? <IoArrowRedo /> : <IoArrowUndo />}
           </button>
         </div>

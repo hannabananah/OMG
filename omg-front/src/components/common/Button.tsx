@@ -19,6 +19,7 @@ export default function Button({ text, type, onClick, disabled }: ButtonProps) {
       className={`${buttonStyles[type]} ${disabled ? 'text-gray-500 opacity-50 cursor-not-allowed' : 'opacity-100'}`}
       onClick={onClick}
       disabled={disabled}
+      aria-label='공통 버튼'
       style={
         type === 'trade'
           ? {

@@ -32,11 +32,19 @@ export default function Counter() {
       <p className='font-omg-body text-omg-30'>Time left: {timeLeft}</p>
 
       {timeLeft !== 0 ? (
-        <button className='w-40 h-40 bg-sky-200 text-omg-30' onClick={inc}>
+        <button
+          className='w-40 h-40 bg-sky-200 text-omg-30'
+          onClick={inc}
+          aria-label='개수 클릭 버튼'
+        >
           +
         </button>
       ) : (
-        <button className='w-40 h-40 bg-slate-200' disabled></button>
+        <button
+          className='w-40 h-40 bg-slate-200'
+          disabled
+          aria-label='개수 클릭 비활성화 버튼'
+        ></button>
       )}
 
       {/* 내 progress bar */}

@@ -25,7 +25,7 @@ export default function ChatInputForm({
         placeholder='메시지를 입력하세요...'
         onKeyDown={handleKeyDown}
       />
-      <button type='submit' className='hidden'>
+      <button type='submit' className='hidden' aria-label='채팅 전송 버튼'>
         전송
       </button>
     </form>
