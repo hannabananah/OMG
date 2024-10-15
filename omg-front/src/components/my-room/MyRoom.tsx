@@ -1,14 +1,16 @@
 import { useContext, useEffect, useState } from 'react';
 
 import { itemNameList } from '@/assets/data/stockMarketData';
-import BackButton from '@/components/common/BackButton';
-import Button from '@/components/common/Button';
-import ChatButton from '@/components/common/ChatButton';
-import ExitButton from '@/components/common/ExitButton';
-import Round from '@/components/common/Round';
-import Snowing from '@/components/common/Snowing';
-import SpeechBubble from '@/components/common/SpeechBubble';
-import Timer from '@/components/common/Timer';
+import {
+  BackButton,
+  Button,
+  ChatButton,
+  ExitButton,
+  Round,
+  Snowing,
+  SpeechBubble,
+  Timer,
+} from '@/components/common';
 import { Item } from '@/components/stock-market';
 import { treeItemNameInKorean } from '@/hooks/useStock';
 import { useGameStore } from '@/stores/useGameStore';
@@ -16,6 +18,7 @@ import { useMainBoardStore } from '@/stores/useMainBoardStore';
 import { useModalStore } from '@/stores/useModalStore';
 import { useMyRoomStore } from '@/stores/useMyRoomStore';
 import { usePersonalBoardStore } from '@/stores/usePersonalBoardStore';
+import { useSoundStore } from '@/stores/useSoundStore';
 import useUser from '@/stores/useUser';
 import { SocketContext } from '@/utils/SocketContext';
 import { ToastAlert } from '@/utils/ToastAlert';
@@ -40,21 +43,20 @@ export default function MyRoom() {
   } = useGameStore();
   const { stockPrices, tradableStockCnt } = useMainBoardStore();
   const { stock } = usePersonalBoardStore();
+  const { playGetItemSound } = useSoundStore();
 
   const [isChatOpen, setIsChatOpen] = useState(false);
   const [isFadingIn, setIsFadingIn] = useState(false);
 
-  const MAX_TRADE_COUNT = tradableStockCnt; // 최대 거래 가능 수량
-  const STOCK_MARKET_PRICE = stockPrices; // 현재 주가
-  const MY_STOCK = stock; // 보유 주식 개수
+  const MAX_TRADE_COUNT = tradableStockCnt;
+  const STOCK_MARKET_PRICE = stockPrices;
+  const MY_STOCK = stock;
 
-  // 선택된 아이템 개수 저장하는 배열 (6 크기, 0번 인덱스는 사용 안 함)
   const [selectedCounts, setSelectedCounts] = useState(Array(6).fill(0));
 
   const [alertText, setAlertText] =
     useState<string>('판매 할 아이템을 선택해주세요!');
 
-  // 컴포넌트가 마운트될 때 페이드 인 시작
   useEffect(() => {
     setIsFadingIn(true);
     if (carryingToHomeCount.some(count => count > 0)) {
@@ -63,7 +65,6 @@ export default function MyRoom() {
     }
   }, []);
 
-  // 보유한 아이템들만 필터링
   const ownedStockItems = (MY_STOCK ? MY_STOCK.slice(1) : [])
     .map((count, index) => {
       if (count > 0) {
@@ -76,11 +77,9 @@ export default function MyRoom() {
     })
     .filter(Boolean);
 
-  // 가로로 중앙 정렬을 위한 위치 계산
-  const spacing = 1.5; // 아이템 간격
+  const spacing = 1.5;
   const startPosition = -(ownedStockItems.length - 1) * (spacing / 2);
 
-  // 예상 판매 수익 계산 함수
   const calculateTotalRevenue = () => {
     return selectedCounts.reduce(
       (total, count, index) => total + count * STOCK_MARKET_PRICE[index],
@@ -92,11 +91,10 @@ export default function MyRoom() {
     const newCounts = [...selectedCounts];
     const stockIndex = itemNameList.indexOf(
       ownedStockItems[itemIndex].itemName,
-    ); // 필터링된 아이템의 원래 인덱스 찾기
+    );
 
     const newCount = newCounts[stockIndex + 1] + value;
 
-    // 총 선택한 수량 계산
     const totalSelectedCount =
       newCounts.reduce((acc, count) => acc + count, 0) + value;
 
@@ -106,17 +104,16 @@ export default function MyRoom() {
     }
 
     if (newCount > MY_STOCK[stockIndex + 1]) {
-      const itemName = treeItemNameInKorean(itemNameList[stockIndex]); // 해당 아이템 이름 가져오기
+      const itemName = treeItemNameInKorean(itemNameList[stockIndex]);
       setAlertText(
         `'${itemName}' 보유 수량 ${MY_STOCK[stockIndex + 1]}개를 초과할 수 없습니다.`,
       );
       return;
     }
 
-    newCounts[stockIndex + 1] = Math.max(0, newCount); // 수량이 0보다 작아지지 않도록
+    newCounts[stockIndex + 1] = Math.max(0, newCount);
     setSelectedCounts(newCounts);
 
-    // 선택한 아이템과 수량 알림 추가
     const selectedItemName = treeItemNameInKorean(itemNameList[stockIndex]);
     setAlertText(
       `${selectedItemName}을(를) ${newCounts[stockIndex + 1]}개 선택했습니다.`,
@@ -124,7 +121,6 @@ export default function MyRoom() {
   };
 
   const goToSellStockItem = () => {
-    // 선택된 아이템 필터링 (1번 인덱스부터 사용)
     const selectedItems = selectedCounts
       .slice(1)
       .map((count, index) => {
@@ -133,10 +129,9 @@ export default function MyRoom() {
         }
         return null;
       })
-      .filter(Boolean) // null 값 제거
-      .join(', '); // 선택된 아이템을 문자열로 합침
+      .filter(Boolean)
+      .join(', ');
 
-    // 뭐 선택했는 지 alert
     if (selectedItems) {
       ToastAlert(`${selectedItems}를 챙겼습니다.`);
     } else {
@@ -145,15 +140,17 @@ export default function MyRoom() {
 
     setCarryingToMarketCount(selectedCounts);
 
+    if (nickname) {
+      playGetItemSound();
+    }
+
     setTimeout(() => {
       handleBackButton();
     }, 1000);
   };
 
-  // 뒤로 가기 버튼
   const handleBackButton = () => {
     if (modals[nickname]?.myRoom) {
-      // 방 퇴장 메시지 표시
       setIsExitingRoom(nickname, true);
       setIsFadingOut(true);
 

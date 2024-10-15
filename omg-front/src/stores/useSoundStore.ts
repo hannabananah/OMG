@@ -9,6 +9,7 @@ interface SoundStore {
   playSuccessStockSound: () => void;
   playSuccessLoanSound: () => void;
   playSuccessGoldSound: () => void;
+  playGetItemSound: () => void;
   playGetCoinSound: () => void;
   playGetChatAnswerSound: () => void;
   playEndRoundSound: () => void;
@@ -86,6 +87,20 @@ export const useSoundStore = create<SoundStore>(set => ({
     }, 2000);
   },
 
+  playGetItemSound: () => {
+    const alertSound = new Audio('/music/get-item-alert.mp3');
+    alertSound.play();
+
+    setTimeout(() => {
+      set(state => {
+        if (state.bgm && !state.isMuted) {
+          state.bgm.play();
+        }
+        return {};
+      });
+    }, 2000);
+  },
+
   playGetCoinSound: () => {
     const alertSound = new Audio('/music/get-coin-alert.mp3');
     alertSound.play();
@@ -115,7 +130,7 @@ export const useSoundStore = create<SoundStore>(set => ({
   },
 
   playEndRoundSound: () => {
-    const alertSound = new Audio('/music/chat-alert.mp3');
+    const alertSound = new Audio('/music/round-end-alert.mp3');
     alertSound.play();
 
     setTimeout(() => {
@@ -146,7 +161,7 @@ export const useSoundStore = create<SoundStore>(set => ({
   },
 
   playFinishGameSound: () => {
-    const alertSound = new Audio('/music/change-price-alert.mp3');
+    const alertSound = new Audio('/music/finish-game-alert.mp3');
     alertSound.play();
   },
 }));
