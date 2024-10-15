@@ -7,6 +7,7 @@ export interface BaseResponse {
   code: number;
   message: string;
 }
+
 export interface CreateRoomResponse extends BaseResponse {
   result: string;
 }
@@ -29,6 +30,10 @@ export interface EnterRoomResponse extends BaseResponse {
 }
 
 export interface HasWaitingRoomResponse extends BaseResponse {
+  result: string;
+}
+
+export interface ChatBotResponse extends BaseResponse {
   result: string;
 }
 
@@ -62,5 +67,23 @@ export const hasWaitingRoom = async (
   const response = await axiosInstance.get(`${END_POINT.ROOM}`, {
     params: { roomId },
   });
+  return response.data;
+};
+
+// 챗봇 요청
+export const requestChatBot = async (
+  roomId: string,
+  sender: string,
+  message: string,
+): Promise<ChatBotResponse> => {
+  // 쿼리 파라미터로 roomId, sender, message를 GET 요청으로 전송
+  const response = await axiosInstance.get(`${END_POINT.CHATBOT}/response`, {
+    params: {
+      roomId,
+      sender,
+      message,
+    },
+  });
+
   return response.data;
 };
