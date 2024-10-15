@@ -7,6 +7,7 @@ interface SoundStore {
   toggleMute: () => void;
   playNotificationSound: () => void;
   playSuccessStockSound: () => void;
+  playSuccessLoanSound: () => void;
 }
 
 export const useSoundStore = create<SoundStore>(set => ({
@@ -36,6 +37,20 @@ export const useSoundStore = create<SoundStore>(set => ({
 
   playSuccessStockSound: () => {
     const alertSound = new Audio('/music/stock-alert.mp3');
+    alertSound.play();
+
+    setTimeout(() => {
+      set(state => {
+        if (state.bgm && !state.isMuted) {
+          state.bgm.play();
+        }
+        return {};
+      });
+    }, 2000);
+  },
+
+  playSuccessLoanSound: () => {
+    const alertSound = new Audio('/music/loan-alert.mp3');
     alertSound.play();
 
     setTimeout(() => {
