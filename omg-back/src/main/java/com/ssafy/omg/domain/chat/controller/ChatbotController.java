@@ -1,15 +1,26 @@
 package com.ssafy.omg.domain.chat.controller;
 
+import com.ssafy.omg.config.baseresponse.BaseException;
+import com.ssafy.omg.config.baseresponse.BaseResponse;
 import com.ssafy.omg.domain.chat.service.ChatbotService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
-import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
+import reactor.core.publisher.Mono;
 
-@Controller
+@RestController
 @RequiredArgsConstructor
 public class ChatbotController {
     private final SimpMessagingTemplate messagingTemplate;
     private final ChatbotService chatbotService;
+
+    @GetMapping("/api/chatbot/response")
+    public Mono<BaseResponse<String>> getResponse(@RequestParam String roomId, @RequestParam String sender, @RequestParam String message) throws BaseException {
+        return chatbotService.getChatbotResponse(roomId, sender, message)
+                .map(BaseResponse::new);
+    }
 
 //    @MessageMapping("/{roomId}/chat")
 //    public void chat(@Payload StompPayload<ChatMessage> chatMessage) {
