@@ -91,7 +91,15 @@ export default function MainMap() {
     playNotificationSound,
     playEndRoundSound,
     playChangePriceSound,
+    playLeftTimeAlertSound,
   } = useSoundStore();
+  const {
+    isStockChangeAlertVisible,
+    stockChangeAlertMessage,
+    setStockChangeAlertVisible,
+    setStockChangeAlertMessage,
+  } = useAlertStore();
+
   const [isChatOpen, setIsChatOpen] = useState(false);
   const [isChatBotOpen, setIsChatBotOpen] = useState(false);
 
@@ -101,13 +109,6 @@ export default function MainMap() {
   const [isTimerVisible, setIsTimerVisible] = useState(false);
   const [isRoundVisible, setIsRoundVisible] = useState(false);
   const [isBoardVisible, setIsBoardVisible] = useState(false);
-
-  const {
-    isStockChangeAlertVisible,
-    stockChangeAlertMessage,
-    setStockChangeAlertVisible,
-    setStockChangeAlertMessage,
-  } = useAlertStore();
 
   const [isKeyboardPossible, setIsKeyboardPossible] = useState(false);
 
@@ -155,12 +156,15 @@ export default function MainMap() {
   useEffect(() => {
     if (!gameRoundMessage.message) return;
 
+    if (gameRoundMessage.message.includes('남았습니다!')) {
+      playLeftTimeAlertSound();
+    }
+
     if (gameRoundMessage.message.includes('주가')) {
       setStockChangeAlertMessage(gameRoundMessage.message);
       setStockChangeAlertVisible(true);
       playChangePriceSound();
 
-      // 5초 후에 알림을 사라지게 설정
       const timer = setTimeout(() => {
         setStockChangeAlertVisible(false);
       }, 5000);

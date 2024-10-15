@@ -12,6 +12,7 @@ interface SoundStore {
   playGetItemSound: () => void;
   playGetCoinSound: () => void;
   playGetChatAnswerSound: () => void;
+  playLeftTimeAlertSound: () => void;
   playEndRoundSound: () => void;
   playChangePriceSound: () => void;
   playFinishGameSound: () => void;
@@ -117,6 +118,20 @@ export const useSoundStore = create<SoundStore>(set => ({
 
   playGetChatAnswerSound: () => {
     const alertSound = new Audio('/music/chat-alert.mp3');
+    alertSound.play();
+
+    setTimeout(() => {
+      set(state => {
+        if (state.bgm && !state.isMuted) {
+          state.bgm.play();
+        }
+        return {};
+      });
+    }, 2000);
+  },
+
+  playLeftTimeAlertSound: () => {
+    const alertSound = new Audio('/music/left-time-alert.mp3');
     alertSound.play();
 
     setTimeout(() => {
