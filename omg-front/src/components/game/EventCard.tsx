@@ -85,11 +85,11 @@ export default function EventCard() {
           <p className='w-full mt-5 mb-3 text-center underline font-omg-body text-omg-18 break-keep'>
             *해당 뉴스는 다음 라운드의 금리 변동에 영향을 줍니다.
           </p>
-          <div className='flex flex-col justify-center mt-10'>
+          <div className='flex flex-col justify-center mt-20'>
             <h2 className='text-center text-omg-30b font-omg-event-title break-keep text-balance'>
               {eventCardTitle}
             </h2>
-            <p className='px-5 mt-20 text-center break-words font-omg-event-body text-omg-24 text-balance'>
+            <p className='mt-20 text-center break-keep font-omg-event-body text-omg-24 text-balance'>
               {eventCardContent}
             </p>
           </div>
