@@ -346,21 +346,9 @@ export default function Character({
   const handleCollisionEnter = () => {
     if (!showIntro && isOwnCharacter && !collisionRef.current) {
       collisionRef.current = true;
-      // console.log(collisionRef.current, '충돌 발생');
       prevPositionRef.current.copy(characterPosition);
     }
   };
-
-  const handleCollisionExit = () => {
-    if (!showIntro && isOwnCharacter && collisionRef.current && backPressed) {
-      collisionRef.current = false;
-      // console.log(collisionRef.current, '충돌 해제');
-    }
-  };
-
-  // useEffect(() => {
-  //   console.log('backPressed:', backPressed);
-  // }, [backPressed]);
 
   useEffect(() => {
     if (!isOwnCharacter) return;
@@ -389,6 +377,10 @@ export default function Character({
   }, [characterPosition, rotation, localActionToggle, isTrading, isCarrying]);
 
   useFrame((_, delta) => {
+    if (!showIntro && isOwnCharacter && collisionRef.current && backPressed) {
+      collisionRef.current = false;
+    }
+
     mixer.current?.update(delta);
     if (scene) {
       scene.rotation.y = rotation;
@@ -538,7 +530,6 @@ export default function Character({
         colliders={false}
         lockRotations={true}
         onCollisionEnter={handleCollisionEnter}
-        onCollisionExit={handleCollisionExit}
         restitution={0} // 반발력
         friction={1}
       >
