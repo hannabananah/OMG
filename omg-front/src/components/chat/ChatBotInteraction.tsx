@@ -9,7 +9,7 @@ import { requestChatBot } from '../../apis/room/roomAPI';
 export default function ChatBotInteraction() {
   const { roomId } = useParams<{ roomId: string }>();
   const { nickname } = useUser();
-  const { playGetChatAnswerSound, playTypingSound } = useSoundStore();
+  const { playGetChatAlertSound, playTypingSound } = useSoundStore();
 
   const [requestMessage, setRequestMessage] = useState<string>('');
   const [responseMessage, setResponseMessage] = useState<string | null>(null);
@@ -37,7 +37,7 @@ export default function ChatBotInteraction() {
         setRequestMessage('');
 
         if (nickname) {
-          playGetChatAnswerSound();
+          playGetChatAlertSound();
         }
       }
     } catch (error) {
