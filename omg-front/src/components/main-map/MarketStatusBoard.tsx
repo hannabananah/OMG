@@ -3,10 +3,9 @@ import Marquee from 'react-fast-marquee';
 import { IoMdArrowDropdown, IoMdArrowDropup } from 'react-icons/io';
 import { IoRemoveOutline } from 'react-icons/io5';
 
-import { generateStockItemsDataWithUpdown } from '@/hooks/useStock';
+import { generateStockItemsDataWithUpdown } from '@/hooks';
 import { useMainBoardStore, useStockStore } from '@/stores';
-import { SocketContext } from '@/utils/SocketContext';
-import formatNumberWithCommas from '@/utils/formatNumberWithCommas';
+import { SocketContext, formatNumberWithCommas } from '@/utils';
 
 import Gauge from '../common/Gauge';
 

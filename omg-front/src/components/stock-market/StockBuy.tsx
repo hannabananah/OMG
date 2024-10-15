@@ -2,7 +2,7 @@ import { useContext, useEffect } from 'react';
 
 import { itemNameList } from '@/assets/data/stockMarketData';
 import { Button } from '@/components/common';
-import { getTreeItemImagePath } from '@/hooks/useStock';
+import { getTreeItemImagePath } from '@/hooks';
 import {
   useGameStore,
   useMainBoardStore,
@@ -12,9 +12,7 @@ import {
   useStockStore,
   useUser,
 } from '@/stores';
-import { SocketContext } from '@/utils/SocketContext';
-import { ToastAlert } from '@/utils/ToastAlert';
-import formatNumberWithCommas from '@/utils/formatNumberWithCommas';
+import { SocketContext, ToastAlert, formatNumberWithCommas } from '@/utils';
 
 import PossessionChart from './PossessionChart';
 

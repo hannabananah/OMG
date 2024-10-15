@@ -3,12 +3,9 @@ import { FaCopy } from 'react-icons/fa';
 import { useNavigate } from 'react-router-dom';
 
 import { ExitButton } from '@/components/common';
-import {
-  useCreateWaitingRoom,
-  useHasWaitingRoom,
-} from '@/hooks/useWaitingRoom';
+import { useCreateWaitingRoom, useHasWaitingRoom } from '@/hooks';
 import { useUser } from '@/stores';
-import { ToastAlert } from '@/utils/ToastAlert';
+import { ToastAlert } from '@/utils';
 
 export default function Lobby() {
   const { nickname, setNickname } = useUser();

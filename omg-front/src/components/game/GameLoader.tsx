@@ -1,6 +1,6 @@
 import { useContext, useEffect } from 'react';
 
-import { SocketContext } from '@/utils/SocketContext';
+import { SocketContext } from '@/utils';
 import { useProgress } from '@react-three/drei';
 
 export default function GameLoader(): JSX.Element | null {

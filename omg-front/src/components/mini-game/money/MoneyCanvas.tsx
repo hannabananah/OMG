@@ -1,6 +1,6 @@
 import { useMemo } from 'react';
 
-import { useFloatingObject } from '@/hooks/useFloatingObject';
+import { useFloatingObject } from '@/hooks';
 import { useGLTF } from '@react-three/drei';
 import { CuboidCollider, RigidBody } from '@react-three/rapier';
 

@@ -1,7 +1,7 @@
 import { FaPowerOff } from 'react-icons/fa';
 import { useNavigate } from 'react-router-dom';
 
-import { ConfirmAlert } from '@/utils/ConfirmAlert';
+import { ConfirmAlert } from '@/utils';
 
 export default function ExitButton({ showText = false }) {
   const navigate = useNavigate();

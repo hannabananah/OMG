@@ -1,6 +1,6 @@
 import { useState } from 'react';
 
-import { useFloatingObject } from '@/hooks/useFloatingObject';
+import { useFloatingObject } from '@/hooks';
 import { StockItem } from '@/types';
 import { useGLTF } from '@react-three/drei';
 import { ThreeEvent } from '@react-three/fiber';

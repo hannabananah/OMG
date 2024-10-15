@@ -7,11 +7,9 @@ import PersonalBG2 from '@/assets/img/bg-personal2.svg?react';
 import Rank1 from '@/assets/img/rank1.svg?react';
 import Rank2 from '@/assets/img/rank2.svg?react';
 import Rank3 from '@/assets/img/rank3.svg?react';
-import useCountUp from '@/hooks/useCountUp';
-import { treeItemNameInKorean } from '@/hooks/useStock';
+import { treeItemNameInKorean, useCountUp } from '@/hooks';
 import { useGameStore, usePersonalBoardStore, useUser } from '@/stores';
-import { SocketContext } from '@/utils/SocketContext';
-import formatNumberWithCommas from '@/utils/formatNumberWithCommas';
+import { SocketContext, formatNumberWithCommas } from '@/utils';
 
 export default function PersonalBoard() {
   const { enterLoan } = useContext(SocketContext);

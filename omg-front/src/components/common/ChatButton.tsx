@@ -1,4 +1,4 @@
-import { ToastAlert } from '@/utils/ToastAlert';
+import { ToastAlert } from '@/utils';
 
 interface ChatButtonProps {
   isWhite?: boolean;

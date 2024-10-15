@@ -2,10 +2,10 @@ import { IoMdArrowDropdown, IoMdArrowDropup } from 'react-icons/io';
 import { IoRemoveOutline } from 'react-icons/io5';
 
 import { itemNameList } from '@/assets/data/stockMarketData';
-import { chartData, getStockPriceData } from '@/hooks/useStock';
+import { chartData, getStockPriceData } from '@/hooks';
 import { useStockStore } from '@/stores';
 import { StockMarketView } from '@/types';
-import formatNumberWithCommas from '@/utils/formatNumberWithCommas';
+import { formatNumberWithCommas } from '@/utils';
 
 import Button from '../common/Button';
 import LineChart from './LineChart';

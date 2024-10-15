@@ -1,6 +1,6 @@
 import { IoMdInformationCircleOutline } from 'react-icons/io';
 
-import { ToastAlert } from '@/utils/ToastAlert';
+import { ToastAlert } from '@/utils';
 
 export default function StockInfoButton() {
   const openStockInfo = () => {

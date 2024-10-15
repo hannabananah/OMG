@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useDrag } from 'react-use-gesture';
 
 import { useLoanStore } from '@/stores';
-import { formatTime } from '@/utils/formatTime';
+import { formatTime } from '@/utils';
 import { animated, useSprings } from '@react-spring/web';
 
 const to = (i: number) => ({

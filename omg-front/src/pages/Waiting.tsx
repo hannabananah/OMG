@@ -3,8 +3,7 @@ import { FaCrown } from 'react-icons/fa';
 import { useNavigate, useParams } from 'react-router-dom';
 
 import { useUser } from '@/stores';
-import { SocketContext } from '@/utils/SocketContext';
-import { ToastAlert } from '@/utils/ToastAlert';
+import { SocketContext, ToastAlert } from '@/utils';
 
 export default function Waiting() {
   const navigate = useNavigate();
