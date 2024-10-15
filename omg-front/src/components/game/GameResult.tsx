@@ -1,8 +1,11 @@
-import { lazy, useState } from 'react';
+import { lazy, useEffect, useState } from 'react';
 import { IoArrowRedo, IoArrowUndo } from 'react-icons/io5';
 
 import { useGameResultStore } from '@/stores/useGameResultStore';
+import { useSoundStore } from '@/stores/useSoundStore';
 import useUser from '@/stores/useUser';
+
+// Sound store 추가
 
 const GamePersonalResult = lazy(() => import('./GamePersonalResult'));
 const GameTotalResult = lazy(() => import('./GameTotalResult'));
@@ -10,6 +13,7 @@ const GameTotalResult = lazy(() => import('./GameTotalResult'));
 export default function GameResult() {
   const { playerResults } = useGameResultStore();
   const { nickname } = useUser();
+  const { playFinishGameSound } = useSoundStore();
 
   const [showTotalResult, setShowTotalResult] = useState(true);
 
@@ -21,6 +25,10 @@ export default function GameResult() {
   const handleToggle = () => {
     setShowTotalResult(!showTotalResult);
   };
+
+  useEffect(() => {
+    playFinishGameSound();
+  }, [playFinishGameSound]);
 
   return (
     <div className='fixed top-0 left-0 z-50 flex items-center justify-center w-full h-full bg-opacity-70'>

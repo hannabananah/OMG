@@ -3,6 +3,8 @@ import { useContext, useEffect } from 'react';
 import { itemNameList } from '@/assets/data/stockMarketData';
 import { useGameStore } from '@/stores/useGameStore';
 import { useSocketMessage } from '@/stores/useSocketMessage';
+import { useSoundStore } from '@/stores/useSoundStore';
+import useUser from '@/stores/useUser';
 import { SocketContext } from '@/utils/SocketContext';
 import { ToastAlert } from '@/utils/ToastAlert';
 import { Html, OrbitControls } from '@react-three/drei';
@@ -17,6 +19,9 @@ export default function StockSell() {
   const { sellStockMessage, setSellMessage } = useSocketMessage();
 
   const { carryingToMarketCount, setCarryingToMarketCount } = useGameStore();
+  const { playSuccessStockSound } = useSoundStore();
+
+  const { nickname } = useUser();
 
   useEffect(() => {
     if (sellStockMessage.message) {
@@ -34,6 +39,10 @@ export default function StockSell() {
     }
     sellStock(carryingToMarketCount);
     setCarryingToMarketCount([0, 0, 0, 0, 0, 0]);
+
+    if (nickname) {
+      playSuccessStockSound();
+    }
   };
 
   // 판매할 주식들 필터링 (0이 아닌 주식만 가져오기)

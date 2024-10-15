@@ -84,8 +84,23 @@ export default function MainMap() {
   const { eventCardMessage, eventEffectMessage, gameRoundMessage } =
     useSocketMessage();
   const { moneyPoints, resetCoordinateState } = useMiniMoneyStore();
-  const { isMuted, setBgm, toggleMute, playNotificationSound } =
-    useSoundStore();
+  const {
+    isMuted,
+    setBgm,
+    toggleMute,
+    playNotificationSound,
+    playEndRoundSound,
+    playChangePriceSound,
+    playLeftTimeAlertSound,
+    playClickChatSound,
+  } = useSoundStore();
+  const {
+    isStockChangeAlertVisible,
+    stockChangeAlertMessage,
+    setStockChangeAlertVisible,
+    setStockChangeAlertMessage,
+  } = useAlertStore();
+
   const [isChatOpen, setIsChatOpen] = useState(false);
   const [isChatBotOpen, setIsChatBotOpen] = useState(false);
 
@@ -95,13 +110,6 @@ export default function MainMap() {
   const [isTimerVisible, setIsTimerVisible] = useState(false);
   const [isRoundVisible, setIsRoundVisible] = useState(false);
   const [isBoardVisible, setIsBoardVisible] = useState(false);
-
-  const {
-    isStockChangeAlertVisible,
-    stockChangeAlertMessage,
-    setStockChangeAlertVisible,
-    setStockChangeAlertMessage,
-  } = useAlertStore();
 
   const [isKeyboardPossible, setIsKeyboardPossible] = useState(false);
 
@@ -149,11 +157,15 @@ export default function MainMap() {
   useEffect(() => {
     if (!gameRoundMessage.message) return;
 
+    if (gameRoundMessage.message.includes('남았습니다!')) {
+      playLeftTimeAlertSound();
+    }
+
     if (gameRoundMessage.message.includes('주가')) {
       setStockChangeAlertMessage(gameRoundMessage.message);
       setStockChangeAlertVisible(true);
+      playChangePriceSound();
 
-      // 5초 후에 알림을 사라지게 설정
       const timer = setTimeout(() => {
         setStockChangeAlertVisible(false);
       }, 5000);
@@ -161,7 +173,6 @@ export default function MainMap() {
     }
   }, [gameRoundMessage.message]);
 
-  // TODO: 삭제해야됨, 라운드 알림 모달
   useEffect(() => {
     if (!gameRoundMessage.message) return;
 
@@ -172,6 +183,8 @@ export default function MainMap() {
         setIsKeyboardPossible(false);
         setIsTimerVisible(false);
         resetCoordinateState();
+
+        playEndRoundSound();
         break;
       case 'ROUND_START':
         closeTutorialModal();
@@ -201,6 +214,7 @@ export default function MainMap() {
 
     return () => clearTimeout(timer);
   }, [gameRoundMessage]);
+
   useEffect(() => {
     const audio = new Audio('/music/background.mp3');
     audio.loop = true;
@@ -244,14 +258,23 @@ export default function MainMap() {
 
   const openChattingModal = () => {
     setIsChatOpen(true);
+    if (nickname) {
+      playClickChatSound();
+    }
   };
 
   const closeChattingModal = () => {
     setIsChatOpen(false);
+    if (nickname) {
+      playClickChatSound();
+    }
   };
 
   const toggleChatBot = () => {
     setIsChatBotOpen(prev => !prev);
+    if (nickname) {
+      playClickChatSound();
+    }
   };
 
   return (
@@ -265,7 +288,7 @@ export default function MainMap() {
               ? presentRound % 2 === 0
                 ? '/assets/night-sky.jpg'
                 : '/assets/morning-sky.jpg'
-              : '/assets/morning-sky.jpg' // 기본 배경 이미지
+              : '/assets/morning-sky.jpg'
           })`,
           opacity: 0.9,
         }}
@@ -300,10 +323,10 @@ export default function MainMap() {
         </div>
       )}
 
-      {/* 내 방 Modal */}
+      {/* 내 방 모달 */}
       {modals[nickname]?.myRoom && <MyRoom />}
 
-      {/* 주식 시장 Modal */}
+      {/* 주식 시장 모달 */}
       {modals[nickname]?.stockMarket && <StockMarket />}
 
       {/* 금 시장 모달 */}
