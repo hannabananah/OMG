@@ -13,6 +13,7 @@ interface SoundStore {
   playGetChatAnswerSound: () => void;
   playEndRoundSound: () => void;
   playChangePriceSound: () => void;
+  playFinishGameSound: () => void;
 }
 
 export const useSoundStore = create<SoundStore>(set => ({
@@ -142,5 +143,10 @@ export const useSoundStore = create<SoundStore>(set => ({
         return {};
       });
     }, 4000);
+  },
+
+  playFinishGameSound: () => {
+    const alertSound = new Audio('/music/change-price-alert.mp3');
+    alertSound.play();
   },
 }));
