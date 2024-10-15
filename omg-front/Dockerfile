@@ -5,11 +5,10 @@ FROM node:lts-slim AS build
 WORKDIR /app
 
 # 라이브러리 설치에 필요한 파일만 복사
-COPY package.json .
-COPY package-lock.json .
+COPY package*.json ./
 
-# 라이브러리 설치
-RUN npm i
+# 라이브러리 설치 (npm ci 사용으로 안정성 및 속도 향상)
+RUN npm ci && npm cache clean --force
 
 # 환경 변수 설정
 ARG VITE_APP_BASE_URL
@@ -28,11 +27,18 @@ RUN npm run build
 # 프로덕션 스테이지
 FROM nginx:1.21.4-alpine
 
+
+# 작업 디렉토리 설정
+WORKDIR /usr/share/nginx/html
+
 # nginx 실행 전 default.conf 파일 수정
 COPY nginx.conf /etc/nginx/conf.d/default.conf
 
 # 빌드 이미지에서 생성된 dist 폴더를 nginx 이미지로 복사
-COPY --from=build /app/dist /usr/share/nginx/html
+COPY --from=build /app/dist .
 
+# 포트 노출
 EXPOSE 80
+
+# nginx 실행 명령어
 CMD [ "nginx", "-g", "daemon off;" ]
