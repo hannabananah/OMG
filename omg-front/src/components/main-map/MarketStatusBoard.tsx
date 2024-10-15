@@ -49,11 +49,11 @@ export default function MarketStatusBoard() {
                   <p>${formatNumberWithCommas(item.price)}</p>
                   {item.updown > 0 ? (
                     <div className='text-red'>
-                      <IoMdArrowDropup />
+                      <IoMdArrowDropup size={60} />
                     </div>
                   ) : item.updown < 0 ? (
                     <div className='text-blue'>
-                      <IoMdArrowDropdown />
+                      <IoMdArrowDropdown size={60} />
                     </div>
                   ) : (
                     <IoRemoveOutline />

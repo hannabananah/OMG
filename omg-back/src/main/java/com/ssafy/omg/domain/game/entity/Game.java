@@ -9,8 +9,8 @@ import java.util.List;
 
 /**
  * 게임 정보
- * - 금리, 경제카드, 주가수준, 금괴가격, 주머니, 금괴 매입개수별 추가,
- * - 주식 시장(종류별 개수, 주가), [매수트랙 매도트랙 금괴트랙], 라운드 수, 라운드 별 행위 순서,
+ * - 금리, 경제카드, 주가수준, 금가격, 주머니, 금 매입개수별 추가,
+ * - 주식 시장(종류별 개수, 주가), [매수트랙 매도트랙 금트랙], 라운드 수, 라운드 별 행위 순서,
  * - 한 라운드 시간, 주가 변동 여부 체크, 주가수준 계산(2차원배열?)
  */
 @Getter
@@ -49,9 +49,9 @@ public class Game {
 
     private List<MoneyPoint> moneyPoints;         // 돈 줍기 정보
 
-    // [게임] 금괴 정보
-    private int goldPrice;                        // 금괴 가격
-    private int goldPriceIncreaseCnt;             // 금괴 가격 상승 체크용
+    // [게임] 금 정보
+    private int goldPrice;                        // 금 가격
+    private int goldPriceIncreaseCnt;             // 금 가격 상승 체크용
 
     private int[][] stockPriceChangeInfo = new int[6][61];  // 주가 변동 그래프 정보
     private int[] goldPriceChart = new int[61];

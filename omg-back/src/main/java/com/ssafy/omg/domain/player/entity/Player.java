@@ -12,7 +12,7 @@ import java.util.TreeSet;
 
 /**
  * 플레이어 정보
- * - 대출 유무, 대출금,이자율, 현금, 금괴개수, 보유 주식, 플레이어 좌표(x, y, z),
+ * - 대출 유무, 대출금,이자율, 현금, 금개수, 보유 주식, 플레이어 좌표(x, y, z),
  * - 플레이어 행위(무슨 행동을 하는지), 플레이어 행위 종료 상태, 플레이어 접속 상태, 한 행위 시간
  */
 @Getter
@@ -37,9 +37,9 @@ public class Player {
     private int totalDebt;             // 총 부채
     private int cash;                  // 현금
     private int[] stock = new int[6];  // 보유 주식 개수
-    private int goldOwned;             // 보유 금괴 개수
+    private int goldOwned;             // 보유 금 개수
 
-    private PlayerAction action;       // 플레이어 행위 (주식 매수, 주식 매도, 금괴 매입, 대출, 상환)
+    private PlayerAction action;       // 플레이어 행위 (주식 매수, 주식 매도, 금 매입, 대출, 상환)
     private PlayerStatus state;        // 플레이어 행위 상태 (시작전, 진행중, 완료)
     private boolean battleState;
     private int isConnected;           // 플레이어 접속 상태 (0: 끊김, 1: 연결됨)

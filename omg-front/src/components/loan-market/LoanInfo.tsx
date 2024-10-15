@@ -65,24 +65,24 @@ export default function LoanInfo() {
           className='w-20 h-20 mr-6'
           style={{ width: '3rem', height: '3rem' }}
         />
-        보유 현금{' '}
+        보유 현금&nbsp;
         <span ref={cashRef} className='text-omg-20 font-omg-title'>
           ${formatNumberWithCommas(animatedCash)}
         </span>
       </p>
       <br />
       <p className='text-omg-18'>
-        현재 총 대출액은{' '}
+        현재 총 대출액은&nbsp;
         <span ref={debtRef} className='text-omg-20 font-omg-title'>
-          ${formatNumberWithCommas(animatedDebt)}
-        </span>{' '}
+          ${formatNumberWithCommas(animatedDebt)}&nbsp;
+        </span>
         입니다.
       </p>
       <p className='text-omg-18'>
-        산정된 대출 한도는{' '}
+        산정된 대출 한도는&nbsp;
         <span ref={loanLimitRef} className='text-omg-20 font-omg-title'>
-          ${formatNumberWithCommas(animatedLoanLimit)}
-        </span>{' '}
+          ${formatNumberWithCommas(animatedLoanLimit)}&nbsp;
+        </span>
         입니다.
       </p>
     </div>

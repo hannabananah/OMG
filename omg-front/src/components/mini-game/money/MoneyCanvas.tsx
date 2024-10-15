@@ -16,14 +16,14 @@ export default function MoneyCanvas({ position, status }: MoneyAssetsProps) {
     if (status === 2) {
       return {
         scene: useGLTF('/models/gold/gold.gltf').scene,
-        scale: [0.3, 0.3, 0.3],
-        args: [0.3, 0.3, 0.3] as [number, number, number],
+        scale: [0.5, 0.5, 0.5],
+        args: [0.5, 0.5, 0.5] as [number, number, number],
       };
     } else if (status === 1) {
       return {
         scene: useGLTF('/models/silver/silver.gltf').scene,
-        scale: [2.5, 2.5, 2.5],
-        args: [2.5, 2.5, 2.5] as [number, number, number],
+        scale: [3.5, 3.5, 3.5],
+        args: [3.5, 3.5, 3.5] as [number, number, number],
       };
     }
     return { scene: null, scale: [1, 1, 1], colliderArgs: [1, 1, 1] };

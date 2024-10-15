@@ -64,7 +64,7 @@ export default function Waiting() {
         alt='대기방 배경'
         className='absolute w-full h-screen'
       />
-      <span className='absolute right-4 top-4 text-omg-11'>
+      <span className='absolute right-4 top-4 text-omg-18 animate-pulse'>
         방 ID:
         <button
           className='select-text'

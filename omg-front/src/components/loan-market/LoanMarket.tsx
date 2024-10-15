@@ -127,7 +127,7 @@ export default function LoanMarket() {
 
         <section className='flex w-full h-full'>
           <div className='relative w-3/5'>
-            <h2 className='text-center text-omg-28b'>보유 대출 리스트</h2>
+            <h2 className='text-center text-omg-40b'>보유 대출 리스트</h2>
             <div className='absolute right-28 top-10'>
               <button
                 onClick={toggleView}
@@ -152,7 +152,7 @@ export default function LoanMarket() {
                 <span className='text-omg-24'>$</span>
                 <input
                   type='text'
-                  className='w-[80%] px-8 py-3 mx-2 text-center rounded-30 text-omg-18'
+                  className='w-[80%] px-8 py-3 mx-2 text-center rounded-30 text-omg-24'
                   placeholder='대출 또는 상환할 금액을 입력하세요.'
                   value={moneyAmount}
                   onChange={handleMoneyAmountChange}
@@ -170,7 +170,7 @@ export default function LoanMarket() {
             </div>
 
             <div>
-              <p className='underline text-omg-14'>
+              <p className='underline text-omg-18'>
                 *해당 대출은 금리가 높은 상품부터 우선적으로 상환됩니다.
               </p>
             </div>

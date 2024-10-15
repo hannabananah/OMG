@@ -58,7 +58,7 @@ export default function PersonalBoard() {
         <img
           key={i}
           src='/assets/goldbell.png'
-          alt='금괴 이미지'
+          alt='금 이미지'
           className='absolute w-8 mt-2 ml-6 drop-shadow-md'
           style={{
             zIndex: images.length - i,

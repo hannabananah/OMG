@@ -19,6 +19,7 @@ import {
   useOtherUserStore,
   usePersonalBoardStore,
   useSocketMessage,
+  useSoundStore,
   useStockStore,
   useUser,
 } from '@/stores';
@@ -135,6 +136,8 @@ export default function SocketProvider({ children }: SocketProviderProps) {
   const { setOtherUsers, transactionMessage, setTransactionMessage } =
     useOtherUserStore();
   const { setPlayerMinimap } = useMiniMapStore();
+  const { playGetCoinSound } = useSoundStore();
+
   const [socket, setSocket] = useState<Client | null>(null);
   const [online, setOnline] = useState(false);
   const [player, setPlayer] = useState<string[]>([]);
@@ -353,13 +356,13 @@ export default function SocketProvider({ children }: SocketProviderProps) {
             if (currentUser === nickname) {
               setPersonalBoardData(parsedMessage.data);
               setGoldPurchaseMessage({
-                message: `금괴를 성공적으로 구매했습니다! 현재 소유 금괴 수량: ${parsedMessage.data.goldOwned}`,
+                message: `금를 성공적으로 구매했습니다! <br/> 현재 소유 금 수량: ${parsedMessage.data.goldOwned}`,
                 isCompleted: true,
               });
             } else {
               setTransactionMessage(
                 currentUser,
-                `${currentUser}님이 금괴 ${parsedMessage.data.goldOwned}개를 구매했습니다!`,
+                `${currentUser}님이 금 ${parsedMessage.data.goldOwned}개를 구매했습니다!`,
               );
             }
             break;
@@ -601,41 +604,6 @@ export default function SocketProvider({ children }: SocketProviderProps) {
             handleBattleAvailable();
             break;
 
-          // case 'BATTLE_UNAVAILABLE':
-          //   const handleBattleUnavailable = () => {
-          //     const currentPlayers = parsedMessage.data.players.split(':');
-
-          //     // 현재 사용자가 players 배열의 첫 번째 요소에 포함되어 있는지 확인
-          //     const isUserAtFront = currentPlayers[0] === nickname;
-
-          //     // 이전 상태가 true일 때만 업데이트
-          //     if (
-          //       isUserAtFront &&
-          //       prevClosedEachOtherRef.current.isAvailable === true
-          //     ) {
-          //       if (
-          //         !Array.isArray(prevClosedEachOtherRef.current.players) ||
-          //         prevClosedEachOtherRef.current.players.join(':') !==
-          //           parsedMessage.data.players
-          //       ) {
-          //         setIsClosedEachOther({
-          //           isAvailable: false,
-          //           players: currentPlayers.join(':'),
-          //         });
-
-          //         console.log('거리 멀어짐', parsedMessage.data);
-
-          //         prevClosedEachOtherRef.current = {
-          //           isAvailable: false,
-          //           players: currentPlayers,
-          //         };
-          //       }
-          //     }
-          //   };
-
-          //   handleBattleUnavailable();
-          //   break;
-
           case 'MONEY_POINTS':
             setCoordinates(parsedMessage.data);
             break;
@@ -643,6 +611,7 @@ export default function SocketProvider({ children }: SocketProviderProps) {
           case 'SUCCESS_MONEY_PICKUP':
             if (currentUser === nickname) {
               getPlayerCash(parsedMessage.data);
+              playGetCoinSound();
             }
             break;
 
@@ -809,7 +778,7 @@ export default function SocketProvider({ children }: SocketProviderProps) {
     });
   };
 
-  // 금괴 매입
+  // 금 매입
   const purchaseGold = (goldPurchaseCount: number) => {
     if (!isSocketConnected()) return;
     const messagePayload = {

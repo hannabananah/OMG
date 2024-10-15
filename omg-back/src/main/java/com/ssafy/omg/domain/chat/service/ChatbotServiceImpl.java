@@ -104,7 +104,7 @@ public class ChatbotServiceImpl implements ChatbotService {
         StringBuilder analysis = new StringBuilder();
 
         analysis.append(String.format("현재 금리: %d%%\n", game.getCurrentInterestRate()));
-        analysis.append(String.format("금괴 가격: %d\n", game.getGoldPrice()));
+        analysis.append(String.format("금 가격: %d\n", game.getGoldPrice()));
 
         StockInfo[] marketStocks = game.getMarketStocks();
         analysis.append("주식 가격 정보:\n");
@@ -122,18 +122,18 @@ public class ChatbotServiceImpl implements ChatbotService {
         for (int i = 1; i < currentPlayer.getStock().length; i++) {
             analysis.append(String.format("주식 %d: %d개\n", i, currentPlayer.getStock()[i]));
         }
-        analysis.append(String.format("보유 금괴: %d개\n", currentPlayer.getGoldOwned()));
+        analysis.append(String.format("보유 금: %d개\n", currentPlayer.getGoldOwned()));
 
         return analysis.toString();
     }
 
     private String getGameRules() {
         return "1. 게임은 총 10라운드로 진행됩니다.\n" +
-                "2. 각 라운드마다 주식 거래, 금괴 구매, 대출 등의 활동을 할 수 있어요.\n" +
+                "2. 각 라운드마다 주식 거래, 금 구매, 대출 등의 활동을 할 수 있어요.\n" +
                 "3. 금리와 경제 이벤트에 주의해야 해요. 이들은 주식 가격과 대출 이자에 영향을 줍니다.\n" +
-                "4. 금괴는 안전 자산으로, 가격이 천천히 상승해요.\n" +
+                "4. 금는 안전 자산으로, 가격이 천천히 상승해요.\n" +
                 "5. 마지막 라운드에는 모든 자산의 가치를 합산해 순위를 매깁니다.\n" +
-                "6. 현금, 주식, 금괴의 가치에서 부채를 뺀 순자산이 가장 높은 플레이어가 승리합니다!";
+                "6. 현금, 주식, 금의 가치에서 부채를 뺀 순자산이 가장 높은 플레이어가 승리합니다!";
     }
 
     private String buildRequestBody(String prompt) {
