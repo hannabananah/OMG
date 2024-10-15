@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import {
   TbSquareArrowDown,
   TbSquareArrowLeft,
-  TbSquareArrowRightFilled,
+  TbSquareArrowRight,
   TbSquareArrowUp,
 } from 'react-icons/tb';
 
@@ -23,14 +23,14 @@ export default function Tutorial() {
 
   useEffect(() => {
     const interval = setInterval(() => {
-      setShowContent(false); // 먼저 글자를 사라지게 함
+      setShowContent(false);
       setTimeout(() => {
-        setCurrentStep(prev => (prev + 1) % tips.length); // 다음 단계로 이동
-        setShowContent(true); // 글자를 다시 표시
-      }, 500); // 1초 동안 글자를 숨긴 후 변경
-    }, 5000); // 5초마다 단계 변경
+        setCurrentStep(prev => (prev + 1) % tips.length);
+        setShowContent(true);
+      }, 500);
+    }, 5000);
 
-    return () => clearInterval(interval); // 컴포넌트가 언마운트될 때 인터벌 제거
+    return () => clearInterval(interval);
   }, []);
 
   return (
@@ -70,7 +70,8 @@ export default function Tutorial() {
               <div className='flex items-center justify-center mt-2 space-x-2'>
                 <TbSquareArrowLeft className='text-white text-omg-32' />
                 <TbSquareArrowUp className='text-white text-omg-32' />
-                <TbSquareArrowRightFilled className='text-white text-omg-32' />
+                <TbSquareArrowRight className='text-white text-omg-32' />
+                <TbSquareArrowDown className='text-white text-omg-32' />
               </div>
             )}
           </div>
