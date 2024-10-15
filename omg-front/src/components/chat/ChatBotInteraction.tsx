@@ -28,9 +28,10 @@ const ChatBotInteraction = () => {
       setResponseMessage('잠시만 기다려줘. 시장을 분석 해볼게!');
     }
     try {
-      const response = await requestChatBot(nickname, roomId, requestMessage);
-      if (response) {
-        setResponseMessage(response);
+      const response = await requestChatBot(roomId, nickname, requestMessage);
+
+      if (response && response.result) {
+        setResponseMessage(response.result);
         setRequestMessage('');
       }
     } catch (error) {
