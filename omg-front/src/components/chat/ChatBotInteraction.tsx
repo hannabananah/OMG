@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { useParams } from 'react-router-dom';
 
+import { useSoundStore } from '@/stores/useSoundStore';
 import useUser from '@/stores/useUser';
 
 import { requestChatBot } from '../../apis/room/roomAPI';
@@ -8,6 +9,7 @@ import { requestChatBot } from '../../apis/room/roomAPI';
 const ChatBotInteraction = () => {
   const { roomId } = useParams<{ roomId: string }>();
   const { nickname } = useUser();
+  const { playGetChatAnswerSound } = useSoundStore();
 
   const [requestMessage, setRequestMessage] = useState<string>(''); // 사용자 요청 메시지
   const [responseMessage, setResponseMessage] = useState<string | null>(null); // API 응답 메시지
@@ -33,6 +35,10 @@ const ChatBotInteraction = () => {
       if (response && response.result) {
         setResponseMessage(response.result);
         setRequestMessage('');
+
+        if (nickname) {
+          playGetChatAnswerSound();
+        }
       }
     } catch (error) {
       setResponseMessage(

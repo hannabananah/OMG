@@ -10,6 +10,7 @@ interface SoundStore {
   playSuccessLoanSound: () => void;
   playSuccessGoldSound: () => void;
   playGetCoinSound: () => void;
+  playGetChatAnswerSound: () => void;
 }
 
 export const useSoundStore = create<SoundStore>(set => ({
@@ -84,6 +85,20 @@ export const useSoundStore = create<SoundStore>(set => ({
 
   playGetCoinSound: () => {
     const alertSound = new Audio('/music/get-coin-alert.mp3');
+    alertSound.play();
+
+    setTimeout(() => {
+      set(state => {
+        if (state.bgm && !state.isMuted) {
+          state.bgm.play();
+        }
+        return {};
+      });
+    }, 2000);
+  },
+
+  playGetChatAnswerSound: () => {
+    const alertSound = new Audio('/music/chat-alert.mp3');
     alertSound.play();
 
     setTimeout(() => {
