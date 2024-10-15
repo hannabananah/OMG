@@ -41,6 +41,16 @@ button:disabled {
   scrollbar-width: none;
 }
 
+/* 모든 브라우저에서 스크롤바 숨기기 */
+* {
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* IE and Edge */
+}
+
+*::-webkit-scrollbar {
+  display: none; /* Chrome, Safari, Opera */
+}
+
 /* ToastAlert 커스텀 아이콘 outline 기본 스타일 제거 */
 .no-icon-style {
   background: none !important;
