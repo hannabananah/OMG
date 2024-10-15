@@ -2,7 +2,7 @@ import { useContext, useEffect, useRef, useState } from 'react';
 import { TbSquareArrowDown } from 'react-icons/tb';
 
 import { Controls } from '@/components/main-map/MainMap';
-import { useCharacter } from '@/stores/useCharacter';
+import { useCharacter } from '@/hooks/useCharacter';
 import { useGameStore } from '@/stores/useGameStore';
 import { useMiniMoneyStore } from '@/stores/useMiniMoneyStore';
 import { useModalStore } from '@/stores/useModalStore';
