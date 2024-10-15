@@ -38,15 +38,15 @@ export default function PersonalBoard() {
   const renderRankImage = () => {
     if (rank === 1)
       return (
-        <Rank1 className='absolute z-20 object-contain w-24 h-auto -translate-x-1/2 top-1 left-1/2 drop-shadow-md' />
+        <Rank1 className='absolute z-20 object-contain w-32 h-auto -translate-x-1/2 bottom-10 left-1/2 drop-shadow-md' />
       );
     if (rank === 2)
       return (
-        <Rank2 className='absolute z-20 object-contain w-24 h-auto -translate-x-1/2 top-1 left-1/2 drop-shadow-md' />
+        <Rank2 className='absolute z-20 object-contain w-32 h-auto -translate-x-1/2 bottom-10 left-1/2 drop-shadow-md' />
       );
     if (rank === 3)
       return (
-        <Rank3 className='absolute z-20 object-contain w-24 h-auto -translate-x-1/2 top-1 left-1/2 drop-shadow-md' />
+        <Rank3 className='absolute z-20 object-contain w-32 h-auto -translate-x-1/2 bottom-9 left-1/2 drop-shadow-md' />
       );
     return null;
   };
@@ -96,7 +96,7 @@ export default function PersonalBoard() {
             <img
               src={characterImageUrl}
               alt={`${nickname} character`}
-              className='object-contain w-16 h-16 drop-shadow-md'
+              className='object-contain w-20 h-20 drop-shadow-md'
             />
           </div>
           <span className='p-1 mt-2 text-center bg-white text-omg-14 font-omg-body rounded-5 drop-shadow-md'>
@@ -121,7 +121,7 @@ export default function PersonalBoard() {
                       className={`w-[24px] transition-opacity duration-300 ${hoveredItem === idx ? 'opacity-0' : 'opacity-100'}`}
                     />
                     <span
-                      className={`absolute -translate-x-1/2 left-1/2 bottom-2 text-black transition-opacity duration-300 font-omg-body text-omg-18 break-keep ${hoveredItem === idx ? 'opacity-100' : 'opacity-0'}`}
+                      className={`absolute -translate-x-1/2 left-1/2 text-black transition-opacity duration-300 font-omg-body text-omg-18 break-keep ${hoveredItem === idx ? 'opacity-100' : 'opacity-0'}`}
                     >
                       {treeItemNameInKorean(item)}
                     </span>
