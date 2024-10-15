@@ -4,7 +4,7 @@ import MiniElf from '@/assets/img/mini-elf.svg?react';
 import MiniGingerbread from '@/assets/img/mini-gingerbread.svg?react';
 import MiniSanta from '@/assets/img/mini-santa.svg?react';
 import MiniSnowman from '@/assets/img/mini-snowman.svg?react';
-import { useOtherUserStore } from '@/stores/useOtherUserState';
+import { useOtherUserStore } from '@/stores';
 import { animated, useTransition } from '@react-spring/web';
 
 interface Item {

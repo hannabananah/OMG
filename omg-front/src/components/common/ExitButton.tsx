@@ -20,6 +20,7 @@ export default function ExitButton({ showText = false }) {
     <button
       onClick={handleExitGame}
       className='flex items-center justify-center space-x-4'
+      aria-label='방 나가기 버튼'
     >
       <FaPowerOff />
       {showText && <span className='text-omg-30'>방 나가기</span>}

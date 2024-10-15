@@ -1,5 +1,5 @@
-import Gauge from '@/components/common/Gauge';
-import { useMainBoardStore } from '@/stores/useMainBoardStore';
+import { Gauge } from '@/components/common';
+import { useMainBoardStore } from '@/stores';
 
 export default function MarketState() {
   const { currentInterestRate, currentStockPriceLevel, tradableStockCnt } =

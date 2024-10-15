@@ -1,11 +1,7 @@
 import { lazy, useEffect, useState } from 'react';
 import { IoArrowRedo, IoArrowUndo } from 'react-icons/io5';
 
-import { useGameResultStore } from '@/stores/useGameResultStore';
-import { useSoundStore } from '@/stores/useSoundStore';
-import useUser from '@/stores/useUser';
-
-// Sound store 추가
+import { useGameResultStore, useSoundStore, useUser } from '@/stores';
 
 const GamePersonalResult = lazy(() => import('./GamePersonalResult'));
 const GameTotalResult = lazy(() => import('./GameTotalResult'));
@@ -44,7 +40,11 @@ export default function GameResult() {
           {showTotalResult ? <GameTotalResult /> : <GamePersonalResult />}
         </div>
         <div className='flex justify-end w-full mt-4'>
-          <button onClick={handleToggle} className='text-omg-28'>
+          <button
+            onClick={handleToggle}
+            className='text-omg-28'
+            aria-label='장 넘기기 버튼'
+          >
             {showTotalResult ? <IoArrowRedo /> : <IoArrowUndo />}
           </button>
         </div>

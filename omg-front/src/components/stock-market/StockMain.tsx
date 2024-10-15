@@ -3,7 +3,7 @@ import { IoRemoveOutline } from 'react-icons/io5';
 
 import { itemNameList } from '@/assets/data/stockMarketData';
 import { chartData, getStockPriceData } from '@/hooks/useStock';
-import { useStockStore } from '@/stores/useStockStore';
+import { useStockStore } from '@/stores';
 import { StockMarketView } from '@/types';
 import formatNumberWithCommas from '@/utils/formatNumberWithCommas';
 

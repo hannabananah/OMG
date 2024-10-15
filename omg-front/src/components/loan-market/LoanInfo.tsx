@@ -1,8 +1,7 @@
 import { useEffect, useRef } from 'react';
 
 import useCountUp from '@/hooks/useCountUp';
-import { useLoanStore } from '@/stores/useLoanStore';
-import { useSocketMessage } from '@/stores/useSocketMessage';
+import { useLoanStore, useSocketMessage } from '@/stores';
 import { ToastAlert } from '@/utils/ToastAlert';
 import formatNumberWithCommas from '@/utils/formatNumberWithCommas';
 

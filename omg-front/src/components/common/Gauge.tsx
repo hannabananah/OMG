@@ -1,4 +1,4 @@
-import { useMainBoardStore } from '@/stores/useMainBoardStore';
+import { useMainBoardStore } from '@/stores';
 
 export default function Gauge() {
   const { remainingUntilChange } = useMainBoardStore();

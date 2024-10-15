@@ -1,11 +1,10 @@
 import { useState } from 'react';
 
+import { BackButton } from '@/components/common';
 import { MarketState, StockMain } from '@/components/stock-market';
-import { useModalStore } from '@/stores/useModalStore';
-import useUser from '@/stores/useUser';
+import { useModalStore, useUser } from '@/stores';
 import { StockMarketView } from '@/types';
 
-import BackButton from '../common/BackButton';
 import StockBuy from './StockBuy';
 import StockSell from './StockSell';
 

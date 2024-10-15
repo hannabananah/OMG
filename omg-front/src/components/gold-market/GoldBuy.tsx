@@ -1,17 +1,19 @@
 import { useContext, useEffect, useState } from 'react';
 
-import { useGoldStore } from '@/stores/useGoldStore';
-import { useMainBoardStore } from '@/stores/useMainBoardStore';
-import { usePersonalBoardStore } from '@/stores/usePersonalBoardStore';
-import { useSocketMessage } from '@/stores/useSocketMessage';
-import { useSoundStore } from '@/stores/useSoundStore';
-import useUser from '@/stores/useUser';
+import { Button } from '@/components/common';
+import {
+  useGoldStore,
+  useMainBoardStore,
+  usePersonalBoardStore,
+  useSocketMessage,
+  useSoundStore,
+  useUser,
+} from '@/stores';
 import { SocketContext } from '@/utils/SocketContext';
 import { ToastAlert } from '@/utils/ToastAlert';
 import formatNumberWithCommas from '@/utils/formatNumberWithCommas';
 import { Canvas } from '@react-three/fiber';
 
-import Button from '../common/Button';
 import GoldModel from './GoldModel';
 import LineChart from './LineChart';
 import PossessionChart from './PossessionChart';

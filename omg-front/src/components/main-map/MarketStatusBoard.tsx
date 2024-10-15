@@ -4,8 +4,7 @@ import { IoMdArrowDropdown, IoMdArrowDropup } from 'react-icons/io';
 import { IoRemoveOutline } from 'react-icons/io5';
 
 import { generateStockItemsDataWithUpdown } from '@/hooks/useStock';
-import { useMainBoardStore } from '@/stores/useMainBoardStore';
-import { useStockStore } from '@/stores/useStockStore';
+import { useMainBoardStore, useStockStore } from '@/stores';
 import { SocketContext } from '@/utils/SocketContext';
 import formatNumberWithCommas from '@/utils/formatNumberWithCommas';
 

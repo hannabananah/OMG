@@ -1,16 +1,14 @@
 import { useContext, useEffect } from 'react';
 
 import { itemNameList } from '@/assets/data/stockMarketData';
-import { useGameStore } from '@/stores/useGameStore';
-import { useSocketMessage } from '@/stores/useSocketMessage';
-import { useSoundStore } from '@/stores/useSoundStore';
-import useUser from '@/stores/useUser';
+import { Button } from '@/components/common';
+import { useSocketMessage, useSoundStore, useUser } from '@/stores';
+import { useGameStore } from '@/stores';
 import { SocketContext } from '@/utils/SocketContext';
 import { ToastAlert } from '@/utils/ToastAlert';
 import { Html, OrbitControls } from '@react-three/drei';
 import { Canvas } from '@react-three/fiber';
 
-import Button from '../common/Button';
 import Item from './Item';
 import PossessionChart from './PossessionChart';
 

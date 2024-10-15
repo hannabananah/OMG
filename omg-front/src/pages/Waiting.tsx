@@ -2,7 +2,7 @@ import { useCallback, useContext, useEffect } from 'react';
 import { FaCrown } from 'react-icons/fa';
 import { useNavigate, useParams } from 'react-router-dom';
 
-import useUser from '@/stores/useUser';
+import { useUser } from '@/stores';
 import { SocketContext } from '@/utils/SocketContext';
 import { ToastAlert } from '@/utils/ToastAlert';
 
@@ -66,11 +66,19 @@ export default function Waiting() {
       />
       <span className='absolute right-4 top-4 text-omg-11'>
         방 ID:
-        <button className='select-text' onClick={copyToClipboard}>
+        <button
+          className='select-text'
+          onClick={copyToClipboard}
+          aria-label='코드 복사 버튼'
+        >
           {roomId}
         </button>
       </span>
-      <button className='absolute right-4 bottom-4' onClick={handleExit}>
+      <button
+        className='absolute right-4 bottom-4'
+        onClick={handleExit}
+        aria-label='대기방 나가기 버튼'
+      >
         <p>대기방 나가기</p>
       </button>
 
@@ -101,6 +109,7 @@ export default function Waiting() {
                   ? 'relative flex items-center justify-center h-32 transition-all duration-1000 animate-shake hover:bg-gradient-animation hover:scale-90'
                   : 'flex items-center justify-center h-32'
               }
+              aria-label='게임 입장 버튼'
             >
               {isRoomFull ? (
                 <span className='text-omg-100b'>GAME START</span>

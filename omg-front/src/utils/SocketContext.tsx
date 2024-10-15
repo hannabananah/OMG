@@ -8,18 +8,20 @@ import {
 } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 
-import { useGameResultStore } from '@/stores/useGameResultStore';
-import { useGameStore } from '@/stores/useGameStore';
-import { useGoldStore } from '@/stores/useGoldStore';
-import { useLoanStore } from '@/stores/useLoanStore';
-import { useMainBoardStore } from '@/stores/useMainBoardStore';
-import { useMiniMapStore } from '@/stores/useMiniMapStore';
-import { useMiniMoneyStore } from '@/stores/useMiniMoneyStore';
-import { useOtherUserStore } from '@/stores/useOtherUserState';
-import { usePersonalBoardStore } from '@/stores/usePersonalBoardStore';
-import { useSocketMessage } from '@/stores/useSocketMessage';
-import { useStockStore } from '@/stores/useStockStore';
-import useUser from '@/stores/useUser';
+import {
+  useGameResultStore,
+  useGameStore,
+  useGoldStore,
+  useLoanStore,
+  useMainBoardStore,
+  useMiniMapStore,
+  useMiniMoneyStore,
+  useOtherUserStore,
+  usePersonalBoardStore,
+  useSocketMessage,
+  useStockStore,
+  useUser,
+} from '@/stores';
 import type { ChatMessage, Player } from '@/types';
 import { Client } from '@stomp/stompjs';
 

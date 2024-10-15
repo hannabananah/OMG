@@ -6,7 +6,7 @@ interface BackButtonProps {
 
 export default function BackButton({ onClick }: BackButtonProps) {
   return (
-    <button onClick={onClick}>
+    <button onClick={onClick} aria-label='뒤로가기 버튼'>
       <IoMdArrowRoundBack />
     </button>
   );

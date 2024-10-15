@@ -1,13 +1,16 @@
 import { useContext, useEffect, useRef, useState } from 'react';
-import { TbSquareArrowDown } from 'react-icons/tb';
 
+// import { TbSquareArrowDown } from 'react-icons/tb';
 import { Controls } from '@/components/main-map/MainMap';
 import { useCharacter } from '@/hooks/useCharacter';
-import { useGameStore } from '@/stores/useGameStore';
-import { useMiniMoneyStore } from '@/stores/useMiniMoneyStore';
-import { useModalStore } from '@/stores/useModalStore';
-import { useMyRoomStore } from '@/stores/useMyRoomStore';
-import useUser from '@/stores/useUser';
+import {
+  useGameStore,
+  useIntroStore,
+  useMiniMoneyStore,
+  useModalStore,
+  useMyRoomStore,
+  useUser,
+} from '@/stores';
 import { SocketContext } from '@/utils/SocketContext';
 import { Html, useKeyboardControls } from '@react-three/drei';
 import { useFrame } from '@react-three/fiber';
@@ -15,7 +18,6 @@ import { CuboidCollider, RigidBody } from '@react-three/rapier';
 import * as THREE from 'three';
 
 import { isInZone, zones } from '../../assets/data/locationInfo';
-import { useIntroStore } from '../../stores/useIntroStore';
 import IntroCamera from '../camera/IntroCamera';
 import Item from './Item';
 
@@ -575,26 +577,26 @@ export default function Character({
             );
           }
 
-          if (collisionRef.current === true) {
-            flattenedItems.push(
-              <Html
-                key={`collision-${characterType}`}
-                position={[
-                  characterPosition.x,
-                  characterPosition.y + 3,
-                  characterPosition.z,
-                ]}
-                center
-              >
-                <div className='flex justify-center'>
-                  <TbSquareArrowDown className='mt-2 text-white text-omg-32' />
-                </div>
-                <div className='flex items-center justify-center w-auto h-10 p-2 border-4 border-white font-omg-event-content bounce-animation bg-white1 text-nowrap bg-opacity-90 rounded-20'>
-                  아래 방향키를 눌러서 장애물을 빠져나오세요!!
-                </div>
-              </Html>,
-            );
-          }
+          // if (collisionRef.current === true) {
+          //   flattenedItems.push(
+          //     <Html
+          //       key={`collision-${characterType}`}
+          //       position={[
+          //         characterPosition.x,
+          //         characterPosition.y + 3,
+          //         characterPosition.z,
+          //       ]}
+          //       center
+          //     >
+          //       <div className='flex justify-center'>
+          //         <TbSquareArrowDown className='mt-2 text-white text-omg-32' />
+          //       </div>
+          //       <div className='flex items-center justify-center w-auto h-10 p-2 border-4 border-white font-omg-event-content bounce-animation bg-white1 text-nowrap bg-opacity-90 rounded-20'>
+          //         아래 방향키를 눌러서 장애물을 빠져나오세요!!
+          //       </div>
+          //     </Html>,
+          //   );
+          // }
 
           if (isCarrying) {
             flattenedItems.push(
@@ -618,6 +620,7 @@ export default function Character({
                   characterPosition.z,
                 ]}
                 center
+                zIndexRange={[30, 0]}
               >
                 <div className='flex flex-col items-center justify-center w-32 h-12 p-2 border-4 border-white bg-white1 text-nowrap bg-opacity-90 font-omg-event-content rounded-20'>
                   {nickname === player1 ? (
@@ -635,7 +638,6 @@ export default function Character({
           if (showMoney && isOwnCharacter) {
             flattenedItems.push(
               <Html
-                zIndexRange={[20, 0]}
                 key={`miniMoney-${characterType}`}
                 position={[
                   characterPosition.x,

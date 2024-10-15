@@ -3,10 +3,7 @@ import { BiSpreadsheet } from 'react-icons/bi';
 import { FaRegQuestionCircle } from 'react-icons/fa';
 import { GiCardPick } from 'react-icons/gi';
 
-import { useLoanStore } from '@/stores/useLoanStore';
-import { useModalStore } from '@/stores/useModalStore';
-import { useSoundStore } from '@/stores/useSoundStore';
-import useUser from '@/stores/useUser';
+import { useLoanStore, useModalStore, useSoundStore, useUser } from '@/stores';
 import { LoanMarketView } from '@/types';
 import { SocketContext } from '@/utils/SocketContext';
 import { ToastAlert } from '@/utils/ToastAlert';
@@ -120,6 +117,7 @@ export default function LoanMarket() {
             type='button'
             className='absolute w-10 h-10 m-4 text-center right-10 -p-4'
             onMouseEnter={showTooltip}
+            aria-label='툴팁 열기 버튼'
           >
             <FaRegQuestionCircle size={20} />
           </button>
@@ -134,6 +132,7 @@ export default function LoanMarket() {
               <button
                 onClick={toggleView}
                 className='transition-transform duration-300 hover:scale-110'
+                aria-label='대출 리스트 양식 변환 버튼'
               >
                 {isReportVisible ? (
                   <BiSpreadsheet size={28} />

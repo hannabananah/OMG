@@ -4,8 +4,7 @@ import {
   getPossessionData,
   getTreeItemImagePath,
 } from '@/hooks/useStock';
-import { useGameStore } from '@/stores/useGameStore';
-import { useStockStore } from '@/stores/useStockStore';
+import { useGameStore, useStockStore } from '@/stores';
 import { Player, StockItem } from '@/types';
 import { AxisTickProps } from '@nivo/axes';
 import { ResponsiveBar } from '@nivo/bar';

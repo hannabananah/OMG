@@ -29,15 +29,17 @@ import Map from '@/components/main-map/Map';
 import MiniMap from '@/components/mini-map/MiniMap';
 import { StockChangeAlert, getAlertComponent } from '@/components/notification';
 import { StockMarket } from '@/components/stock-market';
-import { useAlertStore } from '@/stores/useAlertStore';
-import { useIntroStore } from '@/stores/useIntroStore';
-import { useMiniMoneyStore } from '@/stores/useMiniMoneyStore';
-import { useModalStore } from '@/stores/useModalStore';
-import { useMyRoomStore } from '@/stores/useMyRoomStore';
-import { useOtherUserStore } from '@/stores/useOtherUserState';
-import { useSocketMessage } from '@/stores/useSocketMessage';
-import { useSoundStore } from '@/stores/useSoundStore';
-import useUser from '@/stores/useUser';
+import {
+  useAlertStore,
+  useIntroStore,
+  useMiniMoneyStore,
+  useModalStore,
+  useMyRoomStore,
+  useOtherUserStore,
+  useSocketMessage,
+  useSoundStore,
+  useUser,
+} from '@/stores';
 import { SocketContext } from '@/utils/SocketContext';
 import { KeyboardControls } from '@react-three/drei';
 import { Canvas } from '@react-three/fiber';

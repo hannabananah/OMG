@@ -1,4 +1,4 @@
-import { useLoanStore } from '@/stores/useLoanStore';
+import { useLoanStore } from '@/stores';
 import formatNumberWithCommas from '@/utils/formatNumberWithCommas';
 import { formatTime } from '@/utils/formatTime';
 

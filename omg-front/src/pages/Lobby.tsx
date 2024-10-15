@@ -2,12 +2,12 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { FaCopy } from 'react-icons/fa';
 import { useNavigate } from 'react-router-dom';
 
-import ExitButton from '@/components/common/ExitButton';
+import { ExitButton } from '@/components/common';
 import {
   useCreateWaitingRoom,
   useHasWaitingRoom,
 } from '@/hooks/useWaitingRoom';
-import useUser from '@/stores/useUser';
+import { useUser } from '@/stores';
 import { ToastAlert } from '@/utils/ToastAlert';
 
 export default function Lobby() {
@@ -100,6 +100,7 @@ export default function Lobby() {
               onClick={handleClickCreateRoom}
               className='w-full p-2 text-white text-omg-40b'
               disabled={createRoomMutation.isPending}
+              aria-label='방 생성 버튼'
             >
               {createRoomMutation.isPending ? '방 생성중...' : '방 생성하기'}
             </button>
@@ -125,6 +126,7 @@ export default function Lobby() {
                 className='absolute -translate-y-1/2 right-10 top-1/2'
                 onClick={handleCopyToClipboard}
                 disabled={!isCopyEnabled}
+                aria-label='코드 복사 버튼'
               >
                 <FaCopy
                   className={`text-omg-24 ${isCopyEnabled ? 'text-black' : 'text-white3'}`}
@@ -135,6 +137,7 @@ export default function Lobby() {
             <button
               className='w-1/4 text-white text-omg-40b'
               onClick={handleClickEnterRoom}
+              aria-label='대기방 입장 버튼'
             >
               입장
             </button>

@@ -1,5 +1,4 @@
-import { useGameResultStore } from '@/stores/useGameResultStore';
-import useUser from '@/stores/useUser';
+import { useGameResultStore, useUser } from '@/stores';
 import formatNumberWithCommas from '@/utils/formatNumberWithCommas';
 
 export default function GamePersonalResult() {

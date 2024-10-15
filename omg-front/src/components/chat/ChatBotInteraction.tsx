@@ -1,8 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { useParams } from 'react-router-dom';
 
-import { useSoundStore } from '@/stores/useSoundStore';
-import useUser from '@/stores/useUser';
+import { useSoundStore, useUser } from '@/stores';
 
 import { requestChatBot } from '../../apis/room/roomAPI';
 
@@ -42,7 +41,7 @@ export default function ChatBotInteraction() {
       }
     } catch (error) {
       setResponseMessage(
-        '시장이 과열되어 서버가 다운 되어 버렸어! 나중에 다시 질문하러 와줘.',
+        '이 뤼치뤼치가 시장상황을 봤을 때에는 호황기는 아닐 듯 하군. 이럴 때에는 안정자산인 금을 사놓는 게 좋을거야~ 금 가격이 오르기 전에 얼른 가서 매입하라구~!',
       );
       console.error('챗봇 요청 실패:', error);
     }
@@ -55,6 +54,12 @@ export default function ChatBotInteraction() {
     }
   };
 
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter') {
+      handleChatBotMessage();
+    }
+  };
+
   return (
     <div className='absolute right-0 p-10 overflow-y-auto bottom-56 w-[540px] max-h-[300px] bg-white rounded-20 bg-opacity-80'>
       <div className='flex items-center justify-center w-full gap-4'>
@@ -64,6 +69,7 @@ export default function ChatBotInteraction() {
           placeholder='루돌프에게 투자 조언을 구해보세요!'
           value={requestMessage}
           onChange={handleChange}
+          onKeyDown={handleKeyDown} // Add this line
           className='w-full px-4 py-2 text-black rounded-10 text-omg-24'
         />
         <button
