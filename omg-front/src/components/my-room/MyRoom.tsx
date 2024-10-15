@@ -251,11 +251,7 @@ export default function MyRoom() {
             return (
               <group key={item.itemName}>
                 <mesh rotation={[2.95, 0, 0]} position={[0, -0.5, 0]}>
-                  <RoundedBox
-                    args={[8.5, 4.5, 0.5]}
-                    radius={0.3}
-                    smoothness={4}
-                  >
+                  <RoundedBox args={[7, 4, 0.5]} radius={0.3} smoothness={4}>
                     <meshStandardMaterial
                       color='gray'
                       transparent
@@ -266,12 +262,12 @@ export default function MyRoom() {
 
                 <Item
                   itemName={item.itemName}
-                  position={{ x: positionX, y: 0.6, z: 1 }}
+                  position={{ x: positionX, y: 0.3, z: 1 }}
                   disabled={false}
                 />
 
-                <Html position={[positionX, -0.6, 0]} center>
-                  <div className='flex flex-col items-center w-40 gap-12 text-omg-14'>
+                <Html position={[positionX, -0.8, 0]} center>
+                  <div className='flex flex-col items-center w-40 gap-12 text-omg-18'>
                     {/* 보유 수량 */}
                     <div>{item.count}개 보유</div>
 
@@ -307,7 +303,7 @@ export default function MyRoom() {
           })}
         </Canvas>
 
-        <div className='absolute flex items-center justify-center gap-10 -translate-x-1/2 text-omg-18 bottom-44 left-1/2'>
+        <div className='absolute flex items-center justify-center gap-10 -translate-x-1/2 text-omg-18 bottom-72 left-1/2'>
           <p className='text-omg-24'>
             (예상) 판매 수익 ${formatNumberWithCommas(calculateTotalRevenue())}
           </p>

@@ -11,32 +11,42 @@ interface MoneyAssetsProps {
 
 export default function MoneyCanvas({ position, status }: MoneyAssetsProps) {
   if (status === 0) return null;
-  const { scene } = useMemo(() => {
-    return useGLTF(
-      status === 2
-        ? '/models/gold/gold.gltf'
-        : status === 1
-          ? '/models/hat/hat.gltf'
-          : '',
-    );
+
+  const { scene, scale, args } = useMemo(() => {
+    if (status === 2) {
+      return {
+        scene: useGLTF('/models/gold/gold.gltf').scene,
+        scale: [0.3, 0.3, 0.3],
+        args: [0.3, 0.3, 0.3] as [number, number, number],
+      };
+    } else if (status === 1) {
+      return {
+        scene: useGLTF('/models/silver/silver.gltf').scene,
+        scale: [2.5, 2.5, 2.5],
+        args: [2.5, 2.5, 2.5] as [number, number, number],
+      };
+    }
+    return { scene: null, scale: [1, 1, 1], colliderArgs: [1, 1, 1] };
   }, [status]);
 
-  const ref = useFloatingObject(-7);
+  if (!scene) return null;
 
+  const ref = useFloatingObject(position[1]);
   const clonedScene = scene.clone();
 
   return (
     <RigidBody type='fixed'>
-      <CuboidCollider args={[0.6, 0.6, 0.6]} />
+      <CuboidCollider args={args} />
       <primitive
         ref={ref}
         object={clonedScene}
         position={position}
-        scale={[0.6, 0.6, 0.6]}
+        scale={scale}
+        rotation={[0, 0, 0]}
       />
     </RigidBody>
   );
 }
 
 useGLTF.preload('/models/gold/gold.gltf');
-useGLTF.preload('/models/hat/hat.gltf');
+useGLTF.preload('/models/silver/silver.gltf');
