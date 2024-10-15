@@ -599,6 +599,7 @@ export default function Character({
                   characterPosition.z,
                 ]}
                 center
+                zIndexRange={[30, 0]}
               >
                 <div className='flex flex-col items-center justify-center w-32 h-12 p-2 border-4 border-white bg-white1 text-nowrap bg-opacity-90 font-omg-event-content rounded-20'>
                   {nickname === player1 ? (
@@ -616,7 +617,6 @@ export default function Character({
           if (showMoney && isOwnCharacter) {
             flattenedItems.push(
               <Html
-                zIndexRange={[20, 0]}
                 key={`miniMoney-${characterType}`}
                 position={[
                   characterPosition.x,
