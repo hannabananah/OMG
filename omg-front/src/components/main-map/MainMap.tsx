@@ -92,6 +92,7 @@ export default function MainMap() {
     playEndRoundSound,
     playChangePriceSound,
     playLeftTimeAlertSound,
+    playClickChatSound,
   } = useSoundStore();
   const {
     isStockChangeAlertVisible,
@@ -257,6 +258,9 @@ export default function MainMap() {
 
   const openChattingModal = () => {
     setIsChatOpen(true);
+    if (nickname) {
+      playClickChatSound();
+    }
   };
 
   const closeChattingModal = () => {
@@ -265,6 +269,9 @@ export default function MainMap() {
 
   const toggleChatBot = () => {
     setIsChatBotOpen(prev => !prev);
+    if (nickname) {
+      playClickChatSound();
+    }
   };
 
   return (
@@ -313,10 +320,10 @@ export default function MainMap() {
         </div>
       )}
 
-      {/* 내 방 Modal */}
+      {/* 내 방 모달 */}
       {modals[nickname]?.myRoom && <MyRoom />}
 
-      {/* 주식 시장 Modal */}
+      {/* 주식 시장 모달 */}
       {modals[nickname]?.stockMarket && <StockMarket />}
 
       {/* 금 시장 모달 */}
