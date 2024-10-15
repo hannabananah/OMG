@@ -1,11 +1,7 @@
 import { lazy, useEffect, useState } from 'react';
 import { IoArrowRedo, IoArrowUndo } from 'react-icons/io5';
 
-import { useGameResultStore } from '@/stores/useGameResultStore';
-import { useSoundStore } from '@/stores/useSoundStore';
-import useUser from '@/stores/useUser';
-
-// Sound store 추가
+import { useGameResultStore, useSoundStore, useUser } from '@/stores';
 
 const GamePersonalResult = lazy(() => import('./GamePersonalResult'));
 const GameTotalResult = lazy(() => import('./GameTotalResult'));

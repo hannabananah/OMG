@@ -13,13 +13,15 @@ import {
 } from '@/components/common';
 import { Item } from '@/components/stock-market';
 import { treeItemNameInKorean } from '@/hooks/useStock';
-import { useGameStore } from '@/stores/useGameStore';
-import { useMainBoardStore } from '@/stores/useMainBoardStore';
-import { useModalStore } from '@/stores/useModalStore';
-import { useMyRoomStore } from '@/stores/useMyRoomStore';
-import { usePersonalBoardStore } from '@/stores/usePersonalBoardStore';
-import { useSoundStore } from '@/stores/useSoundStore';
-import useUser from '@/stores/useUser';
+import {
+  useGameStore,
+  useMainBoardStore,
+  useModalStore,
+  useMyRoomStore,
+  usePersonalBoardStore,
+  useSoundStore,
+  useUser,
+} from '@/stores';
 import { SocketContext } from '@/utils/SocketContext';
 import { ToastAlert } from '@/utils/ToastAlert';
 import formatNumberWithCommas from '@/utils/formatNumberWithCommas';

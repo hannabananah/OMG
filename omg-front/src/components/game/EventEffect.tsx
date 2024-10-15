@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 
-import { useSocketMessage } from '@/stores/useSocketMessage';
+import { useSocketMessage } from '@/stores';
 
 export default function EventEffect() {
   const { eventEffectMessage } = useSocketMessage();

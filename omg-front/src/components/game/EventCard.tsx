@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { useGesture } from 'react-use-gesture';
 
-import { useSocketMessage } from '@/stores/useSocketMessage';
+import { useSocketMessage } from '@/stores';
 import { animated, useSpring } from '@react-spring/web';
 
 const calcX = (y: number, ly: number) =>

@@ -3,10 +3,7 @@ import { BiSpreadsheet } from 'react-icons/bi';
 import { FaRegQuestionCircle } from 'react-icons/fa';
 import { GiCardPick } from 'react-icons/gi';
 
-import { useLoanStore } from '@/stores/useLoanStore';
-import { useModalStore } from '@/stores/useModalStore';
-import { useSoundStore } from '@/stores/useSoundStore';
-import useUser from '@/stores/useUser';
+import { useLoanStore, useModalStore, useSoundStore, useUser } from '@/stores';
 import { LoanMarketView } from '@/types';
 import { SocketContext } from '@/utils/SocketContext';
 import { ToastAlert } from '@/utils/ToastAlert';

@@ -12,7 +12,7 @@ interface userInfoState {
   setPlayerIndex: (value: number) => void;
 }
 
-const useUser = create<userInfoState>()(
+export const useUser = create<userInfoState>()(
   persist(
     set => ({
       nickname: '',
@@ -30,5 +30,3 @@ const useUser = create<userInfoState>()(
     },
   ),
 );
-
-export default useUser;

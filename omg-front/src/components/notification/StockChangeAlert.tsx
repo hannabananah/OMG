@@ -1,7 +1,7 @@
 import { Fragment, useEffect, useState } from 'react';
 
 import { treeItemImagePaths } from '@/assets/data/stockMarketData';
-import { useAlertStore } from '@/stores/useAlertStore';
+import { useAlertStore } from '@/stores';
 
 interface StockChangeProps {
   message: string;

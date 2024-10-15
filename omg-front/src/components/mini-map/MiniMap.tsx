@@ -5,9 +5,7 @@ import MiniElf from '@/assets/img/mini-elf.svg?react';
 import MiniGingerbread from '@/assets/img/mini-gingerbread.svg?react';
 import MiniSanta from '@/assets/img/mini-santa.svg?react';
 import MiniSnowman from '@/assets/img/mini-snowman.svg?react';
-import { useMiniMapStore } from '@/stores/useMiniMapStore';
-import { useOtherUserStore } from '@/stores/useOtherUserState';
-import useUser from '@/stores/useUser';
+import { useMiniMapStore, useOtherUserStore, useUser } from '@/stores';
 
 const renderMiniCharacterImage = (characterType: number) => {
   const imageClasses = 'w-12 h-12 drop-shadow-md';

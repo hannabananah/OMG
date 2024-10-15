@@ -2,12 +2,12 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { FaCopy } from 'react-icons/fa';
 import { useNavigate } from 'react-router-dom';
 
-import ExitButton from '@/components/common/ExitButton';
+import { ExitButton } from '@/components/common';
 import {
   useCreateWaitingRoom,
   useHasWaitingRoom,
 } from '@/hooks/useWaitingRoom';
-import useUser from '@/stores/useUser';
+import { useUser } from '@/stores';
 import { ToastAlert } from '@/utils/ToastAlert';
 
 export default function Lobby() {

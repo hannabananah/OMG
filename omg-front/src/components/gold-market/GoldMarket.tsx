@@ -1,6 +1,5 @@
 import { MarketState } from '@/components/stock-market';
-import { useModalStore } from '@/stores/useModalStore';
-import useUser from '@/stores/useUser';
+import { useModalStore, useUser } from '@/stores';
 
 import BackButton from '../common/BackButton';
 import GoldBuy from './GoldBuy';

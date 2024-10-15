@@ -1,19 +1,21 @@
 import { useContext, useEffect } from 'react';
 
 import { itemNameList } from '@/assets/data/stockMarketData';
+import { Button } from '@/components/common';
 import { getTreeItemImagePath } from '@/hooks/useStock';
-import { useGameStore } from '@/stores/useGameStore';
-import { useMainBoardStore } from '@/stores/useMainBoardStore';
-import { usePersonalBoardStore } from '@/stores/usePersonalBoardStore';
-import { useSocketMessage } from '@/stores/useSocketMessage';
-import { useSoundStore } from '@/stores/useSoundStore';
-import { useStockStore } from '@/stores/useStockStore';
-import useUser from '@/stores/useUser';
+import {
+  useGameStore,
+  useMainBoardStore,
+  usePersonalBoardStore,
+  useSocketMessage,
+  useSoundStore,
+  useStockStore,
+  useUser,
+} from '@/stores';
 import { SocketContext } from '@/utils/SocketContext';
 import { ToastAlert } from '@/utils/ToastAlert';
 import formatNumberWithCommas from '@/utils/formatNumberWithCommas';
 
-import Button from '../common/Button';
 import PossessionChart from './PossessionChart';
 
 export default function StockBuy() {

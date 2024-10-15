@@ -1,5 +1,4 @@
-import { useSoundStore } from '@/stores/useSoundStore';
-import useUser from '@/stores/useUser';
+import { useSoundStore, useUser } from '@/stores';
 
 interface ChatInputFormProps {
   msg: string;

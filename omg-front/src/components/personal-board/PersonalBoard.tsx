@@ -9,9 +9,7 @@ import Rank2 from '@/assets/img/rank2.svg?react';
 import Rank3 from '@/assets/img/rank3.svg?react';
 import useCountUp from '@/hooks/useCountUp';
 import { treeItemNameInKorean } from '@/hooks/useStock';
-import { useGameStore } from '@/stores/useGameStore';
-import { usePersonalBoardStore } from '@/stores/usePersonalBoardStore';
-import useUser from '@/stores/useUser';
+import { useGameStore, usePersonalBoardStore, useUser } from '@/stores';
 import { SocketContext } from '@/utils/SocketContext';
 import formatNumberWithCommas from '@/utils/formatNumberWithCommas';
 

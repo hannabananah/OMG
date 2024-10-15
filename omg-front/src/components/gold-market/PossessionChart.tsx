@@ -1,8 +1,7 @@
 // import { goldPossessionInfo, players } from '@/assets/data/goldMarketData';
 import { useGoldPossessionData } from '@/hooks/useGold';
 import { getCharacterImageByNickname } from '@/hooks/useStock';
-import { useGameStore } from '@/stores/useGameStore';
-import { useGoldStore } from '@/stores/useGoldStore';
+import { useGameStore, useGoldStore } from '@/stores';
 import { ResponsiveBar } from '@nivo/bar';
 
 // 커스텀 레이블 추가: 주식별 퍼센트 옆에 캐릭터 이미지 추가

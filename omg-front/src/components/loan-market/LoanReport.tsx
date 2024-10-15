@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useDrag } from 'react-use-gesture';
 
-import { useLoanStore } from '@/stores/useLoanStore';
+import { useLoanStore } from '@/stores';
 import { formatTime } from '@/utils/formatTime';
 import { animated, useSprings } from '@react-spring/web';
 
