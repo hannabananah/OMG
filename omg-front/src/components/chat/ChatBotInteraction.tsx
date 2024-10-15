@@ -12,11 +12,14 @@ export default function ChatBotInteraction() {
 
   const [requestMessage, setRequestMessage] = useState<string>('');
   const [responseMessage, setResponseMessage] = useState<string | null>(null);
+  const [isOpen, setIsOpen] = useState<boolean>(false);
 
   const inputRef = useRef<HTMLInputElement>(null);
+  const chatBotRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
     inputRef.current?.focus();
+    setIsOpen(true);
   }, []);
 
   const handleChatBotMessage = async () => {
@@ -64,7 +67,12 @@ export default function ChatBotInteraction() {
   const buttonClass = requestMessage.trim() !== '' ? 'bg-gray' : 'bg-lightgray';
 
   return (
-    <div className='absolute right-0 p-6 bottom-56 w-[540px] max-h-[300px] overflow-hidden bg-white rounded-20 bg-opacity-80'>
+    <div
+      ref={chatBotRef}
+      className={`absolute right-0 p-6 bottom-56 w-[540px] max-h-[300px] overflow-hidden bg-white rounded-20 bg-opacity-80 
+        ${isOpen ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-full'} 
+        transition-all duration-500 ease-in-out`}
+    >
       <div className='flex items-center justify-center w-full gap-4'>
         <input
           ref={inputRef}
