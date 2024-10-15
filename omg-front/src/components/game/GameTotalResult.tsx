@@ -16,7 +16,7 @@ export default function GameTotalResult() {
           <th className='w-24 pb-8'></th>
           <th className='pb-8'>주식 최종액</th>
           <th className='w-24 pb-8'></th>
-          <th className='pb-8'>금괴 매입액</th>
+          <th className='pb-8'>금 매입액</th>
           <th className='w-24 pb-8'></th>
           <th className='pb-8'>대출액</th>
           <th className='w-24 pb-8'></th>

@@ -49,10 +49,10 @@ public class GameController {
 
         try {
             gameService.purchaseGold(roomId, userNickname, purchasedGoldCnt);
-            return new BaseResponse<>("금괴 매입에 성공했습니다!");
+            return new BaseResponse<>("금 매입에 성공했습니다!");
         } catch (MessageException e) {
             if (e.getStatus() == OUT_OF_CASH) {
-                return new BaseResponse<>("현재 보유한 자산이 부족하여 금괴를 매입할 수 없습니다.");
+                return new BaseResponse<>("현재 보유한 자산이 부족하여 금를 매입할 수 없습니다.");
             }
             // 다른 MessageException 처리
             return new BaseResponse<>(e.getStatus().getMessage());

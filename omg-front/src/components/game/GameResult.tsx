@@ -49,7 +49,7 @@ export default function GameResult() {
           </button>
         </div>
         <p className='text-center underline text-omg-20 font-omg-body'>
-          * 총 자산은 보유 현금 자산과 주식 최종액, 금괴 매입액을 합산하고
+          * 총 자산은 보유 현금 자산과 주식 최종액, 금 매입액을 합산하고
           대출액을 차감하여 산정합니다.
         </p>
       </div>

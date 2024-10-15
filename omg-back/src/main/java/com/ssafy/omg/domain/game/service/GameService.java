@@ -36,7 +36,7 @@ public interface GameService {
     // 돈 줍기
     MoneyCollectionResponse collectMoney(String roomId, String userNickname, String moneyPoint) throws BaseException;
 
-    // 매입한 금괴 개수를 플레이어 자산 및 금괴 매입 트랙( + 추가개수)에 반영
+    // 매입한 금 개수를 플레이어 자산 및 금 매입 트랙( + 추가개수)에 반영
     void purchaseGold(String roomId, String userNickname, int goldButCount) throws BaseException, MessageException;
 
     // 주가 변동 가능 여부
@@ -64,13 +64,13 @@ public interface GameService {
     // 주가 차트 생성
     void setStockPriceChangeInfo(Game game, int round, int remainTime);
 
-    // 금괴 차트 생성
+    // 금 차트 생성
     void setGoldPriceChartInfo(Game game, int round, int remainTime) throws BaseException;
 
     // 주식 거래소 정보 생성
     StockMarketResponse createStockMarketInfo(Game game);
 
-    // 금괴 매입소 정보 생성
+    // 금 매입소 정보 생성
     GoldMarketInfoResponse createGoldMarketInfo(Game game) throws BaseException;
 
     // 게임 중 순자산으로 플레이어별 랭킹 계산 후 응답 생성

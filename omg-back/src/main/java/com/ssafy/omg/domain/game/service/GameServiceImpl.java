@@ -216,7 +216,7 @@ public class GameServiceImpl implements GameService {
     }
 
     /**
-     * 금괴 매입소 정보 생성
+     * 금 매입소 정보 생성
      *
      * @param game
      * @return
@@ -436,9 +436,9 @@ public class GameServiceImpl implements GameService {
                         .loanProducts(new TreeSet<LoanProduct>())
                         .cash(100)                        // 현금
                         .stock(randomStock)               // 보유 주식 개수
-                        .goldOwned(0)                     // 보유 금괴 개수
+                        .goldOwned(0)                     // 보유 금 개수
 
-                        .action(null)                     // 플레이어 행위 (주식 매수, 주식 매도, 금괴 매입, 대출, 상환)
+                        .action(null)                     // 플레이어 행위 (주식 매수, 주식 매도, 금 매입, 대출, 상환)
                         .state(NOT_STARTED)               // 플레이어 행위 상태 (시작전, 진행중, 완료)
                         .isConnected(1)                   // 플레이어 접속 상태 (0: 끊김, 1: 연결됨)
                         .animation(PlayerAnimation.IDLE)  // 기본상태
@@ -490,7 +490,7 @@ public class GameServiceImpl implements GameService {
                     .goldBuyTrack(new int[6])                     // 금 매입 트랙 초기화
 
                     .goldPrice(20)                                // 초기 금 가격 20
-                    .goldPriceIncreaseCnt(0)                      // 초기 금괴 매입 개수 0
+                    .goldPriceIncreaseCnt(0)                      // 초기 금 매입 개수 0
 
                     .stockPriceChangeInfo(stockPriceChangeInfo)
                     .goldPriceChart(goldPriceChart)
@@ -867,7 +867,7 @@ public class GameServiceImpl implements GameService {
     }
 
     /**
-     * 매입한 금괴 개수를 플레이어 자산 및 금괴 매입 트랙( + 추가개수)에 반영
+     * 매입한 금 개수를 플레이어 자산 및 금 매입 트랙( + 추가개수)에 반영
      * 플레이어별 개인 정보는 계속 브로드캐스팅 되기 때문에 redis 데이터 값만 바꿔주면됨
      *
      * @param goldBuyCount
@@ -880,12 +880,12 @@ public class GameServiceImpl implements GameService {
         Game game = arena.getGame();
         Player player = findPlayer(arena, userNickname);
 
-        // 금괴 매입 비용 계산
+        // 금 매입 비용 계산
         int currentGoldPrice = game.getGoldPrice();
         int totalCost = currentGoldPrice * goldBuyCount;
 
         if (player.getState() == COMPLETED) {
-            log.debug("이미 금괴 매입을 완료한 플레이어입니다!");
+            log.debug("이미 금 매입을 완료한 플레이어입니다!");
             throw new BaseException(PLAYER_STATE_ERROR);
         }
 
@@ -893,7 +893,7 @@ public class GameServiceImpl implements GameService {
             throw new MessageException(roomId, userNickname, OUT_OF_CASH);
         }
 
-        // 금괴 매입 표 변경 ( 시장에서 넣을 수 있는 랜덤 주식 넣기 )
+        // 금 매입 표 변경 ( 시장에서 넣을 수 있는 랜덤 주식 넣기 )
         int[] currentMarketStocks = Arrays.stream(game.getMarketStocks())
                 .mapToInt(StockInfo::getCnt)
                 .toArray();
@@ -906,7 +906,7 @@ public class GameServiceImpl implements GameService {
         System.out.println("뽑을 수 있는 0이 아닌 주식 : " + selectableStocks);
 
         int[] goldBuyTrack = game.getGoldBuyTrack();
-        System.out.println("금괴 매수 트랙 : " + Arrays.toString(goldBuyTrack));
+        System.out.println("금 매수 트랙 : " + Arrays.toString(goldBuyTrack));
 
         int selectedStock = -1;
         for (int i = 1; i < goldBuyTrack.length; i++) {
@@ -922,7 +922,7 @@ public class GameServiceImpl implements GameService {
         }
         game.setGoldBuyTrack(goldBuyTrack);
         System.out.println("==========                     changed                   =========");
-        System.out.println("금괴 매수 트랙 : " + Arrays.toString(goldBuyTrack));
+        System.out.println("금 매수 트랙 : " + Arrays.toString(goldBuyTrack));
         System.out.println("변경된 시장 주식들 : " + Arrays.toString(currentMarketStocks));
 
         // 시장에 반영
@@ -932,11 +932,11 @@ public class GameServiceImpl implements GameService {
         }
         game.setMarketStocks(updatedMarketStocks);
 
-        // 금괴 추가 매입 수치 변경
+        // 금 추가 매입 수치 변경
         int currentGoldPriceIncreaseCnt = game.getGoldPriceIncreaseCnt();
         game.setGoldPriceIncreaseCnt(currentGoldPriceIncreaseCnt + goldBuyCount);
 
-        // 자산에 금괴 개수 반영 및 금액 지불
+        // 자산에 금 개수 반영 및 금액 지불
         int currentMyCash = player.getCash();
         int currentMyGold = player.getGoldOwned();
 
@@ -955,7 +955,7 @@ public class GameServiceImpl implements GameService {
         }
         game.setPlayers(players);
 
-        // 금괴 매입 트랙에 의한 주가 상승 체크 및 반영
+        // 금 매입 트랙에 의한 주가 상승 체크 및 반영
         // 1. 넣은 주식과 같은 종류의 주식이 딱 3개
         // 2. 뽑은 주식이 시장에서 해당 종류 마지막 토큰인 경우
 
@@ -964,7 +964,7 @@ public class GameServiceImpl implements GameService {
             System.out.println("주가상승!");
         }
 
-        // 금괴 매입 트랙에 의한 주가 변동 체크 및 반영 - 꽉 찼을 때
+        // 금 매입 트랙에 의한 주가 변동 체크 및 반영 - 꽉 찼을 때
         if (isStockFluctuationAble(goldBuyTrack)) {
             game.setGoldBuyTrack(new int[]{0, 0, 0, 0, 0, 0});
             game.setRoundStatus(STOCK_FLUCTUATION); // TODO 주가변동 메서드 스케줄러에 넣기
@@ -1001,7 +1001,7 @@ public class GameServiceImpl implements GameService {
 
 
     /**
-     * 주가 변동 가능 여부 체크 ( 주가 매수 트랙, 주가 매도 트랙, 금괴 매입 트랙) -> 주가 변동 로직 실행
+     * 주가 변동 가능 여부 체크 ( 주가 매수 트랙, 주가 매도 트랙, 금 매입 트랙) -> 주가 변동 로직 실행
      *
      * @param roomId
      * @return
@@ -1049,7 +1049,7 @@ public class GameServiceImpl implements GameService {
         double marketInterestRate = game.getCurrentInterestRate() / 100.0 * 4;
         int loanLimit = (int) (((game.getCurrentStockPriceLevel() + 1) * availableRepaymentCapacity / 10.0 * 7) / marketInterestRate);
 
-        // 4. 금괴, 주식 가치 대출 한도에 반영
+        // 4. 금, 주식 가치 대출 한도에 반영
         loanLimit += (int) (player.getGoldOwned() * game.getGoldPrice() * 0.7);
         loanLimit += (int) (getStockValue(player.getStock(), game.getMarketStocks()) * 0.4);
 
@@ -1069,7 +1069,7 @@ public class GameServiceImpl implements GameService {
             // 현금 자산
             totalValue = inGamePlayer.getCash();
 
-            // 금괴 가치
+            // 금 가치
             totalValue += inGamePlayer.getGoldOwned() * goldPrice;
 
             // 주식 가치
@@ -1354,10 +1354,10 @@ public class GameServiceImpl implements GameService {
         if (blackTokenCnt > 0) {
             // 2-1. 검은색 주식 토큰 개수만큼 금 마커를 금 시세 트랙에서 위쪽으로 한 칸씩 이동
             game.addGoldPrice(blackTokenCnt);
-            // 2-2. 매입 금괴 표시 트랙에서 금 마커가 마지막으로 지나가거나, 도달한 3의 배수 칸 오른쪽 아래에 표시된 숫자만큼 위쪽으로 이동.
+            // 2-2. 매입 금 표시 트랙에서 금 마커가 마지막으로 지나가거나, 도달한 3의 배수 칸 오른쪽 아래에 표시된 숫자만큼 위쪽으로 이동.
             game.addGoldPrice(game.getGoldPriceIncreaseCnt() / 3);
         }
-        // 2-3. 매입 금괴 표시 트랙에 놓인 금 마커를 0으로 이동
+        // 2-3. 매입 금 표시 트랙에 놓인 금 마커를 0으로 이동
         game.setGoldPriceIncreaseCnt(0);
 
         // 3. 주가 조정

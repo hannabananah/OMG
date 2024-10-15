@@ -16,7 +16,7 @@ public enum MessageResponseStatus {
     INSUFFICIENT_CASH(501, "주식을 지불할 현금이 부족합니다."),
 
     // Gold
-    INVALID_GOLD_VALUE(3201, "유효하지 않은 금괴 매입수입니다."),
+    INVALID_GOLD_VALUE(3201, "유효하지 않은 금 매입수입니다."),
 
     // Battle
     INVALID_GAME_TIME(3301, "라운드 종료 30초 전입니다."),
