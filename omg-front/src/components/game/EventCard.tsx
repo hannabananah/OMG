@@ -61,11 +61,11 @@ export default function EventCard() {
   );
   return (
     <div
-      className='relative bg-cover bg-center flex items-center justify-center w-[360px] h-[500px]'
+      className='relative bg-cover bg-center flex items-center justify-center w-[420px] h-[520px]'
       ref={domTarget}
     >
       <animated.div
-        className='relative w-[360px] h-[500px] rounded-md bg-white-trans90 rounded-20 overflow-hidden bg-center bg-cover text-white'
+        className='relative w-[420px] h-[520px] rounded-md bg-white-trans90 rounded-20 overflow-hidden bg-center bg-cover text-white'
         style={{
           transform: 'perspective(600px)',
           x,
@@ -82,14 +82,14 @@ export default function EventCard() {
         />
 
         <div className='absolute top-0 flex flex-col items-center justify-start w-full h-full px-5'>
-          <p className='w-full mt-5 mb-3 text-center underline font-omg-body text-omg-14 break-keep'>
+          <p className='w-full mt-5 mb-3 text-center underline font-omg-body text-omg-18 break-keep'>
             *해당 뉴스는 다음 라운드의 금리 변동에 영향을 줍니다.
           </p>
-          <div className='flex flex-col justify-center mt-5'>
+          <div className='flex flex-col justify-center mt-10'>
             <h2 className='text-center text-omg-30b font-omg-event-title break-keep text-balance'>
               {eventCardTitle}
             </h2>
-            <p className='mt-10 px-5 text-left break-words font-omg-event-body text-omg-24'>
+            <p className='px-5 mt-20 text-center break-words font-omg-event-body text-omg-24 text-balance'>
               {eventCardContent}
             </p>
           </div>
