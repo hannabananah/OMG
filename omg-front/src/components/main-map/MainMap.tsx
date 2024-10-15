@@ -36,6 +36,7 @@ import { useModalStore } from '@/stores/useModalStore';
 import { useMyRoomStore } from '@/stores/useMyRoomStore';
 import { useOtherUserStore } from '@/stores/useOtherUserState';
 import { useSocketMessage } from '@/stores/useSocketMessage';
+import { useSoundStore } from '@/stores/useSoundStore';
 import useUser from '@/stores/useUser';
 import { SocketContext } from '@/utils/SocketContext';
 import { KeyboardControls } from '@react-three/drei';
@@ -83,7 +84,8 @@ export default function MainMap() {
   const { eventCardMessage, eventEffectMessage, gameRoundMessage } =
     useSocketMessage();
   const { moneyPoints, resetCoordinateState } = useMiniMoneyStore();
-
+  const { isMuted, setBgm, toggleMute, playNotificationSound } =
+    useSoundStore();
   const [isChatOpen, setIsChatOpen] = useState(false);
   const [isChatBotOpen, setIsChatBotOpen] = useState(false);
 
@@ -101,8 +103,6 @@ export default function MainMap() {
     setStockChangeAlertMessage,
   } = useAlertStore();
 
-  const [bgm, setBgm] = useState(null);
-  const [isMuted, setIsMuted] = useState(false);
   const [isKeyboardPossible, setIsKeyboardPossible] = useState(false);
 
   const keyboardMap = useMemo(
@@ -201,7 +201,6 @@ export default function MainMap() {
 
     return () => clearTimeout(timer);
   }, [gameRoundMessage]);
-
   useEffect(() => {
     const audio = new Audio('/music/background.mp3');
     audio.loop = true;
@@ -215,31 +214,11 @@ export default function MainMap() {
       audio.pause();
       audio.currentTime = 0;
     };
-  }, []);
+  }, [isMuted, setBgm]);
 
-  const handleNotificationSound = () => {
-    if (bgm) {
-      bgm.pause();
-    }
-
-    const alertSound = new Audio('/music/bell-alert.mp3');
-    alertSound.play();
-
-    setTimeout(() => {
-      if (bgm && !isMuted) {
-        bgm.play();
-      }
-    }, 2000);
-  };
-
-  const toggleMute = () => {
-    if (isMuted) {
-      bgm?.play();
-    } else {
-      bgm?.pause();
-    }
-    setIsMuted(!isMuted);
-  };
+  // const handleNotificationSound = () => {
+  //   playNotificationSound();
+  // };
 
   const characterKeys = Object.keys(CharacterInfo) as Array<
     keyof typeof CharacterInfo
@@ -349,7 +328,7 @@ export default function MainMap() {
         {isTimerVisible && (
           <Timer time={roundTimer} presentRound={presentRound} />
         )}
-        <Notification onNewNotification={handleNotificationSound} />
+        {/* <Notification onNewNotification={handleNotificationSound} /> */}
       </section>
 
       {isEventCardVisible && (
