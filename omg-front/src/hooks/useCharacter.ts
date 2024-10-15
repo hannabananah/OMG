@@ -1,6 +1,8 @@
 import { useCallback, useContext, useEffect, useRef, useState } from 'react';
 
 import { isPoint, point } from '@/assets/data/coinLocation';
+import { useSoundStore } from '@/stores/useSoundStore';
+import useUser from '@/stores/useUser';
 import { SocketContext } from '@/utils/SocketContext';
 import { useGLTF } from '@react-three/drei';
 import * as THREE from 'three';
@@ -24,6 +26,8 @@ export const useCharacter = ({
   onActionToggleChange,
   animation,
 }: Props) => {
+  const { nickname } = useUser();
+  const { playGetCoinSound } = useSoundStore();
   const { scene, animations } = useGLTF(characterURL);
   const mixer = useRef<THREE.AnimationMixer | null>(null);
   const [action, setAction] = useState<THREE.AnimationAction | null>(null);
@@ -167,6 +171,9 @@ export const useCharacter = ({
         if (pointId) {
           pickUpAnimation();
           miniMoney(pointId);
+          if (nickname) {
+            playGetCoinSound();
+          }
         } else {
           console.log('주변에 코인이 없습니다.');
         }

@@ -5,6 +5,7 @@ import { GiCardPick } from 'react-icons/gi';
 
 import { useLoanStore } from '@/stores/useLoanStore';
 import { useModalStore } from '@/stores/useModalStore';
+import { useSoundStore } from '@/stores/useSoundStore';
 import useUser from '@/stores/useUser';
 import { LoanMarketView } from '@/types';
 import { SocketContext } from '@/utils/SocketContext';
@@ -22,6 +23,7 @@ export default function LoanMarket() {
   const { totalDebt } = useLoanStore();
   const { modals, closeModal } = useModalStore();
   const { nickname } = useUser();
+  const { playSuccessLoanSound } = useSoundStore();
 
   const [currentView, setCurrentView] = useState<LoanMarketView>('main');
   const [isReportVisible, setIsReportVisible] = useState(true);
@@ -75,6 +77,10 @@ export default function LoanMarket() {
     }
     takeLoan(amount);
     setMoneyAmount('');
+
+    if (nickname) {
+      playSuccessLoanSound();
+    }
   };
 
   const handleRepayLoan = () => {
@@ -91,6 +97,10 @@ export default function LoanMarket() {
     }
     repayLoan(amount);
     setMoneyAmount('');
+
+    if (nickname) {
+      playSuccessLoanSound();
+    }
   };
 
   return (

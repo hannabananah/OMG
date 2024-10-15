@@ -27,8 +27,8 @@ export default function Tutorial() {
       setTimeout(() => {
         setCurrentStep(prev => (prev + 1) % tips.length); // 다음 단계로 이동
         setShowContent(true); // 글자를 다시 표시
-      }, 1000); // 1초 동안 글자를 숨긴 후 변경
-    }, 3000); // 5초마다 단계 변경
+      }, 500); // 1초 동안 글자를 숨긴 후 변경
+    }, 5000); // 5초마다 단계 변경
 
     return () => clearInterval(interval); // 컴포넌트가 언마운트될 때 인터벌 제거
   }, []);

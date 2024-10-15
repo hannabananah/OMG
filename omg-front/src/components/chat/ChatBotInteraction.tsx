@@ -1,16 +1,18 @@
 import { useEffect, useRef, useState } from 'react';
 import { useParams } from 'react-router-dom';
 
+import { useSoundStore } from '@/stores/useSoundStore';
 import useUser from '@/stores/useUser';
 
 import { requestChatBot } from '../../apis/room/roomAPI';
 
-const ChatBotInteraction = () => {
+export default function ChatBotInteraction() {
   const { roomId } = useParams<{ roomId: string }>();
   const { nickname } = useUser();
+  const { playGetChatAlertSound, playTypingSound } = useSoundStore();
 
-  const [requestMessage, setRequestMessage] = useState<string>(''); // 사용자 요청 메시지
-  const [responseMessage, setResponseMessage] = useState<string | null>(null); // API 응답 메시지
+  const [requestMessage, setRequestMessage] = useState<string>('');
+  const [responseMessage, setResponseMessage] = useState<string | null>(null);
 
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -33,6 +35,10 @@ const ChatBotInteraction = () => {
       if (response && response.result) {
         setResponseMessage(response.result);
         setRequestMessage('');
+
+        if (nickname) {
+          playGetChatAlertSound();
+        }
       }
     } catch (error) {
       setResponseMessage(
@@ -42,16 +48,22 @@ const ChatBotInteraction = () => {
     }
   };
 
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setRequestMessage(e.target.value);
+    if (nickname) {
+      playTypingSound();
+    }
+  };
+
   return (
     <div className='absolute right-0 p-10 overflow-y-auto bottom-56 w-[540px] max-h-[300px] bg-white rounded-20 bg-opacity-80'>
-      {/* 채팅 입력 받기 */}
       <div className='flex items-center justify-center w-full gap-4'>
         <input
           ref={inputRef}
           type='text'
           placeholder='루돌프에게 투자 조언을 구해보세요!'
           value={requestMessage}
-          onChange={e => setRequestMessage(e.target.value)}
+          onChange={handleChange}
           className='w-full px-4 py-2 text-black rounded-10 text-omg-24'
         />
         <button
@@ -62,7 +74,6 @@ const ChatBotInteraction = () => {
         </button>
       </div>
 
-      {/* 응답 메시지 표시 */}
       {responseMessage && (
         <div className='flex flex-col gap-4 p-2 mt-6 text-black border text-omg-20'>
           <div className='flex items-center gap-2'>
@@ -78,6 +89,4 @@ const ChatBotInteraction = () => {
       )}
     </div>
   );
-};
-
-export default ChatBotInteraction;
+}

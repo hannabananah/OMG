@@ -36,6 +36,7 @@ import { useModalStore } from '@/stores/useModalStore';
 import { useMyRoomStore } from '@/stores/useMyRoomStore';
 import { useOtherUserStore } from '@/stores/useOtherUserState';
 import { useSocketMessage } from '@/stores/useSocketMessage';
+import { useSoundStore } from '@/stores/useSoundStore';
 import useUser from '@/stores/useUser';
 import { SocketContext } from '@/utils/SocketContext';
 import { KeyboardControls } from '@react-three/drei';
@@ -83,6 +84,22 @@ export default function MainMap() {
   const { eventCardMessage, eventEffectMessage, gameRoundMessage } =
     useSocketMessage();
   const { moneyPoints, resetCoordinateState } = useMiniMoneyStore();
+  const {
+    isMuted,
+    setBgm,
+    toggleMute,
+    playNotificationSound,
+    playEndRoundSound,
+    playChangePriceSound,
+    playLeftTimeAlertSound,
+    playClickChatSound,
+  } = useSoundStore();
+  const {
+    isStockChangeAlertVisible,
+    stockChangeAlertMessage,
+    setStockChangeAlertVisible,
+    setStockChangeAlertMessage,
+  } = useAlertStore();
 
   const [isChatOpen, setIsChatOpen] = useState(false);
   const [isChatBotOpen, setIsChatBotOpen] = useState(false);
@@ -94,15 +111,6 @@ export default function MainMap() {
   const [isRoundVisible, setIsRoundVisible] = useState(false);
   const [isBoardVisible, setIsBoardVisible] = useState(false);
 
-  const {
-    isStockChangeAlertVisible,
-    stockChangeAlertMessage,
-    setStockChangeAlertVisible,
-    setStockChangeAlertMessage,
-  } = useAlertStore();
-
-  const [bgm, setBgm] = useState(null);
-  const [isMuted, setIsMuted] = useState(false);
   const [isKeyboardPossible, setIsKeyboardPossible] = useState(false);
 
   const keyboardMap = useMemo(
@@ -149,11 +157,15 @@ export default function MainMap() {
   useEffect(() => {
     if (!gameRoundMessage.message) return;
 
+    if (gameRoundMessage.message.includes('남았습니다!')) {
+      playLeftTimeAlertSound();
+    }
+
     if (gameRoundMessage.message.includes('주가')) {
       setStockChangeAlertMessage(gameRoundMessage.message);
       setStockChangeAlertVisible(true);
+      playChangePriceSound();
 
-      // 5초 후에 알림을 사라지게 설정
       const timer = setTimeout(() => {
         setStockChangeAlertVisible(false);
       }, 5000);
@@ -161,7 +173,6 @@ export default function MainMap() {
     }
   }, [gameRoundMessage.message]);
 
-  // TODO: 삭제해야됨, 라운드 알림 모달
   useEffect(() => {
     if (!gameRoundMessage.message) return;
 
@@ -172,6 +183,8 @@ export default function MainMap() {
         setIsKeyboardPossible(false);
         setIsTimerVisible(false);
         resetCoordinateState();
+
+        playEndRoundSound();
         break;
       case 'ROUND_START':
         closeTutorialModal();
@@ -215,30 +228,10 @@ export default function MainMap() {
       audio.pause();
       audio.currentTime = 0;
     };
-  }, []);
+  }, [isMuted, setBgm]);
 
   const handleNotificationSound = () => {
-    if (bgm) {
-      bgm.pause();
-    }
-
-    const alertSound = new Audio('/music/bell-alert.mp3');
-    alertSound.play();
-
-    setTimeout(() => {
-      if (bgm && !isMuted) {
-        bgm.play();
-      }
-    }, 2000);
-  };
-
-  const toggleMute = () => {
-    if (isMuted) {
-      bgm?.play();
-    } else {
-      bgm?.pause();
-    }
-    setIsMuted(!isMuted);
+    playNotificationSound();
   };
 
   const characterKeys = Object.keys(CharacterInfo) as Array<
@@ -265,14 +258,23 @@ export default function MainMap() {
 
   const openChattingModal = () => {
     setIsChatOpen(true);
+    if (nickname) {
+      playClickChatSound();
+    }
   };
 
   const closeChattingModal = () => {
     setIsChatOpen(false);
+    if (nickname) {
+      playClickChatSound();
+    }
   };
 
   const toggleChatBot = () => {
     setIsChatBotOpen(prev => !prev);
+    if (nickname) {
+      playClickChatSound();
+    }
   };
 
   return (
@@ -286,7 +288,7 @@ export default function MainMap() {
               ? presentRound % 2 === 0
                 ? '/assets/night-sky.jpg'
                 : '/assets/morning-sky.jpg'
-              : '/assets/morning-sky.jpg' // 기본 배경 이미지
+              : '/assets/morning-sky.jpg'
           })`,
           opacity: 0.9,
         }}
@@ -321,10 +323,10 @@ export default function MainMap() {
         </div>
       )}
 
-      {/* 내 방 Modal */}
+      {/* 내 방 모달 */}
       {modals[nickname]?.myRoom && <MyRoom />}
 
-      {/* 주식 시장 Modal */}
+      {/* 주식 시장 모달 */}
       {modals[nickname]?.stockMarket && <StockMarket />}
 
       {/* 금 시장 모달 */}
@@ -420,9 +422,16 @@ export default function MainMap() {
 
             <Physics timeStep='vary' colliders={false}>
               <ambientLight intensity={2} />
+              <spotLight
+                position={[0, 10, 5]}
+                angle={0.6}
+                intensity={8}
+                penumbra={0.4}
+                castShadow
+              />
               <directionalLight
-                intensity={2.0}
-                position={[10, 15, 10]}
+                intensity={1.5}
+                position={[5, 10, 5]}
                 castShadow
               />
 
@@ -446,13 +455,7 @@ export default function MainMap() {
                 isOwnCharacter={true}
                 startPosition={selectedCharacter.startPosition}
               />
-              <spotLight
-                position={[0, 10, 5]}
-                angle={0.5}
-                intensity={10}
-                penumbra={0.3}
-                castShadow
-              />
+
               {/* 다른 유저들 캐릭터 */}
               {otherCharacters.map(userCharacter => (
                 <Fragment key={userCharacter.id}>

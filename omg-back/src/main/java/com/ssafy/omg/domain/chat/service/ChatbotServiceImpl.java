@@ -19,7 +19,12 @@ import org.springframework.web.reactive.function.client.WebClient;
 import org.springframework.web.reactive.function.client.WebClientResponseException;
 import reactor.core.publisher.Mono;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Random;
 
 import static com.ssafy.omg.config.baseresponse.BaseResponseStatus.ARENA_NOT_FOUND;
 import static com.ssafy.omg.config.baseresponse.BaseResponseStatus.PLAYER_NOT_FOUND;
@@ -67,11 +72,11 @@ public class ChatbotServiceImpl implements ChatbotService {
                 .map(this::extractResponseContent)
                 .onErrorResume(WebClientResponseException.class, e -> {
                     logger.error("API Error: {}, Response Body: {}", e.getMessage(), e.getResponseBodyAsString());
-                    return Mono.just("앗, 미안해요! 지금 잠깐 문제가 생겼어요. 조금만 기다려 주시겠어요? 곧 해결될 거예요!");
+                    return Mono.just("징글벨~ 앗, 산타의 마법 주머니에 작은 구멍이 났나 봐! 잠깐만 기다려줘. 요정들이 금방 고칠 거야!");
                 })
                 .onErrorResume(Exception.class, e -> {
                     log.error("Unexpected error", e);
-                    return Mono.just("어머, 뭔가 이상한 일이 생겼어요. 제가 실수했나 봐요. 다시 한 번 물어봐 주실래요?");
+                    return Mono.just("호호호~ 이런, 산타의 선물 포장기가 잠깐 고장 났나 봐! 다시 한 번 말해줄래? 이번엔 제대로 들을 수 있을 거야!");
                 });
     }
 
@@ -134,8 +139,8 @@ public class ChatbotServiceImpl implements ChatbotService {
     private String buildRequestBody(String prompt) {
         try {
             Map<String, Object> requestMap = new HashMap<>();
-//            requestMap.put("model", "claude-3-sonnet-20240229"); // 똑똑하지만 비싼놈
-            requestMap.put("model", "claude-3-haiku-20240307");
+            requestMap.put("model", "claude-3-sonnet-20240229"); // 똑똑하지만 비싼놈
+//            requestMap.put("model", "claude-3-haiku-20240307");
             requestMap.put("max_tokens", 300);
             requestMap.put("messages", Collections.singletonList(
                     Map.of("role", "user", "content", prompt)

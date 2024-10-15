@@ -1,21 +1,19 @@
 import { FaPowerOff } from 'react-icons/fa';
 import { useNavigate } from 'react-router-dom';
 
+import { ConfirmAlert } from '@/utils/ConfirmAlert';
+
 export default function ExitButton({ showText = false }) {
   const navigate = useNavigate();
 
   const handleExitGame = () => {
-    if (!showText) {
-      const confirmed = window.confirm('게임을 종료하시겠습니까?');
-      if (confirmed) {
-        navigate('/');
-      }
-    } else {
-      const confirmed = window.confirm('방을 나가시겠습니까?');
-      if (confirmed) {
-        navigate('/');
-      }
-    }
+    const message = showText
+      ? '방을 나가시겠습니까?'
+      : '게임을 종료하시겠습니까?';
+
+    ConfirmAlert(message, () => {
+      navigate('/');
+    });
   };
 
   return (
