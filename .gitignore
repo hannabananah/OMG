@@ -18,6 +18,9 @@
 # Generated files
 .idea/**/contentModel.xml
 
+# Ignore application-secret.yml for security
+omg-back/src/main/resources/application-secret.yml
+
 # Sensitive or high-churn files
 .idea/**/dataSources/
 .idea/**/dataSources.ids

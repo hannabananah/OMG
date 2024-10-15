@@ -4,11 +4,22 @@ import com.ssafy.omg.config.baseresponse.BaseException;
 import com.ssafy.omg.config.baseresponse.MessageException;
 import com.ssafy.omg.domain.arena.entity.Arena;
 import com.ssafy.omg.domain.game.GameRepository;
-import com.ssafy.omg.domain.game.dto.*;
+import com.ssafy.omg.domain.game.dto.GameResultResponse;
+import com.ssafy.omg.domain.game.dto.GoldMarketInfoResponse;
+import com.ssafy.omg.domain.game.dto.IndividualMessageDto;
+import com.ssafy.omg.domain.game.dto.MainMessageDto;
+import com.ssafy.omg.domain.game.dto.MoneyCollectionResponse;
+import com.ssafy.omg.domain.game.dto.PlayerDistanceDto;
+import com.ssafy.omg.domain.game.dto.PlayerMoveRequest;
+import com.ssafy.omg.domain.game.dto.PlayerRankingResponse;
+import com.ssafy.omg.domain.game.dto.StockMarketResponse;
+import com.ssafy.omg.domain.game.dto.StockRequest;
 import com.ssafy.omg.domain.game.entity.Game;
 import com.ssafy.omg.domain.game.entity.GameEvent;
 import com.ssafy.omg.domain.game.entity.GameStatus;
 import com.ssafy.omg.domain.game.entity.LoanProduct;
+import com.ssafy.omg.domain.game.entity.MoneyPoint;
+import com.ssafy.omg.domain.game.entity.MoneyState;
 import com.ssafy.omg.domain.game.entity.StockInfo;
 import com.ssafy.omg.domain.game.entity.StockState;
 import com.ssafy.omg.domain.game.repository.GameEventRepository;
@@ -19,6 +30,7 @@ import com.ssafy.omg.domain.player.entity.PlayerStatus;
 import com.ssafy.omg.domain.socket.dto.StompPayload;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.messaging.MessagingException;
 import org.springframework.messaging.simp.SimpMessageSendingOperations;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -40,12 +52,16 @@ import java.util.stream.IntStream;
 import static com.ssafy.omg.config.baseresponse.BaseResponseStatus.ARENA_NOT_FOUND;
 import static com.ssafy.omg.config.baseresponse.BaseResponseStatus.EVENT_NOT_FOUND;
 import static com.ssafy.omg.config.baseresponse.BaseResponseStatus.EXCEEDS_DIFF_RANGE;
+import static com.ssafy.omg.config.baseresponse.BaseResponseStatus.GAME_SAVE_FAILED;
 import static com.ssafy.omg.config.baseresponse.BaseResponseStatus.IMPOSSIBLE_STOCK_CNT;
 import static com.ssafy.omg.config.baseresponse.BaseResponseStatus.INSUFFICIENT_STOCK;
 import static com.ssafy.omg.config.baseresponse.BaseResponseStatus.INVALID_BLACK_TOKEN;
+import static com.ssafy.omg.config.baseresponse.BaseResponseStatus.INVALID_MONEY_POINT;
 import static com.ssafy.omg.config.baseresponse.BaseResponseStatus.INVALID_ROUND;
 import static com.ssafy.omg.config.baseresponse.BaseResponseStatus.INVALID_SELL_STOCKS;
 import static com.ssafy.omg.config.baseresponse.BaseResponseStatus.INVALID_STOCK_GROUP;
+import static com.ssafy.omg.config.baseresponse.BaseResponseStatus.MONEY_ALREADY_COLLECTED;
+import static com.ssafy.omg.config.baseresponse.BaseResponseStatus.MONEY_POINT_NOT_FOUND;
 import static com.ssafy.omg.config.baseresponse.BaseResponseStatus.PLAYER_NOT_FOUND;
 import static com.ssafy.omg.config.baseresponse.BaseResponseStatus.PLAYER_STATE_ERROR;
 import static com.ssafy.omg.config.baseresponse.BaseResponseStatus.REQUEST_ERROR;
@@ -603,6 +619,66 @@ public class GameServiceImpl implements GameService {
         logFinalState(savedGame);
 
         return savedGame;
+    }
+
+    /**
+     * 돈 주우면서 돈 배열 수정 및 개인판 수정
+     *
+     * @param roomId        게임방 키
+     * @param userNickname  유저명
+     * @param moneyPointKey 돈 있는 좌표
+     * @return MoneyCollectionResponse
+     * @throws BaseException 예외처리
+     */
+    @Override
+    public MoneyCollectionResponse collectMoney(String roomId, String userNickname, String moneyPointKey) throws BaseException {
+        Arena arena = gameRepository.findArenaByRoomId(roomId)
+                .orElseThrow(() -> new BaseException(ARENA_NOT_FOUND));
+        Game game = arena.getGame();
+
+        // 잘못된 moneyPoint 값 체크
+        if (!MoneyState.MONEY_COORDINATES.containsKey(moneyPointKey)) {
+            throw new BaseException(INVALID_MONEY_POINT);
+        }
+
+        List<MoneyPoint> moneyPoints = game.getMoneyPoints();
+
+        MoneyPoint point = moneyPoints.stream()
+                .filter(moneypoint -> moneypoint.getPointId().equals(moneyPointKey))
+                .findFirst()
+                .orElseThrow(() -> new BaseException(MONEY_POINT_NOT_FOUND));
+
+        if (point.getMoneyStatus() == 0) {
+            throw new BaseException(MONEY_ALREADY_COLLECTED);
+        }
+
+        // 돈 줍기
+        Player player = findPlayer(arena, userNickname);
+        int addedMoney = (point.getMoneyStatus() == 2) ? 5 : 1; //TODO 비싼 돈은 5, 싼 돈은 1
+        player.addCash(addedMoney);
+
+        point.setMoneyStatus(0);
+
+        try {
+            // Arena 저장
+            gameRepository.saveGameToRedis(game);
+        } catch (Exception e) {
+            log.error("레디스 저장 실패.", e);
+            throw new BaseException(GAME_SAVE_FAILED);
+        }
+
+        // 돈 줍기 성공 응답 전송
+        StompPayload<Integer> response = null;
+        response = new StompPayload<>("SUCCESS_MONEY_PICKUP", roomId, userNickname, addedMoney);
+        try {
+            messagingTemplate.convertAndSend("/sub/" + roomId + "/game", response);
+        } catch (MessagingException e) {
+            log.error("돈 줍기 메시지 전송에 실패했습니다.", e);
+        }
+
+        return MoneyCollectionResponse.builder()
+                .moneyPoints(moneyPoints)
+                .build();
     }
 
     private void logCurrentState(Game game) {

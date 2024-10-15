@@ -4,10 +4,7 @@ import com.ssafy.omg.config.baseresponse.BaseException;
 import com.ssafy.omg.domain.arena.entity.Arena;
 import com.ssafy.omg.domain.game.GameRepository;
 import com.ssafy.omg.domain.game.dto.*;
-import com.ssafy.omg.domain.game.entity.Game;
-import com.ssafy.omg.domain.game.entity.GameEvent;
-import com.ssafy.omg.domain.game.entity.RoundStatus;
-import com.ssafy.omg.domain.game.entity.StockState;
+import com.ssafy.omg.domain.game.entity.*;
 import com.ssafy.omg.domain.socket.dto.StompPayload;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -137,6 +134,16 @@ public class GameScheduler {
 //            notifyPlayers(game.getGameId(), ROUND_START, +game.getRound() + "라운드가 시작됩니다!");
             notifyRoundStart(game.getGameId(), ROUND_START, game.getRound() + "라운드가 시작됩니다!", game.getRound());
             notifyPlayersRankingMessage(game);
+
+            // 주울 돈 초기화
+            MoneyState moneyState = new MoneyState();
+            moneyState.initializeMoneyPoints();
+            game.setMoneyPoints(moneyState.getMoneyPoints());
+
+            gameRepository.saveGameToRedis(game);
+
+            // 바뀐 개인 판 및 돈 정보 전송
+            notifyMoneyPoints(game.getGameId(), game.getMoneyPoints());
         } else if (game.getTime() == 0) {
             game.setRoundStatus(APPLY_PREVIOUS_EVENT);
             game.setTime(5);
@@ -463,6 +470,12 @@ public class GameScheduler {
         PlayerRankingResponse playerRankingResponse = gameService.getPlayerRanking(game);
         StompPayload<PlayerRankingResponse> payload = new StompPayload<>("RANKING_NOTIFICATION", game.getGameId(), "GAME_MANAGER", playerRankingResponse);
         messagingTemplate.convertAndSend("/sub/" + game.getGameId() + "/game", payload);
+    }
+
+    // 주울 돈 알림
+    private void notifyMoneyPoints(String gameId, List<MoneyPoint> moneyPoints) {
+        StompPayload<List<MoneyPoint>> payload = new StompPayload<>("MONEY_POINTS", gameId, "GAME_MANAGER", moneyPoints);
+        messagingTemplate.convertAndSend("/sub/" + gameId + "/game", payload);
     }
 
     private void endGame(Game game) throws BaseException {

@@ -26,9 +26,11 @@ import {
 } from '@/components/game';
 import Map from '@/components/main-map/Map';
 import MiniMap from '@/components/mini-map/MiniMap';
+import { StockChangeAlert, getAlertComponent } from '@/components/notification';
 import { StockMarket } from '@/components/stock-market';
 import { useAlertStore } from '@/stores/useAlertStore';
 import { useIntroStore } from '@/stores/useIntroStore';
+import { useMiniMoneyStore } from '@/stores/useMiniMoneyStore';
 import { useModalStore } from '@/stores/useModalStore';
 import { useMyRoomStore } from '@/stores/useMyRoomStore';
 import { useOtherUserStore } from '@/stores/useOtherUserState';
@@ -41,9 +43,8 @@ import { Physics } from '@react-three/rapier';
 
 import GoldMarket from '../gold-market/GoldMarket';
 import LoanMarket from '../loan-market/LoanMarket';
+import MoneyCanvas from '../mini-game/money/MoneyCanvas';
 import MyRoom from '../my-room/MyRoom';
-import StockChangeAlert from '../notification/StockChangeAlert';
-import { getAlertComponent } from '../notification/getAlertComponent';
 import PersonalBoard from '../personal-board/PersonalBoard';
 import MarketStatusBoard from './MarketStatusBoard';
 import Tutorial from './Tutorial';
@@ -79,6 +80,7 @@ export default function MainMap() {
 
   const { eventCardMessage, eventEffectMessage, gameRoundMessage } =
     useSocketMessage();
+  const { moneyPoints, resetCoordinateState } = useMiniMoneyStore();
 
   const [isChatOpen, setIsChatOpen] = useState(false);
   const [isEventCardVisible, setIsEventCardVisible] = useState(false);
@@ -165,6 +167,7 @@ export default function MainMap() {
       case 'ROUND_END':
         setIsKeyboardPossible(false);
         setIsTimerVisible(false);
+        resetCoordinateState();
         break;
       case 'ROUND_START':
         closeTutorialModal();
@@ -360,14 +363,14 @@ export default function MainMap() {
 
       {/* 모든 Round 알람 */}
       {isAlertVisible && gameRoundMessage.message && (
-        <div className='absolute z-50 w-full h-full'>
+        <div className='alert-container'>
           {getAlertComponent(gameRoundMessage.message)}
         </div>
       )}
 
       {/* 주가 변동 알림 */}
       {isStockChangeAlertVisible && stockChangeAlertMessage && (
-        <div className='absolute z-50 w-full h-full'>
+        <div className='alert-container'>
           <StockChangeAlert message={stockChangeAlertMessage} />
         </div>
       )}
@@ -405,6 +408,18 @@ export default function MainMap() {
               />
 
               <Map />
+
+              {/* 랜덤 돈 뿌리기 */}
+              {moneyPoints
+                .filter(point => point.moneyStatus !== 0)
+                .map((point, index) => (
+                  <MoneyCanvas
+                    key={index}
+                    position={point.moneyCoordinates}
+                    status={point.moneyStatus}
+                  />
+                ))}
+
               {/* 본인 캐릭터 */}
               <Character
                 characterURL={selectedCharacter.url}

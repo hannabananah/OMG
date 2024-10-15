@@ -16,7 +16,7 @@ export default function DefaultAlert({ message }: DefaultAlertProps) {
     : message;
 
   return (
-    <div className='absolute w-[55%] -translate-x-1/2 -translate-y-1/2 top-1/2 left-1/2 p-4 pb-6 text-center bg-white rounded-20 bg-opacity-70 drop-shadow-xl text-omg-40b font-omg-event-title'>
+    <div className='alert-message-layout w-[55%] top-1/2 p-4 pb-6 bg-white rounded-20 bg-opacity-70 drop-shadow-xl text-omg-40b font-omg-event-title'>
       <p className='bounce-animation'>{formattedMessage}</p>
     </div>
   );

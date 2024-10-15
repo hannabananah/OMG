@@ -136,6 +136,14 @@ button:disabled {
   .modal-container {
     @apply flex flex-col w-[80%] h-[80%] bg-white bg-opacity-80 rounded-[30px];
   }
+
+  .alert-container {
+    @apply absolute z-50 w-full h-full;
+  }
+
+  .alert-message-layout {
+    @apply absolute -translate-x-1/2 -translate-y-1/2 left-1/2 text-center;
+  }
 }
 
 @layer utilities {
@@ -337,4 +345,19 @@ button:disabled {
   100% {
     background-position-y: -100%;
   }
+}
+
+@keyframes move-up-fade-out {
+  0% {
+    transform: translateY(0);
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(-50px);
+    opacity: 0;
+  }
+}
+
+.move-up-fade-out {
+  animation: move-up-fade-out 1s ease-in-out forwards;
 }

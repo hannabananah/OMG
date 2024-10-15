@@ -14,6 +14,7 @@ import { useGoldStore } from '@/stores/useGoldStore';
 import { useLoanStore } from '@/stores/useLoanStore';
 import { useMainBoardStore } from '@/stores/useMainBoardStore';
 import { useMiniMapStore } from '@/stores/useMiniMapStore';
+import { useMiniMoneyStore } from '@/stores/useMiniMoneyStore';
 import { useOtherUserStore } from '@/stores/useOtherUserState';
 import { usePersonalBoardStore } from '@/stores/usePersonalBoardStore';
 import { useSocketMessage } from '@/stores/useSocketMessage';
@@ -61,6 +62,7 @@ interface SocketContextType {
     userNickname: string;
     message: string;
   } | null;
+  miniMoney: (pointId: string) => void;
 }
 
 const defaultContextValue: SocketContextType = {
@@ -92,6 +94,7 @@ const defaultContextValue: SocketContextType = {
   presentRound: 1,
   isGameResultVisible: false,
   transactionMessage: null,
+  miniMoney: () => {},
 };
 
 export const SocketContext =
@@ -125,6 +128,8 @@ export default function SocketProvider({ children }: SocketProviderProps) {
   const { setGoldMarketData } = useGoldStore();
   const { setLoanData } = useLoanStore();
   const { setGameResultData } = useGameResultStore();
+  const { setCoordinates, getPlayerCash, updateMoneyPoints } =
+    useMiniMoneyStore();
   const { setOtherUsers, transactionMessage, setTransactionMessage } =
     useOtherUserStore();
   const { setPlayerMinimap } = useMiniMapStore();
@@ -297,25 +302,44 @@ export default function SocketProvider({ children }: SocketProviderProps) {
             const otherPlayersData = parsedMessage.data.filter(
               (player: Player) => player.nickname !== nickname,
             );
+
             if (otherPlayersData.length > 0) {
               const updatedOtherUsers = otherPlayersData.map(
                 (player: Player) => {
                   const existingUser = useOtherUserStore
                     .getState()
                     .otherUsers.find(user => user.id === player.nickname);
-                  return {
-                    id: player.nickname,
-                    characterType: existingUser?.characterType || 0,
-                    position: player.position,
-                    direction: player.direction,
-                    actionToggle: player.actionToggle,
-                    isTrading: player.isTrading,
-                    isCarrying: player.isCarrying,
-                    animation: player?.animation,
-                  };
+
+                  const isChanged =
+                    !existingUser ||
+                    existingUser.position !== player.position ||
+                    existingUser.direction !== player.direction ||
+                    existingUser.actionToggle !== player.actionToggle ||
+                    existingUser.isTrading !== player.isTrading ||
+                    existingUser.isCarrying !== player.isCarrying ||
+                    existingUser.animation !== player.animation;
+
+                  if (isChanged) {
+                    return {
+                      id: player.nickname,
+                      characterType: existingUser?.characterType || 0,
+                      position: player.position,
+                      direction: player.direction,
+                      actionToggle: player.actionToggle,
+                      isTrading: player.isTrading,
+                      isCarrying: player.isCarrying,
+                      animation: player?.animation,
+                    };
+                  }
+
+                  return existingUser;
                 },
               );
-              setOtherUsers(updatedOtherUsers);
+
+              const filteredUpdatedUsers = updatedOtherUsers.filter(Boolean);
+              if (filteredUpdatedUsers.length > 0) {
+                setOtherUsers(filteredUpdatedUsers);
+              }
             }
             break;
 
@@ -485,16 +509,6 @@ export default function SocketProvider({ children }: SocketProviderProps) {
             }
             break;
 
-          // case 'STOCK_ALREADY_PURCHASED':
-          //   if (currentUser === nickname) {
-          //     setBuyMessage({
-          //       message:
-          //         '이미 거래(주식 매수/주식 매도/금 매입 중 1)를 수행했습니다.',
-          //       isCompleted: true,
-          //     });
-          //   }
-          //   break;
-
           case 'SUCCESS_SELL_STOCK':
             if (currentUser === nickname) {
               setPersonalBoardData(parsedMessage.data);
@@ -509,16 +523,6 @@ export default function SocketProvider({ children }: SocketProviderProps) {
               );
             }
             break;
-
-          // case 'STOCK_ALREADY_SOLD':
-          //   if (currentUser === nickname) {
-          //     setSellMessage({
-          //       message:
-          //         '이미 거래(주식 매수/주식 매도/금 매입 중 1)를 수행했습니다.',
-          //       isCompleted: true,
-          //     });
-          //   }
-          //   break;
 
           case 'STOCK_FLUCTUATION':
             setMainBoardData(parsedMessage.data);
@@ -577,12 +581,17 @@ export default function SocketProvider({ children }: SocketProviderProps) {
                     players: currentPlayers.join(':'),
                   });
 
-                  console.log('거리 가까워짐', parsedMessage.data);
-
                   prevClosedEachOtherRef.current = {
                     isAvailable: true,
                     players: currentPlayers,
                   };
+
+                  setTimeout(() => {
+                    setIsClosedEachOther({
+                      isAvailable: false,
+                      players: '',
+                    });
+                  }, 2000);
                 }
               }
             };
@@ -624,6 +633,20 @@ export default function SocketProvider({ children }: SocketProviderProps) {
 
           //   handleBattleUnavailable();
           //   break;
+
+          case 'MONEY_POINTS':
+            setCoordinates(parsedMessage.data);
+            break;
+
+          case 'SUCCESS_MONEY_PICKUP':
+            if (currentUser === nickname) {
+              getPlayerCash(parsedMessage.data);
+            }
+            break;
+
+          case 'MONEY_POINTS_NOTIFICATION':
+            updateMoneyPoints(parsedMessage.data);
+            break;
 
           default:
             break;
@@ -879,6 +902,28 @@ export default function SocketProvider({ children }: SocketProviderProps) {
     });
   };
 
+  // 미니게임 돈줍기 요청
+  const miniMoney = (pointId: string) => {
+    if (!isSocketConnected()) return;
+    const messagePayload: {
+      roomId: string;
+      type: string;
+      sender: string;
+      data: null | object;
+    } = {
+      type: 'PLAYER_MONEY_PICKUP',
+      roomId,
+      sender: nickname,
+      data: {
+        pointId,
+      },
+    };
+    socket.publish({
+      destination: '/pub/money',
+      body: JSON.stringify(messagePayload),
+    });
+  };
+
   const contextValue = useMemo(
     () => ({
       socket,
@@ -910,6 +955,8 @@ export default function SocketProvider({ children }: SocketProviderProps) {
       isGameResultVisible,
       transactionMessage,
       setIsClosedEachOther,
+      miniMoney,
+      getPlayerCash,
     }),
     [
       socket,
@@ -931,6 +978,8 @@ export default function SocketProvider({ children }: SocketProviderProps) {
       isGameResultVisible,
       transactionMessage,
       setIsClosedEachOther,
+      miniMoney,
+      getPlayerCash,
     ],
   );
 

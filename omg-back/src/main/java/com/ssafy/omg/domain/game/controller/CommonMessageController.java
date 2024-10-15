@@ -107,8 +107,8 @@ public class CommonMessageController {
 //                );
 //                response = new StompPayload<>("ECONOMIC_EVENT_APPLIED", roomId, "GAME_MANAGER", responseDto);
 ////                } catch (BaseException e) {
-////                    log.error("Error applying economic event: {}", e.getMessage());
-////                    GameEventDto errorDto = new GameEventDto("ERROR", "Error", e.getMessage(), 0);
+////                    log.error("Error applying economic event: {}", e.getStatus().getMessage());
+////                    GameEventDto errorDto = new GameEventDto("ERROR", "Error", e.getStatus().getMessage(), 0);
 ////                    response = new StompPayload<>("ERROR", roomId, "SYSTEM", errorDto);
 ////                }
 //                break;
