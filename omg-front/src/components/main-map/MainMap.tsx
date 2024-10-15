@@ -216,9 +216,9 @@ export default function MainMap() {
     };
   }, [isMuted, setBgm]);
 
-  // const handleNotificationSound = () => {
-  //   playNotificationSound();
-  // };
+  const handleNotificationSound = () => {
+    playNotificationSound();
+  };
 
   const characterKeys = Object.keys(CharacterInfo) as Array<
     keyof typeof CharacterInfo
@@ -328,7 +328,7 @@ export default function MainMap() {
         {isTimerVisible && (
           <Timer time={roundTimer} presentRound={presentRound} />
         )}
-        {/* <Notification onNewNotification={handleNotificationSound} /> */}
+        <Notification onNewNotification={handleNotificationSound} />
       </section>
 
       {isEventCardVisible && (
