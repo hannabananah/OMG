@@ -399,9 +399,16 @@ export default function MainMap() {
 
             <Physics timeStep='vary' colliders={false}>
               <ambientLight intensity={2} />
+              <spotLight
+                position={[0, 10, 5]}
+                angle={0.6}
+                intensity={8}
+                penumbra={0.4}
+                castShadow
+              />
               <directionalLight
-                intensity={2.0}
-                position={[10, 15, 10]}
+                intensity={1.5}
+                position={[5, 10, 5]}
                 castShadow
               />
 
@@ -425,13 +432,7 @@ export default function MainMap() {
                 isOwnCharacter={true}
                 startPosition={selectedCharacter.startPosition}
               />
-              <spotLight
-                position={[0, 10, 5]}
-                angle={0.5}
-                intensity={10}
-                penumbra={0.3}
-                castShadow
-              />
+
               {/* 다른 유저들 캐릭터 */}
               {otherCharacters.map(userCharacter => (
                 <Fragment key={userCharacter.id}>
