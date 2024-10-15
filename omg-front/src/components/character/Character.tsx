@@ -66,7 +66,7 @@ export default function Character({
   } = useGameStore();
   const [rotation, setRotation] = useState(0);
   const movementStateRef = useRef<'idle' | 'walking' | 'running'>('idle');
-  const prevPositionRef = useRef(new THREE.Vector3()); // 캐릭터 이전 위치
+  const prevPositionRef = useRef(new THREE.Vector3());
   const collisionRef = useRef(false);
   const { showIntro } = useIntroStore();
 
