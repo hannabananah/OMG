@@ -480,7 +480,8 @@ public class GameServiceImpl implements GameService {
                     .currentInterestRate(5)                       // 예: 초기 금리 5%로 설정
                     .economicEvent(randomEvent)                   // 초기 경제 이벤트 없음
                     .currentEvent(null)                           // 적용할 경제이벤트 없음
-                    .currentStockPriceLevel(0)                    // 주가 수준
+//                    .currentStockPriceLevel(0)                    // 주가 수준
+                    .currentStockPriceLevel(4)                    // 시연용 거래 개수 늘리
 
                     .stockTokensPocket(pocket)                    // 주머니 초기화
                     .marketStocks(market)                         // 주식 시장 초기화
@@ -508,9 +509,14 @@ public class GameServiceImpl implements GameService {
     private StockInfo[] initializeMarket() {
         StockInfo[] market = new StockInfo[6];
         market[0] = new StockInfo(0, new int[]{0, 0});
-
+/*
         for (int i = 1; i < 6; i++) {
             market[i] = new StockInfo(8, new int[]{12, 3});
+        }
+*/
+        // 시연용 데이터 변경
+        for (int i = 1; i < 6; i++) {
+            market[i] = new StockInfo(8, new int[]{10, 3});
         }
 
         return market;
@@ -836,7 +842,15 @@ public class GameServiceImpl implements GameService {
     private int[] generateRandomEvent() throws BaseException {
         Set<Integer> selectedEconomicEvents = new HashSet<>();
         int[] result = new int[11];
-        for (int i = 1; i < result.length - 1; i++) {
+
+        //시연용
+        // 첫 번째와 두 번째 이벤트를 고정, 나머지 이벤트는 랜덤으로 생성
+        result[1] = 18;
+        result[2] = 4;
+        selectedEconomicEvents.add(18);
+        selectedEconomicEvents.add(4);
+
+        for (int i = 3; i < result.length - 1; i++) {
             int eventIdx;
             int attempts = 0;
             do {
@@ -844,6 +858,7 @@ public class GameServiceImpl implements GameService {
                 if (attempts > 50) {
                     throw new BaseException(EVENT_NOT_FOUND);
                 }
+                attempts++;
             } while (selectedEconomicEvents.contains(eventIdx));
             result[i] = eventIdx;
             selectedEconomicEvents.add(eventIdx);
