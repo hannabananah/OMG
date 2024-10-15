@@ -51,40 +51,47 @@ export const useSoundStore = create<SoundStore>(set => ({
     });
   },
 
-  playNotificationSound: async () => {
+  playNotificationSound: () => {
     const alertSound = new Audio('/music/bell-alert.mp3');
-    await useSoundStore.getState().pauseBgmTemporarily();
+    useSoundStore.getState().pauseBgmTemporarily();
     alertSound.play();
   },
 
-  playSuccessStockSound: async () => {
+  playSuccessStockSound: () => {
     const alertSound = new Audio('/music/stock-alert.mp3');
     alertSound.play();
   },
 
-  playSuccessLoanSound: async () => {
+  playSuccessLoanSound: () => {
     const alertSound = new Audio('/music/loan-alert.mp3');
     alertSound.play();
   },
 
-  playSuccessGoldSound: async () => {
+  playSuccessGoldSound: () => {
     const alertSound = new Audio('/music/gold-alert.mp3');
+    useSoundStore.getState().pauseBgmTemporarily();
+
     alertSound.play();
+
+    setTimeout(() => {
+      alertSound.pause();
+      alertSound.currentTime = 0;
+    }, 2000);
   },
 
-  playGetItemSound: async () => {
+  playGetItemSound: () => {
     const alertSound = new Audio('/music/get-item-alert.mp3');
     alertSound.play();
   },
 
-  playGetCoinSound: async () => {
+  playGetCoinSound: () => {
     const alertSound = new Audio('/music/get-coin-alert.mp3');
     alertSound.play();
   },
 
-  playGetChatAlertSound: async () => {
+  playGetChatAlertSound: () => {
     const alertSound = new Audio('/music/chat-alert.mp3');
-    await useSoundStore.getState().pauseBgmTemporarily();
+    useSoundStore.getState().pauseBgmTemporarily();
     alertSound.play();
   },
 
@@ -98,27 +105,27 @@ export const useSoundStore = create<SoundStore>(set => ({
     alertSound.play();
   },
 
-  playLeftTimeAlertSound: async () => {
+  playLeftTimeAlertSound: () => {
     const alertSound = new Audio('/music/left-time-alert.mp3');
-    await useSoundStore.getState().pauseBgmTemporarily();
+    useSoundStore.getState().pauseBgmTemporarily();
     alertSound.play();
   },
 
-  playEndRoundSound: async () => {
+  playEndRoundSound: () => {
     const alertSound = new Audio('/music/round-end-alert.mp3');
-    await useSoundStore.getState().pauseBgmTemporarily();
+    useSoundStore.getState().pauseBgmTemporarily();
     alertSound.play();
   },
 
-  playChangePriceSound: async () => {
+  playChangePriceSound: () => {
     const alertSound = new Audio('/music/change-price-alert.mp3');
-    await useSoundStore.getState().pauseBgmTemporarily();
+    useSoundStore.getState().pauseBgmTemporarily();
     alertSound.play();
   },
 
-  playFinishGameSound: async () => {
+  playFinishGameSound: () => {
     const alertSound = new Audio('/music/finish-game-alert.mp3');
-    await useSoundStore.getState().pauseBgmTemporarily();
+    useSoundStore.getState().pauseBgmTemporarily();
     alertSound.play();
   },
 }));
