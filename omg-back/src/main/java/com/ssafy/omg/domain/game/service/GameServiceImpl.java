@@ -4,24 +4,8 @@ import com.ssafy.omg.config.baseresponse.BaseException;
 import com.ssafy.omg.config.baseresponse.MessageException;
 import com.ssafy.omg.domain.arena.entity.Arena;
 import com.ssafy.omg.domain.game.GameRepository;
-import com.ssafy.omg.domain.game.dto.GameResultResponse;
-import com.ssafy.omg.domain.game.dto.GoldMarketInfoResponse;
-import com.ssafy.omg.domain.game.dto.IndividualMessageDto;
-import com.ssafy.omg.domain.game.dto.MainMessageDto;
-import com.ssafy.omg.domain.game.dto.MoneyCollectionResponse;
-import com.ssafy.omg.domain.game.dto.PlayerDistanceDto;
-import com.ssafy.omg.domain.game.dto.PlayerMoveRequest;
-import com.ssafy.omg.domain.game.dto.PlayerRankingResponse;
-import com.ssafy.omg.domain.game.dto.StockMarketResponse;
-import com.ssafy.omg.domain.game.dto.StockRequest;
-import com.ssafy.omg.domain.game.entity.Game;
-import com.ssafy.omg.domain.game.entity.GameEvent;
-import com.ssafy.omg.domain.game.entity.GameStatus;
-import com.ssafy.omg.domain.game.entity.LoanProduct;
-import com.ssafy.omg.domain.game.entity.MoneyPoint;
-import com.ssafy.omg.domain.game.entity.MoneyState;
-import com.ssafy.omg.domain.game.entity.StockInfo;
-import com.ssafy.omg.domain.game.entity.StockState;
+import com.ssafy.omg.domain.game.dto.*;
+import com.ssafy.omg.domain.game.entity.*;
 import com.ssafy.omg.domain.game.repository.GameEventRepository;
 import com.ssafy.omg.domain.player.dto.PlayerAnimation;
 import com.ssafy.omg.domain.player.dto.PlayerResult;
@@ -35,43 +19,13 @@ import org.springframework.messaging.simp.SimpMessageSendingOperations;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.AbstractMap;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Random;
-import java.util.Set;
-import java.util.TreeSet;
+import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
-import static com.ssafy.omg.config.baseresponse.BaseResponseStatus.ARENA_NOT_FOUND;
-import static com.ssafy.omg.config.baseresponse.BaseResponseStatus.EVENT_NOT_FOUND;
-import static com.ssafy.omg.config.baseresponse.BaseResponseStatus.EXCEEDS_DIFF_RANGE;
-import static com.ssafy.omg.config.baseresponse.BaseResponseStatus.GAME_SAVE_FAILED;
-import static com.ssafy.omg.config.baseresponse.BaseResponseStatus.IMPOSSIBLE_STOCK_CNT;
-import static com.ssafy.omg.config.baseresponse.BaseResponseStatus.INSUFFICIENT_STOCK;
-import static com.ssafy.omg.config.baseresponse.BaseResponseStatus.INVALID_BLACK_TOKEN;
-import static com.ssafy.omg.config.baseresponse.BaseResponseStatus.INVALID_MONEY_POINT;
-import static com.ssafy.omg.config.baseresponse.BaseResponseStatus.INVALID_ROUND;
-import static com.ssafy.omg.config.baseresponse.BaseResponseStatus.INVALID_SELL_STOCKS;
-import static com.ssafy.omg.config.baseresponse.BaseResponseStatus.INVALID_STOCK_GROUP;
-import static com.ssafy.omg.config.baseresponse.BaseResponseStatus.MONEY_ALREADY_COLLECTED;
-import static com.ssafy.omg.config.baseresponse.BaseResponseStatus.MONEY_POINT_NOT_FOUND;
-import static com.ssafy.omg.config.baseresponse.BaseResponseStatus.PLAYER_NOT_FOUND;
-import static com.ssafy.omg.config.baseresponse.BaseResponseStatus.PLAYER_STATE_ERROR;
-import static com.ssafy.omg.config.baseresponse.BaseResponseStatus.REQUEST_ERROR;
-import static com.ssafy.omg.config.baseresponse.MessageResponseStatus.AMOUNT_EXCEED_CASH;
-import static com.ssafy.omg.config.baseresponse.MessageResponseStatus.AMOUNT_EXCEED_DEBT;
+import static com.ssafy.omg.config.baseresponse.BaseResponseStatus.*;
 import static com.ssafy.omg.config.baseresponse.MessageResponseStatus.AMOUNT_OUT_OF_RANGE;
-import static com.ssafy.omg.config.baseresponse.MessageResponseStatus.INSUFFICIENT_CASH;
-import static com.ssafy.omg.config.baseresponse.MessageResponseStatus.INVALID_STOCK_COUNT;
-import static com.ssafy.omg.config.baseresponse.MessageResponseStatus.OUT_OF_CASH;
-import static com.ssafy.omg.config.baseresponse.MessageResponseStatus.STOCK_NOT_AVAILABLE;
+import static com.ssafy.omg.config.baseresponse.MessageResponseStatus.*;
 import static com.ssafy.omg.domain.game.entity.RoundStatus.STOCK_FLUCTUATION;
 import static com.ssafy.omg.domain.game.entity.RoundStatus.TUTORIAL;
 import static com.ssafy.omg.domain.player.entity.PlayerStatus.COMPLETED;
@@ -508,9 +462,14 @@ public class GameServiceImpl implements GameService {
     private StockInfo[] initializeMarket() {
         StockInfo[] market = new StockInfo[6];
         market[0] = new StockInfo(0, new int[]{0, 0});
-
+/*
         for (int i = 1; i < 6; i++) {
             market[i] = new StockInfo(8, new int[]{12, 3});
+        }
+*/
+        // 시연용 데이터 변경
+        for (int i = 1; i < 6; i++) {
+            market[i] = new StockInfo(8, new int[]{10, 3});
         }
 
         return market;
@@ -836,7 +795,15 @@ public class GameServiceImpl implements GameService {
     private int[] generateRandomEvent() throws BaseException {
         Set<Integer> selectedEconomicEvents = new HashSet<>();
         int[] result = new int[11];
-        for (int i = 1; i < result.length - 1; i++) {
+
+        //시연용
+        // 첫 번째와 두 번째 이벤트를 고정, 나머지 이벤트는 랜덤으로 생성
+        result[1] = 18;
+        result[2] = 4;
+        selectedEconomicEvents.add(18);
+        selectedEconomicEvents.add(4);
+
+        for (int i = 3; i < result.length - 1; i++) {
             int eventIdx;
             int attempts = 0;
             do {
@@ -844,6 +811,7 @@ public class GameServiceImpl implements GameService {
                 if (attempts > 50) {
                     throw new BaseException(EVENT_NOT_FOUND);
                 }
+                attempts++;
             } while (selectedEconomicEvents.contains(eventIdx));
             result[i] = eventIdx;
             selectedEconomicEvents.add(eventIdx);
