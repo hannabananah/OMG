@@ -88,7 +88,7 @@ function Deck() {
                 <div className='flex justify-center gap-20'>
                   <div className='flex flex-col items-center'>
                     <h4 className='text-white text-omg-24'>
-                      {product.round}ROUND{' '}
+                      {product.round}ROUND &nbsp;
                       <span className='text-omg-18'>
                         ({formatTime(product.loanTimestampInSeconds)}초)
                       </span>
