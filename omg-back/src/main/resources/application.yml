@@ -50,3 +50,5 @@ cors:
       auto-offset-reset: earliest
       key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
       value-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+claude:
+  api-key: {CLAUDE_API_KEY}
