@@ -15,7 +15,6 @@ export default function GoldMarket() {
     }
   };
 
-  // 뒤로 가기 버튼
   const handleBackButton = () => {
     if (modals[nickname]?.goldMarket) {
       closeModal('goldMarket', nickname);

@@ -4,6 +4,8 @@ import { useGoldStore } from '@/stores/useGoldStore';
 import { useMainBoardStore } from '@/stores/useMainBoardStore';
 import { usePersonalBoardStore } from '@/stores/usePersonalBoardStore';
 import { useSocketMessage } from '@/stores/useSocketMessage';
+import { useSoundStore } from '@/stores/useSoundStore';
+import useUser from '@/stores/useUser';
 import { SocketContext } from '@/utils/SocketContext';
 import { ToastAlert } from '@/utils/ToastAlert';
 import formatNumberWithCommas from '@/utils/formatNumberWithCommas';
@@ -17,17 +19,18 @@ import PossessionChart from './PossessionChart';
 export default function GoldBuy() {
   const { purchaseGold } = useContext(SocketContext);
   const { goldPurchaseMessage, setGoldPurchaseMessage } = useSocketMessage();
+  const { nickname } = useUser();
 
   const { tradableStockCnt } = useMainBoardStore();
   const { cash } = usePersonalBoardStore();
+  const { playSuccessGoldSound } = useSoundStore();
 
   const { goldPrice, goldPriceChart } = useGoldStore();
   const GOLD_PRICE = goldPrice;
 
-  const MAX_TRADE_COUNT = tradableStockCnt; // 최대 거래 가능 수량
+  const MAX_TRADE_COUNT = tradableStockCnt;
   const MY_MONEY = cash;
 
-  // 선택한 금 개수
   const [goldCount, setGoldCount] = useState(0);
 
   useEffect(() => {
@@ -37,11 +40,9 @@ export default function GoldBuy() {
     }
   }, [goldPurchaseMessage]);
 
-  // back에 보낼 금 매입 개수 세팅
   const handleGoldCount = (value: number) => {
     const newGoldCount = goldCount + value;
 
-    // 최대 거래 가능 수량 넘으면 alert
     if (newGoldCount > MAX_TRADE_COUNT) {
       ToastAlert(`최대 거래 가능 수량은 ${MAX_TRADE_COUNT}개 입니다.`);
       return;
@@ -55,10 +56,9 @@ export default function GoldBuy() {
       return;
     }
 
-    setGoldCount(Math.max(0, newGoldCount)); // 수량이 0보다 작아지지 않도록
+    setGoldCount(Math.max(0, newGoldCount));
   };
 
-  // 매입 버튼: 서버로 goldCount 전송 !
   const handleBuying = () => {
     if (goldCount <= 0) {
       ToastAlert('금은 0개 이상 매입해야 합니다.');
@@ -66,6 +66,10 @@ export default function GoldBuy() {
     }
 
     purchaseGold(goldCount);
+
+    if (nickname) {
+      playSuccessGoldSound();
+    }
   };
 
   return (

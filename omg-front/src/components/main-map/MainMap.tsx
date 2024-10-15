@@ -201,6 +201,7 @@ export default function MainMap() {
 
     return () => clearTimeout(timer);
   }, [gameRoundMessage]);
+
   useEffect(() => {
     const audio = new Audio('/music/background.mp3');
     audio.loop = true;
@@ -265,7 +266,7 @@ export default function MainMap() {
               ? presentRound % 2 === 0
                 ? '/assets/night-sky.jpg'
                 : '/assets/morning-sky.jpg'
-              : '/assets/morning-sky.jpg' // 기본 배경 이미지
+              : '/assets/morning-sky.jpg'
           })`,
           opacity: 0.9,
         }}
