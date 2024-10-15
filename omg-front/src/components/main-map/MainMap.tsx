@@ -6,6 +6,7 @@ import {
   useMemo,
   useState,
 } from 'react';
+import { FaRobot } from 'react-icons/fa';
 import { IoVolumeHigh, IoVolumeMuteSharp } from 'react-icons/io5';
 
 import { CharacterInfo } from '@/assets/data/characterInfo';
@@ -41,6 +42,7 @@ import { KeyboardControls } from '@react-three/drei';
 import { Canvas } from '@react-three/fiber';
 import { Physics } from '@react-three/rapier';
 
+import ChatBotInteraction from '../chat/ChatBotInteraction';
 import GoldMarket from '../gold-market/GoldMarket';
 import LoanMarket from '../loan-market/LoanMarket';
 import MoneyCanvas from '../mini-game/money/MoneyCanvas';
@@ -83,6 +85,8 @@ export default function MainMap() {
   const { moneyPoints, resetCoordinateState } = useMiniMoneyStore();
 
   const [isChatOpen, setIsChatOpen] = useState(false);
+  const [isChatBotOpen, setIsChatBotOpen] = useState(false);
+
   const [isEventCardVisible, setIsEventCardVisible] = useState(false);
   const [isEventEffectVisible, setIsEventEffectVisible] = useState(false);
   const [isAlertVisible, setIsAlertVisible] = useState(false);
@@ -267,6 +271,10 @@ export default function MainMap() {
     setIsChatOpen(false);
   };
 
+  const toggleChatBot = () => {
+    setIsChatBotOpen(prev => !prev);
+  };
+
   return (
     <main className='relative w-full h-screen overflow-hidden'>
       {/* 배경 이미지 */}
@@ -375,14 +383,23 @@ export default function MainMap() {
         </div>
       )}
 
-      {/* 채팅 및 음소거, 종료 버튼 고정 렌더링 */}
+      {/* 채팅 / 개인 판 / 챗봇 & 음소거 & 종료 버튼 */}
       <section className='absolute bottom-0 left-0 z-10 flex items-end justify-between w-full p-6 text-white text-omg-40b'>
+        {/* 채팅 */}
         <ChatButton isWhite={true} onClick={openChattingModal} />
         {isChatOpen && <Chatting closeChattingModal={closeChattingModal} />}
 
-        {/* 개인판 영역 */}
+        {/* 개인 판 */}
         {isBoardVisible && <PersonalBoard />}
-        <div className='flex flex-col'>
+
+        <div className='relative flex flex-col'>
+          {/* 챗봇 */}
+          <button className='mb-4 text-omg-50b' onClick={toggleChatBot}>
+            <FaRobot />
+          </button>
+          {isChatBotOpen && <ChatBotInteraction />}
+
+          {/* 음소거 */}
           <button
             className='mb-4 text-omg-50b'
             onClick={toggleMute}
@@ -390,6 +407,8 @@ export default function MainMap() {
           >
             {isMuted ? <IoVolumeMuteSharp /> : <IoVolumeHigh />}
           </button>
+
+          {/* 종료 */}
           <ExitButton />
         </div>
       </section>

@@ -1,6 +1,7 @@
 export const END_POINT = {
   ROOM: 'rooms',
   CHAT: 'chats',
+  CHATBOT: 'chatbot',
 } as const;
 
 export const HTTP_STATUS_CODE = {
