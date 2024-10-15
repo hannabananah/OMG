@@ -9,18 +9,18 @@ export default function GameTotalResult() {
 
   return (
     <table className='w-full h-full text-left'>
-      <thead className='text-omg-20'>
+      <thead className='text-omg-24'>
         <tr>
-          <th className='pb-8'>🏆 순위</th>
-          <th className='pb-8'>🎅 유저 아이디</th>
-          <th className='pb-8'>🦌 보유 자산</th>
-          <th className='w-10 pb-8 '></th>
-          <th className='pb-8'>🎁 주식 최종액</th>
-          <th className='w-10 pb-8'></th>
+          <th className='w-16 pb-8'>🏆</th>
+          <th className='pb-8'>유저 아이디</th>
+          <th className='pb-8'>보유 자산</th>
+          <th className='w-24 pb-8'></th>
+          <th className='pb-8'>주식 최종액</th>
+          <th className='w-24 pb-8'></th>
           <th className='pb-8'>금괴 매입액</th>
-          <th className='w-10 pb-8'></th>
-          <th className='pb-8'>💰 대출액</th>
-          <th className='w-10 pb-8'></th>
+          <th className='w-24 pb-8'></th>
+          <th className='pb-8'>대출액</th>
+          <th className='w-24 pb-8'></th>
           <th className='pb-8'>총자산</th>
         </tr>
       </thead>
@@ -49,27 +49,23 @@ export default function GameTotalResult() {
               key={player.nickname}
               className={` text-omg-24 ${isCurrentUser ? 'font-bold text-green' : ''}`}
             >
-              <td className='text-center'>{rank}</td>
-              <td className='text-center'>{player.nickname}</td>
-              <td className='text-center'>
-                ${formatNumberWithCommas(finalCash)}
-              </td>
-              <td>+</td>
-              <td className='text-center'>
+              <td className='pb-6'>{rank}</td>
+              <td className='pb-6'>{player.nickname}</td>
+              <td className='pb-6'>${formatNumberWithCommas(finalCash)}</td>
+              <td className='pb-6'>+</td>
+              <td className='pb-6'>
                 ${formatNumberWithCommas(totalStockValue)}
               </td>
-              <td>+</td>
-              <td className='text-center'>
+              <td className='pb-6'>+</td>
+              <td className='pb-6'>
                 ${formatNumberWithCommas(totalGoldValue)}
               </td>
-              <td>-</td>
-              <td className='text-center'>
+              <td className='pb-6'>-</td>
+              <td className='pb-6'>
                 ${formatNumberWithCommas(player.finalDebt || 0)}
               </td>
-              <td>=</td>
-              <td className='text-center'>
-                ${formatNumberWithCommas(totalNetWorth)}
-              </td>
+              <td className='pb-6'>=</td>
+              <td className='pb-6'>${formatNumberWithCommas(totalNetWorth)}</td>
             </tr>
           );
         })}
