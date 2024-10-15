@@ -137,9 +137,6 @@ export const useCharacter = ({
     pickUpAction.play();
     setAction(pickUpAction);
     onActionToggleChange(true);
-    if (nickname) {
-      playGetCoinSound();
-    }
 
     setTimeout(() => {
       onActionToggleChange(false);
@@ -174,6 +171,9 @@ export const useCharacter = ({
         if (pointId) {
           pickUpAnimation();
           miniMoney(pointId);
+          if (nickname) {
+            playGetCoinSound();
+          }
         } else {
           console.log('주변에 코인이 없습니다.');
         }
