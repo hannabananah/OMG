@@ -1,4 +1,5 @@
 import { useContext, useEffect, useRef, useState } from 'react';
+import { TbSquareArrowDown } from 'react-icons/tb';
 
 import { Controls } from '@/components/main-map/MainMap';
 import { useCharacter } from '@/stores/useCharacter';
@@ -345,6 +346,7 @@ export default function Character({
   const handleCollisionEnter = () => {
     if (!showIntro && isOwnCharacter && !collisionRef.current) {
       collisionRef.current = true;
+      // console.log(collisionRef.current, '충돌 발생');
       prevPositionRef.current.copy(characterPosition);
     }
   };
@@ -352,8 +354,13 @@ export default function Character({
   const handleCollisionExit = () => {
     if (!showIntro && isOwnCharacter && collisionRef.current && backPressed) {
       collisionRef.current = false;
+      // console.log(collisionRef.current, '충돌 해제');
     }
   };
+
+  // useEffect(() => {
+  //   console.log('backPressed:', backPressed);
+  // }, [backPressed]);
 
   useEffect(() => {
     if (!isOwnCharacter) return;
@@ -572,6 +579,27 @@ export default function Character({
               >
                 <div className='flex items-center justify-center w-24 h-10 p-2 border-4 border-white font-omg-event-content bounce-animation bg-white1 text-nowrap bg-opacity-90 rounded-20'>
                   거래중...
+                </div>
+              </Html>,
+            );
+          }
+
+          if (collisionRef.current === true) {
+            flattenedItems.push(
+              <Html
+                key={`collision-${characterType}`}
+                position={[
+                  characterPosition.x,
+                  characterPosition.y + 3,
+                  characterPosition.z,
+                ]}
+                center
+              >
+                <div className='flex justify-center'>
+                  <TbSquareArrowDown className='mt-2 text-white text-omg-32' />
+                </div>
+                <div className='flex items-center justify-center w-auto h-10 p-2 border-4 border-white font-omg-event-content bounce-animation bg-white1 text-nowrap bg-opacity-90 rounded-20'>
+                  아래 방향키를 눌러서 장애물을 빠져나오세요!!
                 </div>
               </Html>,
             );
