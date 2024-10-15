@@ -2,7 +2,7 @@ import { useContext, useEffect, useRef, useState } from 'react';
 
 // import { TbSquareArrowDown } from 'react-icons/tb';
 import { Controls } from '@/components/main-map/MainMap';
-import { useCharacter } from '@/hooks/useCharacter';
+import { useCharacter } from '@/hooks';
 import {
   useGameStore,
   useIntroStore,
@@ -11,7 +11,7 @@ import {
   useMyRoomStore,
   useUser,
 } from '@/stores';
-import { SocketContext } from '@/utils/SocketContext';
+import { SocketContext } from '@/utils';
 import { Html, useKeyboardControls } from '@react-three/drei';
 import { useFrame } from '@react-three/fiber';
 import { CuboidCollider, RigidBody } from '@react-three/rapier';
@@ -146,14 +146,12 @@ export default function Character({
     animation: externalAnimationState,
   });
 
-  // 캐릭터 방향과 회전 설정
   const characterDirection = new THREE.Vector3(
     Math.sin(rotation),
     0,
     Math.cos(rotation),
   );
 
-  // 특정 거래소 좌표에 입장/퇴장한 유저에게만 해당 거래소 모달 열고 닫기
   const openMarketForPlayer = (modalId: string, playerNickname: string) => {
     if (!modals[playerNickname]?.[modalId]) {
       openModal(modalId, playerNickname);
@@ -165,10 +163,8 @@ export default function Character({
     }
   };
 
-  // 자기 방에 입장/퇴장한 유저에게만 자기 방 모달 열고 닫기
   const openModalForPlayer = (modalId: string, playerNickname: string) => {
     if (!modals[playerNickname]?.[modalId]) {
-      // 방 입장 중 메시지 표시
       setIsEnteringRoom(playerNickname, true);
       setTimeout(() => {
         setIsEnteringRoom(playerNickname, false);
@@ -178,7 +174,6 @@ export default function Character({
   };
   const closeModalForPlayer = (modalId: string, playerNickname: string) => {
     if (modals[playerNickname]?.[modalId]) {
-      // 방 퇴장 메시지 표시
       setIsExitingRoom(playerNickname, true);
       setIsFadingOut(true);
 
@@ -190,7 +185,6 @@ export default function Character({
     }
   };
 
-  // modal open close
   useEffect(() => {
     if (
       modals[nickname]?.loanMarket ||
@@ -203,7 +197,6 @@ export default function Character({
     }
   }, [modals, nickname]);
 
-  // 거래소 진입 시 카메라 전환
   useEffect(() => {
     if (marketType && !isCircling) {
       setIsCircling(true);
@@ -211,10 +204,8 @@ export default function Character({
   }, [marketType, isCircling]);
 
   useEffect(() => {
-    // 자신의 캐릭터가 아닌 경우 모달 제어 로직을 실행하지 않음
     if (!isOwnCharacter) return;
 
-    // 거래소
     const insideStockMarket = isInZone(characterPosition, zones.stockMarket);
     if (insideStockMarket && !isInStockMarketZone) {
       setIsInStockMarketZone(true);
@@ -255,12 +246,10 @@ export default function Character({
       setIsModalOpen(false);
     }
 
-    // 시장 영역 상태 업데이트
     setLocalIsTrading(
       insideStockMarket || insideLoanMarket || insideGoldMarket,
     );
 
-    // 자기 집
     const insideHouse =
       (characterType === 0 && isInZone(characterPosition, zones.santaHouse)) ||
       (characterType === 1 && isInZone(characterPosition, zones.elfHouse)) ||
@@ -270,11 +259,11 @@ export default function Character({
         isInZone(characterPosition, zones.gingerbreadHouse));
 
     if (insideHouse) {
-      setLocalIsTrading(true); // 집에 들어갔을 때 시장 영역 상태 업데이트
+      setLocalIsTrading(true);
     }
 
     // 자기 집
-    // 0: 산타 캐릭터일 때 산타 MyRoom 모달 열기
+    // 0: 산타 본인 MyRoom 모달 열기
     if (characterType === 0) {
       const insideSantaHouse = isInZone(characterPosition, zones.santaHouse);
       if (insideSantaHouse && !isInSantaHouseZone) {
@@ -286,7 +275,7 @@ export default function Character({
       }
     }
 
-    // 1 : 엘프 캐릭터일 때 엘프 MyRoom 모달 열기
+    // 1 : 엘프 본인 MyRoom 모달 열기
     if (characterType === 1) {
       const insideElfHouse = isInZone(characterPosition, zones.elfHouse);
       if (insideElfHouse && !isInElfHouseZone) {
@@ -298,7 +287,7 @@ export default function Character({
       }
     }
 
-    // 2 : 눈사람 캐릭터일 때 눈사람 MyRoom 모달 열기
+    // 2 : 눈사람 본인 MyRoom 모달 열기
     if (characterType === 2) {
       const insideSnowmanHouse = isInZone(
         characterPosition,
@@ -313,7 +302,7 @@ export default function Character({
       }
     }
 
-    // 3 : 진저브레드 캐릭터일 때 진저브레드 MyRoom 모달 열기
+    // 3 : 진저브레드 본인 MyRoom 모달 열기
     if (characterType === 3) {
       const insideGingerbreadHouse = isInZone(
         characterPosition,
@@ -344,7 +333,6 @@ export default function Character({
     }
   }, [actionToggle, isOwnCharacter]);
 
-  // 물리 충돌 이벤트 핸들러
   const handleCollisionEnter = () => {
     if (!showIntro && isOwnCharacter && !collisionRef.current) {
       collisionRef.current = true;
@@ -387,7 +375,6 @@ export default function Character({
     if (scene) {
       scene.rotation.y = rotation;
 
-      // 회전 처리: 키가 눌린 순간에만 회전
       if (rightPressed) {
         setRotation(rotation - Math.PI / 100); // 오른쪽 90도 회전
       }
@@ -397,7 +384,6 @@ export default function Character({
 
       if (isOwnCharacter) {
         const moveDistance = 0.3;
-        // 현재 캐릭터 위치 복사
         const newPosition = characterPosition.clone();
 
         if (collisionRef.current) {
@@ -419,7 +405,6 @@ export default function Character({
           newPosition.z -= Math.cos(rotation) * moveDistance;
         }
 
-        // 캐릭터 위치가 변했을 때만 서버로 전송
         if (!newPosition.equals(prevPositionRef.current)) {
           const positionArray = newPosition.toArray();
           const directionArray = [Math.sin(rotation), 0, Math.cos(rotation)];
@@ -433,11 +418,9 @@ export default function Character({
           );
           prevPositionRef.current.copy(newPosition);
         }
-        // 캐릭터 위치 업데이트
         setCharacterPosition(newPosition);
         scene.position.copy(newPosition);
 
-        // 걷기 및 달리기 상태
         if (
           movementStateRef.current === 'walking' ||
           movementStateRef.current === 'running'
@@ -449,18 +432,17 @@ export default function Character({
             Math.cos(rotation),
           );
 
-          // 키 입력에 따른 방향 설정 (전진/후진)
           if (forwardPressed) {
             const newForwardPosition = characterPosition
               .clone()
-              .add(forwardDirection.multiplyScalar(moveSpeed)); // 전진
+              .add(forwardDirection.multiplyScalar(moveSpeed));
             setCharacterPosition(newForwardPosition);
             scene.position.copy(newForwardPosition);
           }
           if (backPressed) {
             const newBackwardPosition = characterPosition
               .clone()
-              .add(forwardDirection.multiplyScalar(-moveSpeed)); // 후진
+              .add(forwardDirection.multiplyScalar(-moveSpeed));
             setCharacterPosition(newBackwardPosition);
             scene.position.copy(newBackwardPosition);
           }
@@ -532,7 +514,7 @@ export default function Character({
         colliders={false}
         lockRotations={true}
         onCollisionEnter={handleCollisionEnter}
-        restitution={0} // 반발력
+        restitution={0}
         friction={1}
       >
         <primitive

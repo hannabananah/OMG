@@ -1,5 +1,5 @@
 import { useGameResultStore, useUser } from '@/stores';
-import formatNumberWithCommas from '@/utils/formatNumberWithCommas';
+import { formatNumberWithCommas } from '@/utils';
 
 export default function GameTotalResult() {
   const { playerResults, finalGoldPrice, finalStockPrice } =

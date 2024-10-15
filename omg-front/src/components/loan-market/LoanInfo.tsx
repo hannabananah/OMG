@@ -1,9 +1,8 @@
 import { useEffect, useRef } from 'react';
 
-import useCountUp from '@/hooks/useCountUp';
+import { useCountUp } from '@/hooks';
 import { useLoanStore, useSocketMessage } from '@/stores';
-import { ToastAlert } from '@/utils/ToastAlert';
-import formatNumberWithCommas from '@/utils/formatNumberWithCommas';
+import { ToastAlert, formatNumberWithCommas } from '@/utils';
 
 export default function LoanInfo() {
   const { loanLimit, cash, totalDebt, setLoanData } = useLoanStore();

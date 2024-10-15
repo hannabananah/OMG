@@ -1,12 +1,8 @@
 import { useContext } from 'react';
 
-import {
-  getMaxPrice,
-  stockDataUntilNow,
-  treeItemNameInKorean,
-} from '@/hooks/useStock';
+import { getMaxPrice, stockDataUntilNow, treeItemNameInKorean } from '@/hooks';
 import { StockDataItem, StockDataItemInKorean } from '@/types';
-import { SocketContext } from '@/utils/SocketContext';
+import { SocketContext } from '@/utils';
 import { ResponsiveLine } from '@nivo/line';
 
 interface LineChartProps {

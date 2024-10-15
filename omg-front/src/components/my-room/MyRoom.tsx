@@ -12,7 +12,7 @@ import {
   Timer,
 } from '@/components/common';
 import { Item } from '@/components/stock-market';
-import { treeItemNameInKorean } from '@/hooks/useStock';
+import { treeItemNameInKorean } from '@/hooks';
 import {
   useGameStore,
   useMainBoardStore,
@@ -22,9 +22,7 @@ import {
   useSoundStore,
   useUser,
 } from '@/stores';
-import { SocketContext } from '@/utils/SocketContext';
-import { ToastAlert } from '@/utils/ToastAlert';
-import formatNumberWithCommas from '@/utils/formatNumberWithCommas';
+import { SocketContext, ToastAlert, formatNumberWithCommas } from '@/utils';
 import { Html, OrbitControls, RoundedBox } from '@react-three/drei';
 import { Canvas } from '@react-three/fiber';
 

@@ -1,4 +1,4 @@
-import { useFloatingObject } from '@/hooks/useFloatingObject';
+import { useFloatingObject } from '@/hooks';
 import { useGLTF } from '@react-three/drei';
 import * as THREE from 'three';
 
@@ -15,18 +15,16 @@ export default function Item({
   index,
   itemName,
 }: ItemProps) {
-  const { scene } = useGLTF(`/models/${itemName}/${itemName}.gltf`); // 전달된 모델 경로를 사용
+  const { scene } = useGLTF(`/models/${itemName}/${itemName}.gltf`);
 
   const itemPosition = new THREE.Vector3(
     position.x,
-    position.y + 5.5 + index * 0.5, // 인덱스에 따라 높이를 조정
+    position.y + 5.5 + index * 0.5,
     position.z,
   );
 
-  // 애니메이션 적용
   const ref = useFloatingObject(itemPosition.y);
 
-  // GLTF 모델 복제
   const clonedScene = scene.clone();
 
   return (
@@ -35,8 +33,8 @@ export default function Item({
       object={clonedScene}
       position={itemPosition}
       scale={[0.5, 0.5, 0.5]}
-      rotation={[0, 0, 0]} // 초기 회전 상태
-      style={disabled ? { pointerEvents: 'none' } : undefined} // 클릭 방지
+      rotation={[0, 0, 0]}
+      style={disabled ? { pointerEvents: 'none' } : undefined}
     />
   );
 }

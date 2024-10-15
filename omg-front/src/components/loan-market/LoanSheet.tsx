@@ -1,6 +1,5 @@
 import { useLoanStore } from '@/stores';
-import formatNumberWithCommas from '@/utils/formatNumberWithCommas';
-import { formatTime } from '@/utils/formatTime';
+import { formatNumberWithCommas, formatTime } from '@/utils';
 
 const headers = [
   '대출한 ROUND',

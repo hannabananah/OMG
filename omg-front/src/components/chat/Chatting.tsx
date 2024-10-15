@@ -3,7 +3,7 @@ import { TbFoldDown } from 'react-icons/tb';
 
 import ChatInputForm from '@/components/chat/ChatInputForm';
 import ChatMessage from '@/components/chat/ChatMessage';
-import { SocketContext } from '@/utils/SocketContext';
+import { SocketContext } from '@/utils';
 
 interface ChattingProps {
   closeChattingModal: () => void;

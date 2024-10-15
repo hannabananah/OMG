@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 
 import { RoundProps } from '@/components/common/Round';
-import { formatTime } from '@/utils/formatTime';
+import { formatTime } from '@/utils';
 
 export default function Timer({
   time,

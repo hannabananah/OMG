@@ -3,7 +3,7 @@ import {
   getCharacterImageByNickname,
   getPossessionData,
   getTreeItemImagePath,
-} from '@/hooks/useStock';
+} from '@/hooks';
 import { useGameStore, useStockStore } from '@/stores';
 import { Player, StockItem } from '@/types';
 import { AxisTickProps } from '@nivo/axes';

@@ -9,9 +9,7 @@ import {
   useSoundStore,
   useUser,
 } from '@/stores';
-import { SocketContext } from '@/utils/SocketContext';
-import { ToastAlert } from '@/utils/ToastAlert';
-import formatNumberWithCommas from '@/utils/formatNumberWithCommas';
+import { SocketContext, ToastAlert, formatNumberWithCommas } from '@/utils';
 import { Canvas } from '@react-three/fiber';
 
 import GoldModel from './GoldModel';

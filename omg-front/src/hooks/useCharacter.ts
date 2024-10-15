@@ -1,7 +1,7 @@
 import { useCallback, useContext, useEffect, useRef, useState } from 'react';
 
 import { isPoint, point } from '@/assets/data/coinLocation';
-import { SocketContext } from '@/utils/SocketContext';
+import { SocketContext } from '@/utils';
 import { useGLTF } from '@react-three/drei';
 import * as THREE from 'three';
 

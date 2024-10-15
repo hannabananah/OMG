@@ -1,10 +1,8 @@
 // import { goldPossessionInfo, players } from '@/assets/data/goldMarketData';
-import { useGoldPossessionData } from '@/hooks/useGold';
-import { getCharacterImageByNickname } from '@/hooks/useStock';
+import { getCharacterImageByNickname, useGoldPossessionData } from '@/hooks';
 import { useGameStore, useGoldStore } from '@/stores';
 import { ResponsiveBar } from '@nivo/bar';
 
-// 커스텀 레이블 추가: 주식별 퍼센트 옆에 캐릭터 이미지 추가
 const CustomLabels = ({ bars, players }: any) => {
   return (
     <g>
@@ -12,7 +10,6 @@ const CustomLabels = ({ bars, players }: any) => {
         const playerName = bar.data.id;
         const possessionRate = Math.round(bar.data.data[playerName]);
 
-        // 지분 없으면 이미지 렌더링하지 않음
         if (!possessionRate) {
           return null;
         }
@@ -48,25 +45,23 @@ const CustomLabels = ({ bars, players }: any) => {
 };
 
 export default function PossessionChart() {
-  // 서버에서 플레이어 닉네임, 보유 금 수량 받아오기
   const { playerGoldCounts, playerNicknames } = useGoldStore();
 
   const { gameData } = useGameStore();
   const players = gameData?.players || [];
 
-  // 차트 데이터 생성
   const chartData = useGoldPossessionData(playerGoldCounts, playerNicknames);
 
   return (
     <ResponsiveBar
       data={chartData}
-      keys={[...playerNicknames]} // 플레이어 이름
-      indexBy='gold' // '금' 항목
+      keys={[...playerNicknames]}
+      indexBy='gold'
       margin={{ top: 10, right: 30, bottom: 80, left: 80 }}
       padding={0.3}
-      layout='horizontal' // 수평형 바 차트
+      layout='horizontal'
       valueScale={{ type: 'linear' }}
-      colors={['#FE3439', '#22D007', '#FBCE04', '#547EFF', '#23A50F']} // 플레이어 별로 각기 다른 색상 지정
+      colors={['#FE3439', '#22D007', '#FBCE04', '#547EFF', '#23A50F']}
       axisBottom={{
         tickSize: 5,
         tickPadding: 5,
@@ -75,14 +70,14 @@ export default function PossessionChart() {
         legendPosition: 'middle',
         legendOffset: 48,
       }}
-      label={() => ''} // 기존 텍스트 라벨 숨기기
+      label={() => ''}
       layers={[
         'grid',
         'axes',
         'bars',
         'markers',
         'legends',
-        props => <CustomLabels {...props} players={players} />, // 커스텀 레이블 추가
+        props => <CustomLabels {...props} players={players} />,
       ]}
       theme={{
         grid: {
