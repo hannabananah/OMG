@@ -84,8 +84,13 @@ export default function MainMap() {
   const { eventCardMessage, eventEffectMessage, gameRoundMessage } =
     useSocketMessage();
   const { moneyPoints, resetCoordinateState } = useMiniMoneyStore();
-  const { isMuted, setBgm, toggleMute, playNotificationSound } =
-    useSoundStore();
+  const {
+    isMuted,
+    setBgm,
+    toggleMute,
+    playNotificationSound,
+    playEndRoundSound,
+  } = useSoundStore();
   const [isChatOpen, setIsChatOpen] = useState(false);
   const [isChatBotOpen, setIsChatBotOpen] = useState(false);
 
@@ -172,6 +177,10 @@ export default function MainMap() {
         setIsKeyboardPossible(false);
         setIsTimerVisible(false);
         resetCoordinateState();
+
+        if (nickname) {
+          playEndRoundSound();
+        }
         break;
       case 'ROUND_START':
         closeTutorialModal();
