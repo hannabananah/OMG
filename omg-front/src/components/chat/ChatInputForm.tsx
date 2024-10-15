@@ -16,10 +16,10 @@ export default function ChatInputForm({
   };
 
   return (
-    <form onSubmit={handleSubmit} className='flex w-full text-omg-14'>
+    <form onSubmit={handleSubmit} className='flex w-full text-omg-20'>
       <input
         type='text'
-        className='w-full p-2 mt-2 text-black rounded-b-10 border-t-1 border-lightgray caret-lightgray font-omg-chat'
+        className='w-full p-2 pl-4 mt-2 text-black rounded-b-10 border-t-1 border-lightgray caret-lightgray font-omg-chat'
         onChange={handleInputChange}
         value={msg}
         placeholder='메시지를 입력하세요...'

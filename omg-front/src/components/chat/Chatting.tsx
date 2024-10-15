@@ -13,6 +13,7 @@ export default function Chatting({ closeChattingModal }: ChattingProps) {
   const { sendMessage, chatMessages } = useContext(SocketContext);
 
   const [msg, setMsg] = useState<string>('');
+  const [isOpen, setIsOpen] = useState<boolean>(false);
   const chatRef = useRef<HTMLDivElement | null>(null);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -28,6 +29,10 @@ export default function Chatting({ closeChattingModal }: ChattingProps) {
   };
 
   useEffect(() => {
+    setIsOpen(true);
+  }, []);
+
+  useEffect(() => {
     if (chatRef.current) {
       const newHeight = chatRef.current.scrollHeight;
       chatRef.current.scrollTop = newHeight;
@@ -35,10 +40,17 @@ export default function Chatting({ closeChattingModal }: ChattingProps) {
   }, [chatMessages]);
 
   return (
-    <div className='absolute z-30 w-[300px] py-3 mb-6 bg-white bg-opacity-90 h-52 rounded-t-10 text-omg-14 font-omg-chat'>
+    <div
+      className={`absolute z-30 w-[600px] py-3 mb-10 bg-white bg-opacity-90 h-72 rounded-t-10 text-omg-24 font-omg-chat 
+        ${isOpen ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-full'} 
+        transition-all duration-500 ease-in-out`}
+    >
       <button
         className='absolute p-2 -m-2 text-gray hover:text-black top-2 right-4'
-        onClick={closeChattingModal}
+        onClick={() => {
+          setIsOpen(false);
+          setTimeout(closeChattingModal, 500);
+        }}
       >
         <TbFoldDown size={24} />
       </button>
