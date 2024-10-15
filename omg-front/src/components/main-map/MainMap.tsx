@@ -233,7 +233,9 @@ export default function MainMap() {
   }, [isMuted, setBgm]);
 
   const handleNotificationSound = () => {
-    playNotificationSound();
+    if (!nickname) {
+      playNotificationSound();
+    }
   };
 
   const characterKeys = Object.keys(CharacterInfo) as Array<

@@ -1,7 +1,6 @@
 import { useCallback, useContext, useEffect, useRef, useState } from 'react';
 
 import { isPoint, point } from '@/assets/data/coinLocation';
-import { useSoundStore, useUser } from '@/stores';
 import { SocketContext } from '@/utils/SocketContext';
 import { useGLTF } from '@react-three/drei';
 import * as THREE from 'three';
@@ -25,8 +24,6 @@ export const useCharacter = ({
   onActionToggleChange,
   animation,
 }: Props) => {
-  const { nickname } = useUser();
-  const { playGetCoinSound } = useSoundStore();
   const { scene, animations } = useGLTF(characterURL);
   const mixer = useRef<THREE.AnimationMixer | null>(null);
   const [action, setAction] = useState<THREE.AnimationAction | null>(null);
@@ -116,10 +113,9 @@ export const useCharacter = ({
 
     activeKeys.current.delete(event.key);
 
-    // activeKeys가 비어 있으면 캐릭터를 idle 상태로 전환
     if (activeKeys.current.size === 0) {
-      setAnimationState('idle'); // 캐릭터를 idle 상태로 설정
-      setIsMoving(false); // 이동 중인 상태를 false로 설정
+      setAnimationState('idle');
+      setIsMoving(false);
       if (runTimeoutRef.current) {
         clearTimeout(runTimeoutRef.current);
         runTimeoutRef.current = null;
@@ -170,9 +166,6 @@ export const useCharacter = ({
         if (pointId) {
           pickUpAnimation();
           miniMoney(pointId);
-          if (nickname) {
-            playGetCoinSound();
-          }
         } else {
           console.log('주변에 코인이 없습니다.');
         }
