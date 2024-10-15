@@ -64,3 +64,21 @@ export const hasWaitingRoom = async (
   });
   return response.data;
 };
+
+// 챗봇 요청
+export const requestChatBot = async (
+  sender: string,
+  roomId: string,
+  message: string,
+): Promise<string | null> => {
+  // 쿼리 파라미터로 roomId, sender, message를 GET 요청으로 전송
+  const response = await axiosInstance.get(`${END_POINT.CHATBOT}/response`, {
+    params: {
+      sender,
+      roomId,
+      message,
+    },
+  });
+
+  return response.data;
+};
