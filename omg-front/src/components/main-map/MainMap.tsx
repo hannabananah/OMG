@@ -90,6 +90,7 @@ export default function MainMap() {
     toggleMute,
     playNotificationSound,
     playEndRoundSound,
+    playChangePriceSound,
   } = useSoundStore();
   const [isChatOpen, setIsChatOpen] = useState(false);
   const [isChatBotOpen, setIsChatBotOpen] = useState(false);
@@ -157,6 +158,7 @@ export default function MainMap() {
     if (gameRoundMessage.message.includes('주가')) {
       setStockChangeAlertMessage(gameRoundMessage.message);
       setStockChangeAlertVisible(true);
+      playChangePriceSound();
 
       // 5초 후에 알림을 사라지게 설정
       const timer = setTimeout(() => {
@@ -166,7 +168,6 @@ export default function MainMap() {
     }
   }, [gameRoundMessage.message]);
 
-  // TODO: 삭제해야됨, 라운드 알림 모달
   useEffect(() => {
     if (!gameRoundMessage.message) return;
 
@@ -178,9 +179,7 @@ export default function MainMap() {
         setIsTimerVisible(false);
         resetCoordinateState();
 
-        if (nickname) {
-          playEndRoundSound();
-        }
+        playEndRoundSound();
         break;
       case 'ROUND_START':
         closeTutorialModal();

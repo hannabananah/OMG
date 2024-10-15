@@ -12,6 +12,7 @@ interface SoundStore {
   playGetCoinSound: () => void;
   playGetChatAnswerSound: () => void;
   playEndRoundSound: () => void;
+  playChangePriceSound: () => void;
 }
 
 export const useSoundStore = create<SoundStore>(set => ({
@@ -127,5 +128,19 @@ export const useSoundStore = create<SoundStore>(set => ({
         return {};
       });
     }, 10000);
+  },
+
+  playChangePriceSound: () => {
+    const alertSound = new Audio('/music/change-price-alert.mp3');
+    alertSound.play();
+
+    setTimeout(() => {
+      set(state => {
+        if (state.bgm && !state.isMuted) {
+          state.bgm.play();
+        }
+        return {};
+      });
+    }, 4000);
   },
 }));
