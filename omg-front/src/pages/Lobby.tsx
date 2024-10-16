@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { FaCopy } from 'react-icons/fa';
 import { useNavigate } from 'react-router-dom';
 
+import { nicknameData } from '@/assets/data/nicknameData';
 import { ExitButton } from '@/components/common';
 import { useCreateWaitingRoom, useHasWaitingRoom } from '@/hooks';
 import { useUser } from '@/stores';
@@ -15,8 +16,8 @@ export default function Lobby() {
   const roomCodeInputRef = useRef<HTMLInputElement | null>(null);
 
   useEffect(() => {
-    const uniqueId = Math.floor(Math.random() * 9000) + 1000;
-    const uniqueNickname = `user${uniqueId}`;
+    const randomIndex = Math.floor(Math.random() * nicknameData.length);
+    const uniqueNickname = nicknameData[randomIndex];
     setNickname(uniqueNickname);
   }, [setNickname]);
 
