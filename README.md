@@ -820,6 +820,10 @@ OMG와 함께 재미있고 직관적으로 경제 개념을 학습해보세요!
 
 ---
 
+| <img src="https://avatars.githubusercontent.com/u/166114025?v=4" width="150" height="150"/> | <img src="https://avatars.githubusercontent.com/u/96603129?v=4" width="150" height="150"/> | <img src="https://avatars.githubusercontent.com/u/156046839?v=4" width="150" height="150"/> | <img src="https://avatars.githubusercontent.com/u/133928653?v=4" width="150" height="150"/> | <img src="https://avatars.githubusercontent.com/u/48985475?v=4" width="150" height="150"/> | <img src="https://avatars.githubusercontent.com/u/77835002?v=4" width="150" height="150"/> |
+| :----------------------------------------------------------------------------------------: | :-----------------------------------------------------------------------------------------: | :----------------------------------------------------------------------------------------: | :-----------------------------------------------------------------------------------------: | :-----------------------------------------------------------------------------------------: | :----------------------------------------------------------------------------------------: |
+|               [강다현<br>@hyun3745](https://github.com/hyun3745)<br/>`FRONTEND`                |       [강한나<br>@hannabananah](https://github.com/hannabananah)<br/>`LEADER`<br>`MAIN FRONTEND`        |         [김현재<br>@Kguswo](https://github.com/Kguswo)<br/>`MAIN BACKEND`<br>`AI`          |           [박희연<br>@hi-react](https://github.com/hi-react)<br/>`FRONTEND` <br> `AI`           |                [이가은<br>@Celinemad](https://github.com/Celinemad)<br/>`BACKEND`                 |          [전정민<br>@imjm](https://github.com/imjm)<br/>`BACKEND`<br>`INFRA`           |
+
 <br />
 <div id="산출물"></div>
 
