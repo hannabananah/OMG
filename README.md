@@ -770,13 +770,13 @@ OMG와 함께 재미있고 직관적으로 경제 개념을 학습해보세요!
 
 ---
 
-### 메인 화면
+### 방 생성 및 게임 시작
 
-### 방 생성 및 참여
-
-### 게임 시작
+![alt text](assets/intro.gif)
 
 ### 튜토리얼
+
+![alt text](assets/tutorial.gif)
 
 ### 대출 및 상환
 
@@ -793,6 +793,18 @@ OMG와 함께 재미있고 직관적으로 경제 개념을 학습해보세요!
 ### 금 매입
 
 ![alt text](assets/gold.gif)
+
+### 주가변동 발생
+
+![alt text](assets/fluctuateStock.gif)
+
+### 미니맵
+
+![alt text](assets/minimap.gif)
+
+### 플레이어 간 상호작용
+
+![alt text](assets/movePlayer.gif)
 
 ### 돈 줍기 행동
 
