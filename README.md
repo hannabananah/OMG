@@ -787,7 +787,7 @@ OMG와 함께 재미있고 직관적으로 경제 개념을 학습해보세요!
 -   실시간 거래상황을 확인할 수 있습니다.
 -   다른 플레이어와 가까워지면 상대방의 실시간 순위를 확인할 수 있습니다.
 
-    ![alt text](assets/movePlayer.gif)
+![alt text](assets/movePlayer.gif)
 
 ### 대출 및 상환
 
@@ -821,12 +821,13 @@ OMG와 함께 재미있고 직관적으로 경제 개념을 학습해보세요!
 -   주식 매도 행위가 일어나면, 주가 변동을 위한 게이지가 20%씩 상승합니다.
 -   주식 매수 또는 금 매입 행위가 일어나면, 내부 로직에 따라 주가 변동이 가능합니다.
 
-    ![alt text](assets/fluctuateStock.gif)
+![alt text](assets/fluctuateStock.gif)
 
 ### 돈 줍기 행동
 
 -   스페이스 바를 통해 행운의 코인을 획득할 수 있습니다.
-    ![alt text](assets/pickup.gif)
+
+![alt text](assets/pickup.gif)
 
 ### 개인 집 방문
 
@@ -834,17 +835,20 @@ OMG와 함께 재미있고 직관적으로 경제 개념을 학습해보세요!
 -   주식을 매수하면, 한 라운드가 끝나기 전에 자신의 집에 가지고 와야 합니다. (penalty: 현금 감소)
 -   주식을 매도하려면, 집에서 주식을 챙겨가야 합니다.
 -   주식을 챙기면, 머리 위 선물 주머니에 담아 가지고 이동할 수 있습니다.
-    ![alt text](assets/myhome.gif)
+
+![alt text](assets/myhome.gif)
 
 ### 챗봇
 
 -   우측 하단의 챗봇 아이콘을 토글하여 AI 챗봇에게 투자 조언을 구할 수 있습니다.
-    ![alt text](assets/chatbot.gif)
+
+![alt text](assets/chatbot.gif)
 
 ### 라운드 종료 및 대출 이자 변동
 
 -   한 라운드가 끝나면, 해당 라운드에서 대출한 금액 및 금리를 고려해 이자가 부여됩니다.
-    ![라운드 종료 및 대출 이자 변동](assets/afterroundend.gif)
+
+![라운드 종료 및 대출 이자 변동](assets/afterroundend.gif)
 
 <br>
 <div id="개발-팀-소개"></div>
