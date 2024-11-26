@@ -3,6 +3,7 @@
 ![OMG-INTRO-GIF](https://github.com/user-attachments/assets/02a1d0b4-352b-4e53-a179-4d24eac1ae47)
 
 ### Samsung Software Academy For Youth 11th - 특화 프로젝트
+#### RTF와 WebSocket을 활용한 투자 전략 실시간 웹게임
 
 > 2024.08.19 ~ 2024.10.16
 
